@@ -78,7 +78,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			if (keyboardInput.IsPressed(Key.Esc) && !previousKeyboardInput.IsPressed(Key.Esc) && !this.gameLogic.Tux.IsDead)
-				return new PauseMenuFrame(globalState: this.globalState, sessionState: this.sessionState, underlyingFrame: this, showRestartLevelOption: true);
+				return new PauseMenuFrame(globalState: this.globalState, sessionState: this.sessionState, underlyingFrame: this, showRestartLevelOption: true, showBackToMapOption: true);
 
 			Move move = new Move(
 				jumped: keyboardInput.IsPressed(Key.Z),
@@ -177,41 +177,30 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			{
 				this.hasStartedLevelTransition = true;
 
-				if (this.sessionState.CurrentLevel < 5)
+				bool isLastLevel = this.sessionState.CurrentLevel.Value.IsLastLevel();
+
+				this.sessionState.CompleteLevel(
+					level: this.sessionState.CurrentLevel.Value,
+					canUseSaveStates: this.gameLogic.CanUseSaveStates,
+					canUseTimeSlowdown: this.gameLogic.CanUseTimeSlowdown,
+					canUseTeleport: this.gameLogic.CanUseTeleport);
+
+				this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
+
+				if (!isLastLevel)
 				{
-					int newLevelNumber = this.sessionState.CurrentLevel + 1;
-
-					this.sessionState.StartLevel(
-						levelNumber: newLevelNumber,
-						windowWidth: this.globalState.WindowWidth,
-						windowHeight: this.globalState.WindowHeight,
-						mapInfo: this.globalState.MapInfo);
-
-					this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
-
-					IFrame<GameImage, GameFont, GameSound, GameMusic> newFrame = GetGameFrame(
-						globalState: this.globalState,
-						sessionState: this.sessionState,
-						displayProcessing: displayProcessing,
-						soundOutput: soundOutput,
-						musicProcessing: musicProcessing);
+					IFrame<GameImage, GameFont, GameSound, GameMusic> newFrame = new OverworldFrame(globalState: this.globalState, sessionState: this.sessionState);
 
 					return new LevelTransitionFrame(
 						globalState: this.globalState,
-						sessionState: this.sessionState,
 						previousFrame: this,
-						newFrame: newFrame,
-						showRestartLevelOptionInPauseMenuOnFadeOut: true,
-						showRestartLevelOptionInPauseMenuOnFadeIn: true);
+						newFrame: newFrame);
 				}
 
 				return new LevelTransitionFrame(
 					globalState: this.globalState,
-					sessionState: this.sessionState,
 					previousFrame: this,
-					newFrame: new VictoryScreenFrame(globalState: this.globalState, sessionState: this.sessionState),
-					showRestartLevelOptionInPauseMenuOnFadeOut: true,
-					showRestartLevelOptionInPauseMenuOnFadeIn: false);
+					newFrame: new VictoryScreenFrame(globalState: this.globalState, sessionState: this.sessionState));
 			}
 
 			return this;
@@ -219,6 +208,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public void ProcessExtraTime(int milliseconds)
 		{
+		}
+
+		public string GetClickUrl()
+		{
+			return null;
 		}
 
 		public void ProcessMusic()

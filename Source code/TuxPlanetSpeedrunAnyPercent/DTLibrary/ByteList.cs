@@ -78,6 +78,17 @@ namespace DTLibrary
 				this.list.Add((byte)b8);
 			}
 
+			public void AddNullableInt(int? i)
+			{
+				if (i == null)
+					this.AddBool(false);
+				else
+				{
+					this.AddBool(true);
+					this.AddInt(i.Value);
+				}
+			}
+
 			public void AddNullableLong(long? l)
 			{
 				if (l == null)
@@ -258,6 +269,19 @@ namespace DTLibrary
 				long l8 = b8 << 56;
 
 				return l1 | l2 | l3 | l4 | l5 | l6 | l7 | l8;
+			}
+
+			/// <summary>
+			/// Can possibly throw DTDeserializationException
+			/// </summary>
+			public int? TryPopNullableInt()
+			{
+				bool b = this.TryPopBool();
+
+				if (!b)
+					return null;
+
+				return this.TryPopInt();
 			}
 
 			/// <summary>

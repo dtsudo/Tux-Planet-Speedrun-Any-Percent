@@ -3,6 +3,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
 	public class ArrayUtil
 	{
+		public static T[][] ShallowCopyTArray<T>(T[][] array)
+		{
+			T[][] newArray = new T[array.Length][];
+
+			for (int i = 0; i < newArray.Length; i++)
+			{
+				newArray[i] = new T[array[i].Length];
+				for (int j = 0; j < newArray[i].Length; j++)
+					newArray[i][j] = array[i][j];
+			}
+
+			return newArray;
+		}
+
 		public static bool[][] CopyBoolArray(bool[][] array)
 		{
 			bool[][] newArray = new bool[array.Length][];

@@ -23,6 +23,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 		}
 
+		public string GetClickUrl()
+		{
+			return null;
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,
@@ -42,30 +47,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				soundOutput.PlaySound(GameSound.Click);
 
-				this.sessionState.StartLevel(levelNumber: 1, windowWidth: this.globalState.WindowWidth, windowHeight: this.globalState.WindowHeight, mapInfo: this.globalState.MapInfo);
-
 				this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 
-				IFrame<GameImage, GameFont, GameSound, GameMusic> newFrame = GameFrame.GetGameFrame(
-					globalState: this.globalState,
-					sessionState: this.sessionState,
-					displayProcessing: displayProcessing,
-					soundOutput: soundOutput,
-					musicProcessing: musicProcessing);
-					
-				return new LevelTransitionFrame(
-					globalState: this.globalState, 
-					sessionState: this.sessionState, 
-					previousFrame: this,
-					newFrame: newFrame,
-					showRestartLevelOptionInPauseMenuOnFadeOut: false,
-					showRestartLevelOptionInPauseMenuOnFadeIn: true);
+				return new OverworldFrame(globalState: this.globalState, sessionState: this.sessionState);
 			}
 
 			if (keyboardInput.IsPressed(Key.Esc) && !previousKeyboardInput.IsPressed(Key.Esc))
 			{
 				soundOutput.PlaySound(GameSound.Click);
-				return new PauseMenuFrame(globalState: this.globalState, sessionState: this.sessionState, underlyingFrame: this, showRestartLevelOption: false);
+				return new PauseMenuFrame(globalState: this.globalState, sessionState: this.sessionState, underlyingFrame: this, showRestartLevelOption: false, showBackToMapOption: false);
 			}
 
 			return this;

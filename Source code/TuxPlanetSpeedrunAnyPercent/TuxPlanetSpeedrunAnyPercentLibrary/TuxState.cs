@@ -2,6 +2,7 @@
 namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
 	using DTLibrary;
+	using System;
 	using System.Collections.Generic;
 
 	public class TuxState
@@ -14,6 +15,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<bool> previousJumps,
 			bool isOnGround,
 			int? lastTimeOnGround,
+			Tuple<int, int> teleportStartingLocation,
+			int? teleportInProgressElapsedMicros,
+			int? teleportCooldown,
+			bool hasAlreadyUsedTeleport,
 			int spriteElapsedMicros,
 			int? hasFinishedLevelElapsedMicros,
 			bool isStillHoldingJumpButton,
@@ -27,6 +32,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.PreviousJumps = new List<bool>(previousJumps);
 			this.IsOnGround = isOnGround;
 			this.LastTimeOnGround = lastTimeOnGround;
+			this.TeleportStartingLocation = teleportStartingLocation;
+			this.TeleportInProgressElapsedMicros = teleportInProgressElapsedMicros;
+			this.TeleportCooldown = teleportCooldown;
+			this.HasAlreadyUsedTeleport = hasAlreadyUsedTeleport;
 			this.SpriteElapsedMicros = spriteElapsedMicros;
 			this.HasFinishedLevelElapsedMicros = hasFinishedLevelElapsedMicros;
 			this.IsStillHoldingJumpButton = isStillHoldingJumpButton;
@@ -49,6 +58,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public int? LastTimeOnGround { get; private set; }
 		public const int LAST_TIME_ON_GROUND_BUFFER_DURATION = 1000 * 500;
+
+		public Tuple<int, int> TeleportStartingLocation { get; private set; }
+		public int? TeleportInProgressElapsedMicros { get; private set; }
+		public const int TELEPORT_DURATION = 150 * 1000;
+		public int? TeleportCooldown { get; private set; }
+		public const int TELEPORT_COOLDOWN = 10 * 1000;
+		public bool HasAlreadyUsedTeleport { get; private set; }
 
 		public int SpriteElapsedMicros { get; private set; }
 
@@ -78,6 +94,31 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				previousJumps: this.PreviousJumps,
 				isOnGround: this.IsOnGround,
 				lastTimeOnGround: this.LastTimeOnGround,
+				teleportStartingLocation: this.TeleportStartingLocation,
+				teleportInProgressElapsedMicros: this.TeleportInProgressElapsedMicros,
+				teleportCooldown: this.TeleportCooldown,
+				hasAlreadyUsedTeleport: this.HasAlreadyUsedTeleport,
+				spriteElapsedMicros: this.SpriteElapsedMicros,
+				hasFinishedLevelElapsedMicros: this.HasFinishedLevelElapsedMicros,
+				isStillHoldingJumpButton: this.IsStillHoldingJumpButton,
+				isDeadElapsedMicros: this.IsDeadElapsedMicros,
+				isFacingRight: this.IsFacingRight);
+		}
+
+		public TuxState SetLastTimeOnGround(int? lastTimeOnGround)
+		{
+			return new TuxState(
+				xMibi: this.XMibi,
+				yMibi: this.YMibi,
+				xSpeedInMibipixelsPerSecond: this.XSpeedInMibipixelsPerSecond,
+				ySpeedInMibipixelsPerSecond: this.YSpeedInMibipixelsPerSecond,
+				previousJumps: this.PreviousJumps,
+				isOnGround: this.IsOnGround,
+				lastTimeOnGround: lastTimeOnGround,
+				teleportStartingLocation: this.TeleportStartingLocation,
+				teleportInProgressElapsedMicros: this.TeleportInProgressElapsedMicros,
+				teleportCooldown: this.TeleportCooldown,
+				hasAlreadyUsedTeleport: this.HasAlreadyUsedTeleport,
 				spriteElapsedMicros: this.SpriteElapsedMicros,
 				hasFinishedLevelElapsedMicros: this.HasFinishedLevelElapsedMicros,
 				isStillHoldingJumpButton: this.IsStillHoldingJumpButton,
@@ -95,9 +136,34 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				previousJumps: this.PreviousJumps,
 				isOnGround: this.IsOnGround,
 				lastTimeOnGround: this.LastTimeOnGround,
+				teleportStartingLocation: this.TeleportStartingLocation,
+				teleportInProgressElapsedMicros: this.TeleportInProgressElapsedMicros,
+				teleportCooldown: this.TeleportCooldown,
+				hasAlreadyUsedTeleport: this.HasAlreadyUsedTeleport,
 				spriteElapsedMicros: this.SpriteElapsedMicros,
 				hasFinishedLevelElapsedMicros: this.HasFinishedLevelElapsedMicros,
 				isStillHoldingJumpButton: isStillHoldingJumpButton,
+				isDeadElapsedMicros: this.IsDeadElapsedMicros,
+				isFacingRight: this.IsFacingRight);
+		}
+
+		public TuxState SetHasAlreadyUsedTeleport(bool hasAlreadyUsedTeleport)
+		{
+			return new TuxState(
+				xMibi: this.XMibi,
+				yMibi: this.YMibi,
+				xSpeedInMibipixelsPerSecond: this.XSpeedInMibipixelsPerSecond,
+				ySpeedInMibipixelsPerSecond: this.YSpeedInMibipixelsPerSecond,
+				previousJumps: this.PreviousJumps,
+				isOnGround: this.IsOnGround,
+				lastTimeOnGround: this.LastTimeOnGround,
+				teleportStartingLocation: this.TeleportStartingLocation,
+				teleportInProgressElapsedMicros: this.TeleportInProgressElapsedMicros,
+				teleportCooldown: this.TeleportCooldown,
+				hasAlreadyUsedTeleport: hasAlreadyUsedTeleport,
+				spriteElapsedMicros: this.SpriteElapsedMicros,
+				hasFinishedLevelElapsedMicros: this.HasFinishedLevelElapsedMicros,
+				isStillHoldingJumpButton: this.IsStillHoldingJumpButton,
 				isDeadElapsedMicros: this.IsDeadElapsedMicros,
 				isFacingRight: this.IsFacingRight);
 		}
@@ -112,6 +178,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				previousJumps: new List<bool>(),
 				isOnGround: false,
 				lastTimeOnGround: null,
+				teleportStartingLocation: null,
+				teleportInProgressElapsedMicros: null,
+				teleportCooldown: null,
+				hasAlreadyUsedTeleport: true,
 				spriteElapsedMicros: 0,
 				hasFinishedLevelElapsedMicros: null,
 				isStillHoldingJumpButton: false,
@@ -141,6 +211,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				previousJumps: new List<bool>(),
 				isOnGround: false,
 				lastTimeOnGround: null,
+				teleportStartingLocation: null,
+				teleportInProgressElapsedMicros: null,
+				teleportCooldown: null,
+				hasAlreadyUsedTeleport: false,
 				spriteElapsedMicros: 0,
 				hasFinishedLevelElapsedMicros: null,
 				isStillHoldingJumpButton: false,

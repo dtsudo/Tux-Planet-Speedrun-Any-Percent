@@ -13,16 +13,19 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			public TilemapWithOffset(
 				ITilemap tilemap,
 				int xOffset,
-				int yOffset)
+				int yOffset,
+				bool alwaysIncludeTilemap)
 			{
 				this.Tilemap = tilemap;
 				this.XOffset = xOffset;
 				this.YOffset = yOffset;
+				this.AlwaysIncludeTilemap = alwaysIncludeTilemap;
 			}
 
 			public ITilemap Tilemap { get; private set; }
 			public int XOffset { get; private set; }
 			public int YOffset { get; private set; }
+			public bool AlwaysIncludeTilemap { get; private set; }
 		}
 
 		private List<TilemapWithOffset> tilemaps;
@@ -51,7 +54,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return tilemaps.Select(t => new TilemapWithOffset(
 				tilemap: t.Tilemap,
 				xOffset: t.XOffset - minX.Value,
-				yOffset: t.YOffset - minY.Value)).ToList();
+				yOffset: t.YOffset - minY.Value,
+				alwaysIncludeTilemap: t.AlwaysIncludeTilemap)).ToList();
 		}
 
 		public CompositeTilemap(IReadOnlyList<TilemapWithOffset> normalizedTilemaps, int width, int height)
@@ -132,6 +136,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				if (cutscene != null)
 					return cutscene;
+			}
+
+			return null;
+		}
+
+		public Tuple<int, int> GetCheckpoint(int x, int y)
+		{
+			for (int i = 0; i < this.tilemaps.Count; i++)
+			{
+				TilemapWithOffset tilemap = this.tilemaps[i];
+				Tuple<int, int> checkpoint = tilemap.Tilemap.GetCheckpoint(x - tilemap.XOffset, y - tilemap.YOffset);
+
+				if (checkpoint != null)
+					return new Tuple<int, int>(checkpoint.Item1 + tilemap.XOffset, checkpoint.Item2 + tilemap.YOffset);
 			}
 
 			return null;

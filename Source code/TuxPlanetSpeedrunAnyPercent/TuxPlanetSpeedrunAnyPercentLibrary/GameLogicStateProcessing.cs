@@ -44,13 +44,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				windowWidth: gameLogicState.WindowWidth,
 				windowHeight: gameLogicState.WindowHeight);
 
-			LevelNumberDisplay newLevelNumberDisplay = gameLogicState.LevelNumberDisplay.ProcessFrame(elapsedMicrosPerFrame: elapsedMicrosPerFrame);
+			LevelNameDisplay newLevelNameDisplay = gameLogicState.LevelNameDisplay.ProcessFrame(elapsedMicrosPerFrame: elapsedMicrosPerFrame);
 
 			ICutscene newCutscene = gameLogicState.Cutscene;
 			List<string> newCompletedCutscenes = new List<string>(gameLogicState.CompletedCutscenes);
 
 			bool newCanUseSaveStates = gameLogicState.CanUseSaveStates;
 			bool newCanUseTimeSlowdown = gameLogicState.CanUseTimeSlowdown;
+			bool newCanUseTeleport = gameLogicState.CanUseTeleport;
 
 			CameraState newCamera = gameLogicState.Camera;
 
@@ -92,13 +93,25 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				if (cutsceneResult.ShouldGrantTimeSlowdownPower)
 					newCanUseTimeSlowdown = true;
 
+				if (cutsceneResult.ShouldGrantTeleportPower)
+					newCanUseTeleport = true;
+
 				if (newCutscene == null)
 					newCompletedCutscenes.Add(cutsceneName);
 			}
 
+			if (debugMode && debugKeyboardInput.IsPressed(Key.Two) && !debugPreviousKeyboardInput.IsPressed(Key.Two))
+				newCanUseSaveStates = true;
+			if (debugMode && debugKeyboardInput.IsPressed(Key.Three) && !debugPreviousKeyboardInput.IsPressed(Key.Three))
+				newCanUseTeleport = true;
+			if (debugMode && debugKeyboardInput.IsPressed(Key.Four) && !debugPreviousKeyboardInput.IsPressed(Key.Four))
+				newCanUseTimeSlowdown = true;
+
 			TuxStateProcessing.Result result = TuxStateProcessing.ProcessFrame(
 				tuxState: gameLogicState.Tux,
 				move: move,
+				previousMove: gameLogicState.PreviousMove,
+				canUseTeleport: gameLogicState.CanUseTeleport,
 				debugMode: debugMode,
 				debugKeyboardInput: debugKeyboardInput,
 				debugPreviousKeyboardInput: debugPreviousKeyboardInput,
@@ -113,6 +126,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				newCamera = CameraStateProcessing.ComputeCameraState(
 					tuxXMibi: newTuxState.XMibi,
 					tuxYMibi: newTuxState.YMibi,
+					tuxTeleportStartingLocation: newTuxState.TeleportStartingLocation,
+					tuxTeleportInProgressElapsedMicros: newTuxState.TeleportInProgressElapsedMicros,
 					tilemap: gameLogicState.Tilemap,
 					windowWidth: gameLogicState.WindowWidth,
 					windowHeight: gameLogicState.WindowHeight);
@@ -148,6 +163,26 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			newKilledEnemies.AddRange(collisionResultEnemy.NewlyKilledEnemies);
 
+			bool newStartedLevelOrCheckpointWithSaveStates = gameLogicState.StartedLevelOrCheckpointWithSaveStates;
+			bool newStartedLevelOrCheckpointWithTimeSlowdown = gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown;
+			bool newStartedLevelOrCheckpointWithTeleport = gameLogicState.StartedLevelOrCheckpointWithTeleport;
+
+			IReadOnlyList<string> newCompletedCutscenesAtCheckpoint = gameLogicState.CompletedCutscenesAtCheckpoint;
+			IReadOnlyList<string> newKilledEnemiesAtCheckpoint = gameLogicState.KilledEnemiesAtCheckpoint;
+
+			Tuple<int, int> newCheckpointLocation = gameLogicState.CheckpointLocation;
+
+			Tuple<int, int> checkpoint = newTilemap.GetCheckpoint(x: newTuxState.XMibi >> 10, y: newTuxState.YMibi >> 10);
+			if (checkpoint != null)
+			{
+				newCheckpointLocation = checkpoint;
+				newStartedLevelOrCheckpointWithSaveStates = gameLogicState.CanUseSaveStates;
+				newStartedLevelOrCheckpointWithTimeSlowdown = gameLogicState.CanUseTimeSlowdown;
+				newStartedLevelOrCheckpointWithTeleport = gameLogicState.CanUseTeleport;
+				newCompletedCutscenesAtCheckpoint = new List<string>(gameLogicState.CompletedCutscenes);
+				newKilledEnemiesAtCheckpoint = new List<string>(gameLogicState.KilledEnemies);
+			}
+
 			if (result.HasDied)
 			{
 				ITilemap restartedTilemap = gameLogicState.LevelConfiguration.GetTilemap(
@@ -156,11 +191,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					windowWidth: gameLogicState.WindowWidth,
 					windowHeight: gameLogicState.WindowHeight);
 
-				TuxState originalTuxState = TuxState.GetDefaultTuxState(x: restartedTilemap.GetTuxLocation(0, 0).Item1, y: restartedTilemap.GetTuxLocation(0, 0).Item2);
+				TuxState originalTuxState;
+
+				if (gameLogicState.CheckpointLocation == null)
+					originalTuxState = TuxState.GetDefaultTuxState(x: restartedTilemap.GetTuxLocation(0, 0).Item1, y: restartedTilemap.GetTuxLocation(0, 0).Item2);
+				else
+					originalTuxState = TuxState.GetDefaultTuxState(x: gameLogicState.CheckpointLocation.Item1, y: gameLogicState.CheckpointLocation.Item2);
 
 				newCamera = CameraStateProcessing.ComputeCameraState(
 					tuxXMibi: originalTuxState.XMibi,
 					tuxYMibi: originalTuxState.YMibi,
+					tuxTeleportStartingLocation: originalTuxState.TeleportStartingLocation,
+					tuxTeleportInProgressElapsedMicros: originalTuxState.TeleportInProgressElapsedMicros,
 					tilemap: restartedTilemap,
 					windowWidth: gameLogicState.WindowWidth,
 					windowHeight: gameLogicState.WindowHeight);
@@ -172,16 +214,24 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						tilemap: restartedTilemap,
 						tux: originalTuxState,
 						camera: newCamera, 
-						levelNumberDisplay: newLevelNumberDisplay,
+						levelNameDisplay: newLevelNameDisplay,
 						enemies: new List<IEnemy>(),
-						killedEnemies: new List<string>(),
+						killedEnemies: gameLogicState.KilledEnemiesAtCheckpoint,
+						previousMove: move,
 						frameCounter: gameLogicState.FrameCounter + 1,
 						windowWidth: gameLogicState.WindowWidth,
 						windowHeight: gameLogicState.WindowHeight,
-						levelNumber: gameLogicState.LevelNumber,
-						canUseSaveStates: gameLogicState.LevelNumber > CutsceneProcessing.LEVEL_THAT_GRANTS_SAVESTATES,
-						canUseTimeSlowdown: gameLogicState.LevelNumber > CutsceneProcessing.LEVEL_THAT_GRANTS_TIME_SLOWDOWN,
-						completedCutscenes: new List<string>(),
+						level: gameLogicState.Level,
+						canUseSaveStates: gameLogicState.StartedLevelOrCheckpointWithSaveStates,
+						canUseTimeSlowdown: gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown,
+						canUseTeleport: gameLogicState.StartedLevelOrCheckpointWithTeleport,
+						startedLevelOrCheckpointWithSaveStates: gameLogicState.StartedLevelOrCheckpointWithSaveStates,
+						startedLevelOrCheckpointWithTimeSlowdown: gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown,
+						startedLevelOrCheckpointWithTeleport: gameLogicState.StartedLevelOrCheckpointWithTeleport,
+						checkpointLocation: gameLogicState.CheckpointLocation,
+						completedCutscenesAtCheckpoint: gameLogicState.CompletedCutscenesAtCheckpoint,
+						killedEnemiesAtCheckpoint: gameLogicState.KilledEnemiesAtCheckpoint,
+						completedCutscenes: gameLogicState.CompletedCutscenesAtCheckpoint,
 						cutscene: null),
 					endLevel: result.EndLevel,
 					playMusic: restartedTilemap.PlayMusic(),
@@ -196,15 +246,23 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						tilemap: newTilemap,
 						tux: newTuxState,
 						camera: newCamera,
-						levelNumberDisplay: newLevelNumberDisplay,
+						levelNameDisplay: newLevelNameDisplay,
 						enemies: newEnemies,
 						killedEnemies: newKilledEnemies,
+						previousMove: move,
 						frameCounter: gameLogicState.FrameCounter + 1,
 						windowWidth: gameLogicState.WindowWidth,
 						windowHeight: gameLogicState.WindowHeight,
-						levelNumber: gameLogicState.LevelNumber,
+						level: gameLogicState.Level,
 						canUseSaveStates: newCanUseSaveStates,
 						canUseTimeSlowdown: newCanUseTimeSlowdown,
+						canUseTeleport: newCanUseTeleport,
+						startedLevelOrCheckpointWithSaveStates: newStartedLevelOrCheckpointWithSaveStates,
+						startedLevelOrCheckpointWithTimeSlowdown: newStartedLevelOrCheckpointWithTimeSlowdown,
+						startedLevelOrCheckpointWithTeleport: newStartedLevelOrCheckpointWithTeleport,
+						checkpointLocation: newCheckpointLocation,
+						completedCutscenesAtCheckpoint: newCompletedCutscenesAtCheckpoint,
+						killedEnemiesAtCheckpoint: newKilledEnemiesAtCheckpoint,
 						completedCutscenes: newCompletedCutscenes,
 						cutscene: newCutscene),
 					endLevel: result.EndLevel,
@@ -277,7 +335,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				}
 			}
 
-			gameLogicState.LevelNumberDisplay.Render(
+			gameLogicState.LevelNameDisplay.Render(
 				displayOutput: displayOutput,
 				windowWidth: gameLogicState.WindowWidth, 
 				windowHeight: gameLogicState.WindowHeight);

@@ -8,7 +8,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private static string GetText()
 		{
 			return "Music track authors: \n"
+				+ "* cynicmusic \n"
 				+ "* Jason Lavallee \n"
+				+ "* Lukas Nystrand \n"
+				+ "* Cal McEachern \n"
 				+ "* wansti \n"
 				+ "\n"
 				+ "See the source code for more information (including licensing \n"

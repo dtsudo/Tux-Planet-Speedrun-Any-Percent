@@ -2,7 +2,7 @@ The files in this folder are from the "8-Bit Sound Effects Library" by Little Ro
 
 No changes were made to these files, with the following exception:
 
-* Jingle_Win_01_modified.wav is a modified version of Jingle_Win_01.wav because MonoGame wasn't happy with the original file for some reason. It was created by converting the original file to .ogg format and then back to .wav format.
+* Jingle_Win_01.ogg was created by converting Jingle_Win_01.wav to ogg format.
 
 --------------------------------------------------------------------------------------------
 

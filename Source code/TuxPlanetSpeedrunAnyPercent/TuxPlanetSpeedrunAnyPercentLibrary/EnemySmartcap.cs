@@ -62,7 +62,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					x: (this.xMibi >> 10) - 8 * 3, 
 					y: (this.yMibi >> 10) - 9 * 3, 
 					width: 16 * 3, 
-					height: 18 * 3)
+					height: 15 * 3)
 			};
 		}
 
@@ -74,7 +74,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					x: (this.xMibi >> 10) - 8 * 3,
 					y: (this.yMibi >> 10) - 9 * 3,
 					width: 16 * 3,
-					height: 18 * 3)
+					height: 15 * 3)
 			};
 		}
 

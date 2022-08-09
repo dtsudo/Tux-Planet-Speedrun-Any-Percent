@@ -43,6 +43,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return this.mapTilemap.GetCutscene(x: x, y: y);
 		}
 
+		public Tuple<int, int> GetCheckpoint(int x, int y)
+		{
+			return this.mapTilemap.GetCheckpoint(x: x, y: y);
+		}
+
 		public int GetWidth()
 		{
 			return this.mapTilemap.GetWidth();
@@ -65,7 +70,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				EnemyLevel5Spikes.GetEnemyLevel5Spikes(
 					startingXMibi: -3 * 16 * 3 * 1024 + (xOffset << 10),
 					yMibiBottom: yOffset << 10,
-					heightInTiles: 20,
+					heightInTiles: 30,
 					endingXMibi: this.endingXMibi + (xOffset << 10),
 					enemyId: "level5Spikes")
 			};

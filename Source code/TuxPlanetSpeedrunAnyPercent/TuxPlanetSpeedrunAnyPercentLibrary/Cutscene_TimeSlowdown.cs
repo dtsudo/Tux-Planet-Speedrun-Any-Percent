@@ -15,6 +15,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			D_Camera
 		}
 
+		private bool isFirstFrame;
 		private Status status;
 		private int konqiDisappearElapsedMicros;
 		private DialogueList dialogueList;
@@ -22,10 +23,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private const int KONQI_DISAPPEAR_WAIT_TIME = 500 * 1000;
 
 		private Cutscene_TimeSlowdown(
+			bool isFirstFrame,
 			Status status,
 			int konqiDisappearElapsedMicros,
 			DialogueList dialogueList)
 		{
+			this.isFirstFrame = isFirstFrame;
 			this.status = status;
 			this.konqiDisappearElapsedMicros = konqiDisappearElapsedMicros;
 			this.dialogueList = dialogueList;
@@ -66,6 +69,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			DialogueList dialogueList = new DialogueList(dialogues: dialogues);
 
 			return new Cutscene_TimeSlowdown(
+				isFirstFrame: true,
 				status: Status.A_Camera,
 				konqiDisappearElapsedMicros: 0,
 				dialogueList: dialogueList);
@@ -97,12 +101,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case Status.A_Camera:
 					{
 						CameraState destinationCameraState = CameraState.GetCameraState(
-							x: (tuxXMibi >> 10) + 440,
+							x: Math.Min(
+								(tuxXMibi >> 10) + 440,
+								tilemap.GetWidth() - windowWidth / 2),
 							y: tuxYMibi >> 10);
-
+							
 						newDialogueList = this.dialogueList;
 
-						if (cameraState.X >= destinationCameraState.X)
+						if (cameraState.X >= destinationCameraState.X && Math.Abs(cameraState.Y - destinationCameraState.Y) <= 5)
 						{
 							newCameraState = cameraState;
 							newStatus = Status.B_Dialogue;
@@ -155,6 +161,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						CameraState destinationCameraState = CameraStateProcessing.ComputeCameraState(
 							tuxXMibi: tuxXMibi,
 							tuxYMibi: tuxYMibi,
+							tuxTeleportStartingLocation: null,
+							tuxTeleportInProgressElapsedMicros: null,
 							tilemap: tilemap,
 							windowWidth: windowWidth,
 							windowHeight: windowHeight);
@@ -170,7 +178,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 								newEnemies: newEnemies,
 								cutscene: null,
 								shouldGrantSaveStatePower: false,
-								shouldGrantTimeSlowdownPower: true);
+								shouldGrantTimeSlowdownPower: true,
+								shouldGrantTeleportPower: false);
 						}
 						else
 						{
@@ -188,12 +197,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			return new CutsceneProcessing.Result(
-				move: Move.EmptyMove(),
+				move: this.isFirstFrame
+					? new Move(jumped: false, teleported: false, arrowLeft: false, arrowRight: true, arrowUp: false, arrowDown: false, respawn: false)
+					: Move.EmptyMove(),
 				cameraState: newCameraState,
 				newEnemies: newEnemies,
-				cutscene: new Cutscene_TimeSlowdown(status: newStatus, konqiDisappearElapsedMicros: newKonqiDisappearElapsedMicros, dialogueList: newDialogueList),
+				cutscene: new Cutscene_TimeSlowdown(isFirstFrame: false, status: newStatus, konqiDisappearElapsedMicros: newKonqiDisappearElapsedMicros, dialogueList: newDialogueList),
 				shouldGrantSaveStatePower: false,
-				shouldGrantTimeSlowdownPower: this.status == Status.C_KonqiDisappear || this.status == Status.D_Camera);
+				shouldGrantTimeSlowdownPower: this.status == Status.C_KonqiDisappear || this.status == Status.D_Camera,
+				shouldGrantTeleportPower: false);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput, int windowWidth, int windowHeight)

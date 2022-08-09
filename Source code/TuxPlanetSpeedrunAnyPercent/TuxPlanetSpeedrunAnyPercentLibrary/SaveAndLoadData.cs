@@ -65,7 +65,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (list == null)
 			{
-				sessionState.ClearData();
+				sessionState.ClearData(windowWidth: windowWidth, windowHeight: windowHeight);
 				return;
 			}
 			
@@ -73,14 +73,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			{
 				ByteList.Iterator iterator = list.GetIterator();
 				sessionState.TryDeserializeEverythingExceptGameLogic(iterator: iterator);
-				sessionState.StartLevel(levelNumber: sessionState.CurrentLevel, windowWidth: windowWidth, windowHeight: windowHeight, mapInfo: mapInfo);
 
 				if (iterator.HasNextByte())
 					throw new DTDeserializationException();
 			}
 			catch (DTDeserializationException)
 			{
-				sessionState.ClearData();
+				sessionState.ClearData(windowWidth: windowWidth, windowHeight: windowHeight);
 			}
 		}
 

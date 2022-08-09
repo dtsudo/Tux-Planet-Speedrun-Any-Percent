@@ -95,7 +95,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 					isFirst = false;
 				else
 					musicNames = musicNames + ",";
-				musicNames = musicNames + gameMusic.GetMusicFilename();
+				musicNames = musicNames + gameMusic.GetMusicFilename().DefaultFilename;
 			}
 			
 			if (musicNames == "")
@@ -114,7 +114,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 			if (finalVolume < 0.0)
 				finalVolume = 0.0;
 			
-			Script.Call("window.BridgeMusicJavascript.playMusic", music.GetMusicFilename(), finalVolume);
+			Script.Call("window.BridgeMusicJavascript.playMusic", music.GetMusicFilename().DefaultFilename, finalVolume);
 		}
 		
 		public void StopMusic()

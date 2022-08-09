@@ -22,6 +22,8 @@ namespace TuxPlanetSpeedrunAnyPercent
 		private static IFrame<GameImage, GameFont, GameSound, GameMusic> frame;
 		
 		private static bool hasInitializedClearCanvasJavascript;
+
+		private static string clickUrl;
 		
 		private static void InitializeClearCanvasJavascript()
 		{
@@ -61,11 +63,65 @@ namespace TuxPlanetSpeedrunAnyPercent
 			Script.Write("window.BridgeClearCanvasJavascript.clearCanvas()");
 		}
 		
+		private static void ClearClickUrl()
+		{
+			Script.Eval("window.bridgeClickUrl = null;");
+		}
+		
+		private static void UpdateClickUrl(string clickUrl)
+		{
+			Script.Eval("window.bridgeClickUrl = '" + clickUrl + "';");
+		}
+		
+		private static void AddClickUrlListener()
+		{
+			Script.Eval(@"
+				document.addEventListener('click', function (e) {
+					if (window.bridgeClickUrl !== undefined
+							&& window.bridgeClickUrl !== null
+							&& window.bridgeClickUrl !== '')
+						window.open(window.bridgeClickUrl, '_blank');
+				}, false);
+			");
+		}
+		
+		private static void RemoveMarginOnBody()
+		{
+			Script.Eval(@"
+				((function () {
+					var removeMargin;
+					
+					removeMargin = function () {
+						var bodyElement = document.body;
+						
+						if (!bodyElement) {
+							setTimeout(removeMargin, 50);
+							return;
+						}
+						
+						bodyElement.style.margin = '0px';
+					};
+					
+					removeMargin();
+				})());
+			");
+		}
+		
 		public static void Start(
 			int fps, 
+			bool isWebPortalVersion,
 			bool debugMode)
 		{
 			hasInitializedClearCanvasJavascript = false;
+			
+			clickUrl = null;
+			
+			ClearClickUrl();
+			
+			AddClickUrlListener();
+			
+			if (isWebPortalVersion)
+				RemoveMarginOnBody();
 			
 			shouldRenderDisplayLogger = true;
 			
@@ -94,12 +150,13 @@ namespace TuxPlanetSpeedrunAnyPercent
 					timer: new SimpleTimer(),
 					fileIO: new BridgeFileIO(),
 					isWebBrowserVersion: true,
+					isWebPortalVersion: isWebPortalVersion,
 					debugMode: debugMode,
 					initialMusicVolume: null);
 			
 			frame = TuxPlanetSpeedrunAnyPercent.GetFirstFrame(globalState: globalState);
 
-			bridgeKeyboard = new BridgeKeyboard();
+			bridgeKeyboard = new BridgeKeyboard(disableArrowKeyScrolling: isWebPortalVersion);
 			bridgeMouse = new BridgeMouse();
 						
 			display = new BridgeDisplay(windowHeight: windowHeight);
@@ -132,6 +189,18 @@ namespace TuxPlanetSpeedrunAnyPercent
 			ClearCanvas();
 			frame.Render(display);
 			frame.RenderMusic(music);
+			
+			string newClickUrl = frame.GetClickUrl();
+			
+			if (clickUrl != newClickUrl)
+			{
+				clickUrl = newClickUrl;
+				if (clickUrl == null)
+					ClearClickUrl();
+				else
+					UpdateClickUrl(clickUrl: clickUrl);
+			}
+			
 			if (displayLogger != null && shouldRenderDisplayLogger)
 				displayLogger.Render(displayOutput: display, font: GameFont.DTSimpleFont14Pt, color: DTColor.Black());
 			

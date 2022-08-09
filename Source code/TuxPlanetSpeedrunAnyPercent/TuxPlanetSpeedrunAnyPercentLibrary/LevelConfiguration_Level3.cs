@@ -10,20 +10,32 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
 
 		public LevelConfiguration_Level3(
-			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
+			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
+			bool canAlreadyUseTeleport,
 			IDTDeterministicRandom random)
 		{
 			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(
 				mapInfo: mapInfo,
+				canAlreadyUseTeleport: canAlreadyUseTeleport,
 				random: random);
+
+			if (canAlreadyUseTeleport)
+				unnormalizedTilemaps.Add(new CompositeTilemap.TilemapWithOffset(
+					tilemap: new SpawnRemoveKonqiTilemap(),
+					xOffset: 0,
+					yOffset: 0,
+					alwaysIncludeTilemap: true));
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 		}
 
 		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
+			bool canAlreadyUseTeleport,
 			IDTDeterministicRandom random)
 		{
+			GameMusic gameMusic = LevelConfigurationHelper.GetRandomGameMusic(random: random);
+
 			EnemyIdGenerator enemyIdGenerator = new EnemyIdGenerator();
 
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
@@ -32,12 +44,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level3A_Start"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset startTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: startTilemap,
 				xOffset: 0,
-				yOffset: 0);
+				yOffset: 0,
+				alwaysIncludeTilemap: false);
 
 			list.Add(startTilemapWithOffset);
 
@@ -45,25 +59,44 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level3B_Drop"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset dropTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: dropTilemap,
 				xOffset: startTilemap.GetWidth() + random.NextInt(10) * 16 * 3,
-				yOffset: -30 * 16 * 3);
+				yOffset: -30 * 16 * 3,
+				alwaysIncludeTilemap: false);
 
 			list.Add(dropTilemapWithOffset);
 
+			ITilemap cutsceneTilemap = MapDataTilemapGenerator.GetTilemap(
+					data: mapInfo["Level3C_Cutscene"],
+					enemyIdGenerator: enemyIdGenerator,
+					cutsceneName: CutsceneProcessing.TELEPORT_CUTSCENE,
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
+
+			CompositeTilemap.TilemapWithOffset cutsceneTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
+				tilemap: canAlreadyUseTeleport ? new NoCutsceneWrappedTilemap(tilemap: cutsceneTilemap) : cutsceneTilemap,
+				xOffset: dropTilemapWithOffset.XOffset + dropTilemap.GetWidth() + random.NextInt(10) * 16 * 3,
+				yOffset: dropTilemapWithOffset.YOffset - 30 * 16 * 3,
+				alwaysIncludeTilemap: false);
+
+			list.Add(cutsceneTilemapWithOffset);
+
 			ITilemap finishTilemap = MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo["Level3C_Finish"],
+					data: mapInfo["Level3D_Finish"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset finishTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: finishTilemap,
-				xOffset: dropTilemapWithOffset.XOffset + dropTilemap.GetWidth() + random.NextInt(10) * 16 * 3,
-				yOffset: dropTilemapWithOffset.YOffset - 30 * 16 * 3);
+				xOffset: cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.GetWidth(),
+				yOffset: cutsceneTilemapWithOffset.YOffset - 29 * 16 * 3,
+				alwaysIncludeTilemap: false);
 
 			list.Add(finishTilemapWithOffset);
 

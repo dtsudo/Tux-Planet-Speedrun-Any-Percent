@@ -19,6 +19,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		TuxMirrored,
 		Konqi,
 		KonqiMirrored,
+		Blazeborn,
+		BlazebornMirrored,
 		Smartcap,
 		SmartcapMirrored,
 		BossHealth,
@@ -31,6 +33,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		Spikes,
 
 		Signpost,
+
+		PathDirt,
+		Snow,
+		LevelIcons,
+		TuxOverworld,
 
 		OceanBackground
 	}
@@ -55,6 +62,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case GameImage.TuxMirrored: return "KelvinShadewing/tux_mirrored.png";
 				case GameImage.Konqi: return "KelvinShadewing/konqi.png";
 				case GameImage.KonqiMirrored: return "KelvinShadewing/konqi_mirrored.png";
+				case GameImage.Blazeborn: return "FrostC/Blazeborn.png";
+				case GameImage.BlazebornMirrored: return "FrostC/Blazeborn_mirrored.png";
 				case GameImage.Smartcap: return "KelvinShadewing/smartcap.png";
 				case GameImage.SmartcapMirrored: return "KelvinShadewing/smartcap_mirrored.png";
 				case GameImage.BossHealth: return "KelvinShadewing/boss-health.png";
@@ -67,6 +76,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case GameImage.Spikes: return "FrostC/spikes.png";
 
 				case GameImage.Signpost: return "Nemisys/signpost.png";
+
+				case GameImage.PathDirt: return "BenCreating/PathDirt.png";
+				case GameImage.Snow: return "BenCreating/Snow/Snow.png";
+				case GameImage.LevelIcons: return "KelvinShadewing/level-icons.png";
+				case GameImage.TuxOverworld: return "KelvinShadewing/tuxO.png";
 
 				case GameImage.OceanBackground: return "KnoblePersona/ocean.png";
 

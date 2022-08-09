@@ -8,19 +8,43 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 	public class SessionState
 	{
-		public SessionState()
+		public SessionState(int windowWidth, int windowHeight)
 		{
-			this.CurrentLevel = 1;
+			IDTDeterministicRandom random = new DTDeterministicRandom(seed: new Random().Next(10000000));
+
+			this.Overworld = new Overworld(
+				windowWidth: windowWidth,
+				windowHeight: windowHeight,
+				rngSeed: random.SerializeToString(),
+				completedLevels: new HashSet<Level>());
+
 			this.GameLogic = null;
+			this.CanUseSaveStates = false;
+			this.CanUseTimeSlowdown = false;
+			this.CanUseTeleport = false;
 			this.HasWon = false;
 			this.ElapsedMillis = 0;
-			this.random = new DTDeterministicRandom(seed: new Random().Next(10000000));
-			this.randomValuesUsedForGeneratingLevels = new Dictionary<int, string>();
+			this.random = random;
+			this.randomValuesUsedForGeneratingLevels = new Dictionary<Level, string>();
 		}
 
-		public int CurrentLevel { get; private set; }
+		public Level? CurrentLevel
+		{
+			get
+			{
+				if (this.GameLogic == null)
+					return null;
+				return this.GameLogic.Level;
+			}
+		}
+
+		public Overworld Overworld { get; private set; }
 
 		public GameLogicState GameLogic { get; private set; }
+
+		public bool CanUseSaveStates { get; private set; }
+		public bool CanUseTimeSlowdown { get; private set; }
+		public bool CanUseTeleport { get; private set; }
 
 		public bool HasWon { get; private set; }
 
@@ -28,15 +52,25 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private IDTDeterministicRandom random;
 
-		private Dictionary<int, string> randomValuesUsedForGeneratingLevels;
+		private Dictionary<Level, string> randomValuesUsedForGeneratingLevels;
 
-		public void ClearData()
+		public void ClearData(int windowWidth, int windowHeight)
 		{
-			this.CurrentLevel = 1;
+			this.random.NextBool();
+
+			this.Overworld = new Overworld(
+				windowWidth: windowWidth,
+				windowHeight: windowHeight,
+				rngSeed: this.random.SerializeToString(),
+				completedLevels: new HashSet<Level>());
+
 			this.GameLogic = null;
+			this.CanUseSaveStates = false;
+			this.CanUseTimeSlowdown = false;
+			this.CanUseTeleport = false;
 			this.HasWon = false;
 			this.ElapsedMillis = 0;
-			this.randomValuesUsedForGeneratingLevels = new Dictionary<int, string>();
+			this.randomValuesUsedForGeneratingLevels = new Dictionary<Level, string>();
 		}
 
 		public void AddRandomSeed(int seed)
@@ -55,6 +89,28 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.ElapsedMillis += elapsedMillis;
 		}
 
+		public void SetOverworld(Overworld overworld)
+		{
+			this.Overworld = overworld;
+		}
+
+		public void CompleteLevel(
+			Level level,
+			bool canUseSaveStates,
+			bool canUseTimeSlowdown,
+			bool canUseTeleport)
+		{
+			this.Overworld = this.Overworld.CompleteLevel(level: level);
+			if (canUseSaveStates)
+				this.CanUseSaveStates = true;
+			if (canUseTimeSlowdown)
+				this.CanUseTimeSlowdown = true;
+			if (canUseTeleport)
+				this.CanUseTeleport = true;
+
+			this.GameLogic = null;
+		}
+
 		public void WinGame()
 		{
 			this.HasWon = true;
@@ -66,44 +122,49 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		public void StartLevel(
-			int levelNumber, 
+			Level level, 
 			int windowWidth, 
 			int windowHeight, 
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo)
 		{
-			this.CurrentLevel = levelNumber;
-
 			this.random.NextBool();
-			this.random.AddSeed(levelNumber);
 
-			if (!this.randomValuesUsedForGeneratingLevels.ContainsKey(this.CurrentLevel))
-				this.randomValuesUsedForGeneratingLevels[this.CurrentLevel] = this.random.SerializeToString();
+			if (!this.randomValuesUsedForGeneratingLevels.ContainsKey(level))
+				this.randomValuesUsedForGeneratingLevels[level] = this.random.SerializeToString();
 
-			IDTDeterministicRandom rngForGeneratingLevel = new DTDeterministicRandom();
-			rngForGeneratingLevel.DeserializeFromString(this.randomValuesUsedForGeneratingLevels[this.CurrentLevel]);
+			DTDeterministicRandom rngForGeneratingLevel = new DTDeterministicRandom();
+			rngForGeneratingLevel.DeserializeFromString(this.randomValuesUsedForGeneratingLevels[level]);
 			
 			this.GameLogic = new GameLogicState(
-				levelNumber: levelNumber, 
+				level: level, 
 				windowWidth: windowWidth, 
-				windowHeight: windowHeight, 
+				windowHeight: windowHeight,
+				canUseSaveStates: this.CanUseSaveStates,
+				canUseTimeSlowdown: this.CanUseTimeSlowdown,
+				canUseTeleport: this.CanUseTeleport,
 				mapInfo: mapInfo, 
 				random: rngForGeneratingLevel);
 		}
 
 		public void SerializeEverythingExceptGameLogic(ByteList.Builder list)
 		{
-			list.AddInt(this.CurrentLevel);
+			this.Overworld.Serialize(list);
+
+			list.AddBool(this.CanUseSaveStates);
+			list.AddBool(this.CanUseTimeSlowdown);
+			list.AddBool(this.CanUseTeleport);
+
 			list.AddBool(this.HasWon);
 			list.AddInt(this.ElapsedMillis);
 
 			list.AddInt(this.randomValuesUsedForGeneratingLevels.Count);
 
-			foreach (KeyValuePair<int, string> kvp in this.randomValuesUsedForGeneratingLevels.OrderBy(x => x.Key).ToList())
+			foreach (KeyValuePair<Level, string> kvp in this.randomValuesUsedForGeneratingLevels.OrderBy(x => x.Key.ToSerializableInt()).ToList())
 			{
-				int levelNum = kvp.Key;
+				Level level = kvp.Key;
 				string rngValue = kvp.Value;
 
-				list.AddInt(levelNum);
+				list.AddInt(level.ToSerializableInt());
 				list.AddString(rngValue);
 			}
 		}
@@ -113,8 +174,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		/// </summary>
 		public void TryDeserializeEverythingExceptGameLogic(ByteList.Iterator iterator)
 		{
-			int currentLevel = iterator.TryPopInt();
-			this.CurrentLevel = currentLevel;
+			this.Overworld = Overworld.TryDeserialize(iterator: iterator);
+
+			this.CanUseSaveStates = iterator.TryPopBool();
+			this.CanUseTimeSlowdown = iterator.TryPopBool();
+			this.CanUseTeleport = iterator.TryPopBool();
 
 			bool hasWon = iterator.TryPopBool();
 			this.HasWon = hasWon;
@@ -122,15 +186,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int elapsedMillis = iterator.TryPopInt();
 			this.ElapsedMillis = elapsedMillis;
 
-			this.randomValuesUsedForGeneratingLevels = new Dictionary<int, string>();
+			this.randomValuesUsedForGeneratingLevels = new Dictionary<Level, string>();
 			int numKeyValuePairs = iterator.TryPopInt();
 
 			for (int i = 0; i < numKeyValuePairs; i++)
 			{
-				int levelNum = iterator.TryPopInt();
+				int level = iterator.TryPopInt();
 				string rngValue = iterator.TryPopString();
 
-				this.randomValuesUsedForGeneratingLevels[levelNum] = rngValue;
+				this.randomValuesUsedForGeneratingLevels[LevelUtil.FromSerializableInt(level)] = rngValue;
 			}
 		}
 	}

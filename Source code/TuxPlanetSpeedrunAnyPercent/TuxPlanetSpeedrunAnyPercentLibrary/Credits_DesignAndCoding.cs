@@ -7,7 +7,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	{
 		private static string GetWebBrowserVersionText()
 		{
-			return "Design and coding by dtsudo (https://github.com/dtsudo) \n"
+			return "Design and coding by dtsudo: \n"
 				+ "\n"
 				+ "This game is a fangame of SuperTux and SuperTux Advance. \n"
 				+ "\n"
@@ -27,16 +27,54 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return "";
 		}
 
-		public static void Render(IDisplayOutput<GameImage, GameFont> displayOutput, bool isWebBrowserVersion, int width, int height)
+		public static bool IsHoverOverGitHubUrl(IMouse mouse, bool isWebBrowserVersion, int width, int height)
 		{
-			string text = isWebBrowserVersion ? GetWebBrowserVersionText() : GetDesktopVersionText();
+			if (!isWebBrowserVersion)
+				return false;
 
-			displayOutput.DrawText(
-				x: 10,
-				y: height - 10,
-				text: text,
-				font: GameFont.DTSimpleFont20Pt,
-				color: DTColor.Black());
+			int mouseX = mouse.GetX();
+			int mouseY = mouse.GetY();
+
+			return 394 <= mouseX && mouseX <= 394 + 351
+				&& height - 38 <= mouseY && mouseY <= height - 13;
+		}
+
+		public static void Render(
+			IDisplayOutput<GameImage, GameFont> displayOutput, 
+			bool isHoverOverGitHubUrl,
+			bool isWebBrowserVersion, 
+			int width, 
+			int height)
+		{
+			if (isWebBrowserVersion)
+			{
+				string text = GetWebBrowserVersionText();
+
+				displayOutput.DrawText(
+					x: 10,
+					y: height - 10,
+					text: text,
+					font: GameFont.DTSimpleFont20Pt,
+					color: DTColor.Black());
+
+				displayOutput.DrawText(
+					x: 395,
+					y: height - 10,
+					text: "https://github.com/dtsudo",
+					font: GameFont.DTSimpleFont20Pt,
+					color: isHoverOverGitHubUrl ? new DTColor(0, 0, 255) : DTColor.Black());
+			}
+			else
+			{
+				string text = GetDesktopVersionText();
+
+				displayOutput.DrawText(
+					x: 10,
+					y: height - 10,
+					text: text,
+					font: GameFont.DTSimpleFont20Pt,
+					color: DTColor.Black());
+			}
 		}
 	}
 }

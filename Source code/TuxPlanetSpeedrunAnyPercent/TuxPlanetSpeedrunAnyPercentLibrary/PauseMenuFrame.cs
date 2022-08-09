@@ -16,6 +16,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			Continue,
 			RestartLevel,
+			BackToMapScreen,
 			BackToTitleScreen
 		}
 
@@ -29,7 +30,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			GlobalState globalState, 
 			SessionState sessionState, 
 			IFrame<GameImage, GameFont, GameSound, GameMusic> underlyingFrame, 
-			bool showRestartLevelOption)
+			bool showRestartLevelOption,
+			bool showBackToMapOption)
 		{
 			this.globalState = globalState;
 			this.sessionState = sessionState;
@@ -42,6 +44,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.options.Add(Option.Continue);
 			if (showRestartLevelOption)
 				this.options.Add(Option.RestartLevel);
+			if (showBackToMapOption)
+				this.options.Add(Option.BackToMapScreen);
 			this.options.Add(Option.BackToTitleScreen);
 		}
 
@@ -101,7 +105,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						return this.underlyingFrame;
 					case Option.RestartLevel:
 						this.sessionState.StartLevel(
-							levelNumber: this.sessionState.CurrentLevel,
+							level: this.sessionState.CurrentLevel.Value,
 							windowWidth: this.globalState.WindowWidth,
 							windowHeight: this.globalState.WindowHeight,
 							mapInfo: this.globalState.MapInfo);
@@ -112,6 +116,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							displayProcessing: displayProcessing,
 							soundOutput: soundOutput,
 							musicProcessing: musicProcessing);
+					case Option.BackToMapScreen:
+						this.sessionState.SetGameLogic(gameLogicState: null);
+						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
+						return new OverworldFrame(globalState: this.globalState, sessionState: this.sessionState);
 					case Option.BackToTitleScreen:
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 						return new TitleScreenFrame(globalState: this.globalState, sessionState: this.sessionState);
@@ -125,6 +133,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public void ProcessExtraTime(int milliseconds)
 		{
+		}
+
+		public string GetClickUrl()
+		{
+			return null;
 		}
 
 		public void ProcessMusic()
@@ -170,6 +183,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						break;
 					case Option.RestartLevel:
 						text = "Restart level";
+						break;
+					case Option.BackToMapScreen:
+						text = "Quit level and return to map";
 						break;
 					case Option.BackToTitleScreen:
 						text = "Back to title screen";

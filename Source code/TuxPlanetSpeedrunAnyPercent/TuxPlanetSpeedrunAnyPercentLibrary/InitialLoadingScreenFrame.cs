@@ -17,6 +17,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 		}
 
+		public string GetClickUrl()
+		{
+			return null;
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,
@@ -56,7 +61,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (!isDoneLoadingMusic)
 				return null;
 
-			SessionState sessionState = new SessionState();
+			SessionState sessionState = new SessionState(windowWidth: this.globalState.WindowWidth, windowHeight: this.globalState.WindowHeight);
 
 			this.globalState.LoadSessionState(sessionState: sessionState);
 

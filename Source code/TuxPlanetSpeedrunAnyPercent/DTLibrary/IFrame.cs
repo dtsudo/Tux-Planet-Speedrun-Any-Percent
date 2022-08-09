@@ -8,5 +8,7 @@ namespace DTLibrary
 		void Render(IDisplayOutput<ImageEnum, FontEnum> display);
 		void RenderMusic(IMusicOutput<MusicEnum> musicOutput);
 		void ProcessExtraTime(int milliseconds);
+
+		string GetClickUrl();
 	}
 }

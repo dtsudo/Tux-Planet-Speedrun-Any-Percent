@@ -142,6 +142,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.list.add(System.Int64.clipu8(b7));
                 this.list.add(System.Int64.clipu8(b8));
             },
+            AddNullableInt: function (i) {
+                if (i == null) {
+                    this.AddBool(false);
+                } else {
+                    this.AddBool(true);
+                    this.AddInt(System.Nullable.getValue(i));
+                }
+            },
             AddNullableLong: function (l) {
                 if (System.Nullable.lifteq("equals", l, System.Int64.lift(null))) {
                     this.AddBool(false);
@@ -357,6 +365,24 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 var l8 = b8.shl(56);
 
                 return l1.or(l2).or(l3).or(l4).or(l5).or(l6).or(l7).or(l8);
+            },
+            /**
+             * Can possibly throw DTDeserializationException
+             *
+             * @instance
+             * @public
+             * @this DTLibrary.ByteList.Iterator
+             * @memberof DTLibrary.ByteList.Iterator
+             * @return  {?number}
+             */
+            TryPopNullableInt: function () {
+                var b = this.TryPopBool();
+
+                if (!b) {
+                    return null;
+                }
+
+                return this.TryPopInt();
             },
             /**
              * Can possibly throw DTDeserializationException
@@ -19597,6 +19623,32 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         $kind: "interface"
     }; });
 
+    Bridge.define("DTLibrary.IntTupleEqualityComparer", {
+        inherits: [System.Collections.Generic.IEqualityComparer$1(System.Tuple$2(System.Int32,System.Int32))],
+        alias: [
+            "equals2", ["System$Collections$Generic$IEqualityComparer$1$System$Tuple$2$System$Int32$System$Int32$equals2", "System$Collections$Generic$IEqualityComparer$1$equals2"],
+            "getHashCode2", ["System$Collections$Generic$IEqualityComparer$1$System$Tuple$2$System$Int32$System$Int32$getHashCode2", "System$Collections$Generic$IEqualityComparer$1$getHashCode2"]
+        ],
+        methods: {
+            equals2: function (x, y) {
+                if (x == null && y == null) {
+                    return true;
+                }
+
+                if (x == null || y == null) {
+                    return false;
+                }
+
+                return x.Item1 === y.Item1 && x.Item2 === y.Item2;
+            },
+            getHashCode2: function (obj) {
+                var a = obj.Item1 << 4;
+
+                return ((((a + obj.Item1) | 0) + obj.Item2) | 0);
+            }
+        }
+    });
+
     Bridge.definei("DTLibrary.ISoundOutput$1", function (SoundEnum) { return {
         $kind: "interface"
     }; });
@@ -20200,7 +20252,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 displayLogger: null,
                 shouldRenderDisplayLogger: false,
                 frame: null,
-                hasInitializedClearCanvasJavascript: false
+                hasInitializedClearCanvasJavascript: false,
+                clickUrl: null
             },
             methods: {
                 InitializeClearCanvasJavascript: function () {
@@ -20214,8 +20267,30 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     window.BridgeClearCanvasJavascript.clearCanvas();
                 },
-                Start: function (fps, debugMode) {
+                ClearClickUrl: function () {
+                    eval("window.bridgeClickUrl = null;");
+                },
+                UpdateClickUrl: function (clickUrl) {
+                    eval("window.bridgeClickUrl = '" + (clickUrl || "") + "';");
+                },
+                AddClickUrlListener: function () {
+                    eval("\r\n\t\t\t\tdocument.addEventListener('click', function (e) {\r\n\t\t\t\t\tif (window.bridgeClickUrl !== undefined\r\n\t\t\t\t\t\t\t&& window.bridgeClickUrl !== null\r\n\t\t\t\t\t\t\t&& window.bridgeClickUrl !== '')\r\n\t\t\t\t\t\twindow.open(window.bridgeClickUrl, '_blank');\r\n\t\t\t\t}, false);\r\n\t\t\t");
+                },
+                RemoveMarginOnBody: function () {
+                    eval("\r\n\t\t\t\t((function () {\r\n\t\t\t\t\tvar removeMargin;\r\n\t\t\t\t\t\r\n\t\t\t\t\tremoveMargin = function () {\r\n\t\t\t\t\t\tvar bodyElement = document.body;\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tif (!bodyElement) {\r\n\t\t\t\t\t\t\tsetTimeout(removeMargin, 50);\r\n\t\t\t\t\t\t\treturn;\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tbodyElement.style.margin = '0px';\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\tremoveMargin();\r\n\t\t\t\t})());\r\n\t\t\t");
+                },
+                Start: function (fps, isWebPortalVersion, debugMode) {
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.hasInitializedClearCanvasJavascript = false;
+
+                    TuxPlanetSpeedrunAnyPercent.GameInitializer.clickUrl = null;
+
+                    TuxPlanetSpeedrunAnyPercent.GameInitializer.ClearClickUrl();
+
+                    TuxPlanetSpeedrunAnyPercent.GameInitializer.AddClickUrlListener();
+
+                    if (isWebPortalVersion) {
+                        TuxPlanetSpeedrunAnyPercent.GameInitializer.RemoveMarginOnBody();
+                    }
 
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.shouldRenderDisplayLogger = true;
 
@@ -20231,11 +20306,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var windowWidth = 1000;
                     var windowHeight = 700;
 
-                    var globalState = new TuxPlanetSpeedrunAnyPercentLibrary.GlobalState(windowWidth, windowHeight, fps, new DTLibrary.DTRandom(), new DTLibrary.GuidGenerator("391523846186017403"), logger, new DTLibrary.SimpleTimer(), new TuxPlanetSpeedrunAnyPercent.BridgeFileIO(), true, debugMode, null);
+                    var globalState = new TuxPlanetSpeedrunAnyPercentLibrary.GlobalState(windowWidth, windowHeight, fps, new DTLibrary.DTRandom(), new DTLibrary.GuidGenerator("391523846186017403"), logger, new DTLibrary.SimpleTimer(), new TuxPlanetSpeedrunAnyPercent.BridgeFileIO(), true, isWebPortalVersion, debugMode, null);
 
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.frame = TuxPlanetSpeedrunAnyPercentLibrary.TuxPlanetSpeedrunAnyPercent.GetFirstFrame(globalState);
 
-                    TuxPlanetSpeedrunAnyPercent.GameInitializer.bridgeKeyboard = new TuxPlanetSpeedrunAnyPercent.BridgeKeyboard();
+                    TuxPlanetSpeedrunAnyPercent.GameInitializer.bridgeKeyboard = new TuxPlanetSpeedrunAnyPercent.BridgeKeyboard(isWebPortalVersion);
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.bridgeMouse = new TuxPlanetSpeedrunAnyPercent.BridgeMouse();
 
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.display = new TuxPlanetSpeedrunAnyPercent.BridgeDisplay(windowHeight);
@@ -20265,6 +20340,18 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.ClearCanvas();
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.frame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render(TuxPlanetSpeedrunAnyPercent.GameInitializer.display);
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.frame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic(TuxPlanetSpeedrunAnyPercent.GameInitializer.music);
+
+                    var newClickUrl = TuxPlanetSpeedrunAnyPercent.GameInitializer.frame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl();
+
+                    if (!Bridge.referenceEquals(TuxPlanetSpeedrunAnyPercent.GameInitializer.clickUrl, newClickUrl)) {
+                        TuxPlanetSpeedrunAnyPercent.GameInitializer.clickUrl = newClickUrl;
+                        if (TuxPlanetSpeedrunAnyPercent.GameInitializer.clickUrl == null) {
+                            TuxPlanetSpeedrunAnyPercent.GameInitializer.ClearClickUrl();
+                        } else {
+                            TuxPlanetSpeedrunAnyPercent.GameInitializer.UpdateClickUrl(TuxPlanetSpeedrunAnyPercent.GameInitializer.clickUrl);
+                        }
+                    }
+
                     if (TuxPlanetSpeedrunAnyPercent.GameInitializer.displayLogger != null && TuxPlanetSpeedrunAnyPercent.GameInitializer.shouldRenderDisplayLogger) {
                         TuxPlanetSpeedrunAnyPercent.GameInitializer.displayLogger.Render(TuxPlanetSpeedrunAnyPercentLibrary.GameImage, TuxPlanetSpeedrunAnyPercentLibrary.GameFont, TuxPlanetSpeedrunAnyPercent.GameInitializer.display, TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont14Pt, DTLibrary.DTColor.Black());
                     }
@@ -20291,7 +20378,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     eval("\n\t\t\t\twindow.FpsDisplayJavascript = ((function () {\n\t\t\t\t\t'use strict';\n\t\t\t\t\t\n\t\t\t\t\tvar numberOfFrames = 0;\n\t\t\t\t\tvar hasAddedFpsLabel = false;\n\t\t\t\t\tvar startTimeMillis = Date.now();\n\t\t\t\t\tvar fpsNode = null;\n\t\t\t\t\t\n\t\t\t\t\tvar frameComputedAndRendered = function () {\n\t\t\t\t\t\tnumberOfFrames++;\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tvar displayFps = function () {\n\t\t\t\t\t\tif (!hasAddedFpsLabel) {\n\t\t\t\t\t\t\tvar fpsLabelNode = document.getElementById('fpsLabel');\n\t\t\t\t\t\t\tif (fpsLabelNode !== null) {\n\t\t\t\t\t\t\t\tfpsLabelNode.textContent = 'FPS: ';\n\t\t\t\t\t\t\t\thasAddedFpsLabel = true;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\t\tvar currentTimeMillis = Date.now();\n\t\t\t\t\t\tif (currentTimeMillis - startTimeMillis > 2000) {\n\t\t\t\t\t\t\tvar actualFps = numberOfFrames / 2;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tif (fpsNode === null)\n\t\t\t\t\t\t\t\tfpsNode = document.getElementById('fps');\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tif (fpsNode !== null)\n\t\t\t\t\t\t\t\tfpsNode.textContent = actualFps.toString();\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tnumberOfFrames = 0;\n\t\t\t\t\t\t\tstartTimeMillis = currentTimeMillis;\n\t\t\t\t\t\t}\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\treturn {\n\t\t\t\t\t\tframeComputedAndRendered: frameComputedAndRendered,\n\t\t\t\t\t\tdisplayFps: displayFps\n\t\t\t\t\t};\n\t\t\t\t})());\n\t\t\t");
                 },
                 Initialize: function () {
-                    eval("\n\t\t\t\t((function () {\n\t\t\t\t\t'use strict';\n\t\t\t\t\t\n\t\t\t\t\tvar urlParams = (new URL(document.location)).searchParams;\n\t\t\t\t\t\n\t\t\t\t\tvar showFps = urlParams.get('showfps') !== null\n\t\t\t\t\t\t? (urlParams.get('showfps') === 'true')\n\t\t\t\t\t\t: false;\n\t\t\t\t\tvar fps = urlParams.get('fps') !== null\n\t\t\t\t\t\t? parseInt(urlParams.get('fps'), 10)\n\t\t\t\t\t\t: 60;\n\t\t\t\t\tvar debugMode = urlParams.get('debugmode') !== null\n\t\t\t\t\t\t? (urlParams.get('debugmode') === 'true')\n\t\t\t\t\t\t: false;\n\t\t\t\t\t\n\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.Start(fps, debugMode);\n\t\t\t\t\t\n\t\t\t\t\tvar computeAndRenderNextFrame;\n\t\t\t\t\t\n\t\t\t\t\tvar nextTimeToAct = Date.now() + (1000.0 / fps);\n\t\t\t\t\t\n\t\t\t\t\tvar hasProcessedExtraTime = false;\n\t\t\t\t\t\n\t\t\t\t\tcomputeAndRenderNextFrame = function () {\n\t\t\t\t\t\tvar now = Date.now();\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (nextTimeToAct > now) {\n\t\t\t\t\t\t\tif (!hasProcessedExtraTime) {\n\t\t\t\t\t\t\t\tvar extraTime = Math.round(nextTimeToAct - now);\n\t\t\t\t\t\t\t\tif (extraTime > 0)\n\t\t\t\t\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.ProcessExtraTime(extraTime);\n\t\t\t\t\t\t\t\thasProcessedExtraTime = true;\n\t\t\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 5);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\t\thasProcessedExtraTime = false;\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (nextTimeToAct < now - 5.0*(1000.0 / fps))\n\t\t\t\t\t\t\tnextTimeToAct = now - 5.0*(1000.0 / fps);\n\t\t\t\t\t\t\n\t\t\t\t\t\tnextTimeToAct = nextTimeToAct + (1000.0 / fps);\n\t\t\t\t\t\t\n\t\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.ComputeAndRenderNextFrame();\n\t\t\t\t\t\twindow.FpsDisplayJavascript.frameComputedAndRendered();\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (showFps)\n\t\t\t\t\t\t\twindow.FpsDisplayJavascript.displayFps();\n\t\t\t\t\t\t\n\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t})());\n\t\t\t");
+                    eval("\n\t\t\t\t((function () {\n\t\t\t\t\t'use strict';\n\t\t\t\t\t\n\t\t\t\t\tvar isWebPortalVersion = false;\n\t\t\t\t\t\n\t\t\t\t\tvar urlParams = (new URL(document.location)).searchParams;\n\t\t\t\t\t\n\t\t\t\t\tvar showFps = urlParams.get('showfps') !== null\n\t\t\t\t\t\t? (urlParams.get('showfps') === 'true')\n\t\t\t\t\t\t: false;\n\t\t\t\t\tvar fps = urlParams.get('fps') !== null\n\t\t\t\t\t\t? parseInt(urlParams.get('fps'), 10)\n\t\t\t\t\t\t: 60;\n\t\t\t\t\tvar debugMode = urlParams.get('debugmode') !== null\n\t\t\t\t\t\t? (urlParams.get('debugmode') === 'true')\n\t\t\t\t\t\t: false;\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.Start(fps, isWebPortalVersion, debugMode);\n\t\t\t\t\t\n\t\t\t\t\tvar computeAndRenderNextFrame;\n\t\t\t\t\t\n\t\t\t\t\tvar nextTimeToAct = Date.now() + (1000.0 / fps);\n\t\t\t\t\t\n\t\t\t\t\tvar hasProcessedExtraTime = false;\n\t\t\t\t\t\n\t\t\t\t\tcomputeAndRenderNextFrame = function () {\n\t\t\t\t\t\tvar now = Date.now();\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (nextTimeToAct > now) {\n\t\t\t\t\t\t\tif (!hasProcessedExtraTime) {\n\t\t\t\t\t\t\t\tvar extraTime = Math.round(nextTimeToAct - now);\n\t\t\t\t\t\t\t\tif (extraTime > 0)\n\t\t\t\t\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.ProcessExtraTime(extraTime);\n\t\t\t\t\t\t\t\thasProcessedExtraTime = true;\n\t\t\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 5);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\t\thasProcessedExtraTime = false;\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (nextTimeToAct < now - 5.0*(1000.0 / fps))\n\t\t\t\t\t\t\tnextTimeToAct = now - 5.0*(1000.0 / fps);\n\t\t\t\t\t\t\n\t\t\t\t\t\tnextTimeToAct = nextTimeToAct + (1000.0 / fps);\n\t\t\t\t\t\t\n\t\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.ComputeAndRenderNextFrame();\n\t\t\t\t\t\twindow.FpsDisplayJavascript.frameComputedAndRendered();\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (showFps)\n\t\t\t\t\t\t\twindow.FpsDisplayJavascript.displayFps();\n\t\t\t\t\t\t\n\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t})());\n\t\t\t");
                 }
             }
         }
@@ -20300,6 +20387,21 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil", {
         statics: {
             methods: {
+                ShallowCopyTArray: function (T, array) {
+                    var $t, $t1;
+                    var newArray = System.Array.init(array.length, null, System.Array.type(T));
+
+                    for (var i = 0; i < newArray.length; i = (i + 1) | 0) {
+                        newArray[System.Array.index(i, newArray)] = System.Array.init(array[System.Array.index(i, array)].length, function (){
+                            return Bridge.getDefaultValue(T);
+                        }, T);
+                        for (var j = 0; j < newArray[System.Array.index(i, newArray)].length; j = (j + 1) | 0) {
+                            ($t = newArray[System.Array.index(i, newArray)])[System.Array.index(j, $t)] = ($t1 = array[System.Array.index(i, array)])[System.Array.index(j, $t1)];
+                        }
+                    }
+
+                    return newArray;
+                },
                 CopyBoolArray: function (array) {
                     var $t, $t1;
                     var newArray = System.Array.init(array.length, null, System.Array.type(System.Boolean));
@@ -20508,7 +20610,15 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing", {
         statics: {
             methods: {
-                ComputeCameraState: function (tuxXMibi, tuxYMibi, tilemap, windowWidth, windowHeight) {
+                ComputeCameraState: function (tuxXMibi, tuxYMibi, tuxTeleportStartingLocation, tuxTeleportInProgressElapsedMicros, tilemap, windowWidth, windowHeight) {
+                    if (tuxTeleportInProgressElapsedMicros != null) {
+                        var deltaX = System.Int64(tuxXMibi - tuxTeleportStartingLocation.Item1);
+                        var deltaY = System.Int64(tuxYMibi - tuxTeleportStartingLocation.Item2);
+
+                        tuxXMibi = System.Int64.clip32(System.Int64(tuxTeleportStartingLocation.Item1).add(deltaX.mul(System.Int64(System.Nullable.getValue(tuxTeleportInProgressElapsedMicros))).div(System.Int64(TuxPlanetSpeedrunAnyPercentLibrary.TuxState.TELEPORT_DURATION))));
+                        tuxYMibi = System.Int64.clip32(System.Int64(tuxTeleportStartingLocation.Item2).add(deltaY.mul(System.Int64(System.Nullable.getValue(tuxTeleportInProgressElapsedMicros))).div(System.Int64(TuxPlanetSpeedrunAnyPercentLibrary.TuxState.TELEPORT_DURATION))));
+                    }
+
                     var x = tuxXMibi >> 10;
                     var y = tuxYMibi >> 10;
 
@@ -20547,35 +20657,40 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var killedEnemies = new (System.Collections.Generic.List$1(System.String)).ctor();
 
+                    var indexOfRemoveKonqiEnemy = null;
+                    var indexOfKonqiEnemy = null;
+                    var konqiEnemyId = null;
+                    var konqiLocation = null;
+
                     for (var i = 0; i < System.Array.getCount(enemies, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy); i = (i + 1) | 0) {
                         if (System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi) {
-                            continue;
+                            indexOfRemoveKonqiEnemy = i;
                         }
 
                         if (System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi) {
-                            var shouldRemoveKonqi = false;
-
-                            for (var j = 0; j < System.Array.getCount(enemies, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy); j = (j + 1) | 0) {
-                                if (System.Array.getItem(enemies, j, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi) {
-                                    shouldRemoveKonqi = true;
-                                    break;
-                                }
-                            }
-
-                            if (shouldRemoveKonqi) {
-                                finalEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear.GetEnemyKonqiDisappear((System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation().Item1) << 10, (System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation().Item2) << 10, "konqiDisappear"));
-
-                                killedEnemies.add(System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId);
-                            } else {
-                                finalEnemies.add(System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy));
-                            }
-
-                            continue;
+                            indexOfKonqiEnemy = i;
+                            konqiLocation = System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation();
+                            konqiEnemyId = System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId;
                         }
 
                         finalEnemies.add(System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy));
                     }
 
+                    if (System.Nullable.hasValue(indexOfRemoveKonqiEnemy) && System.Nullable.hasValue(indexOfKonqiEnemy)) {
+                        var newFinalEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                        for (var i1 = 0; i1 < finalEnemies.Count; i1 = (i1 + 1) | 0) {
+                            if (!finalEnemies.getItem(i1).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi && !finalEnemies.getItem(i1).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi) {
+                                newFinalEnemies.add(finalEnemies.getItem(i1));
+                            }
+                        }
+
+                        newFinalEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear.GetEnemyKonqiDisappear(konqiLocation.Item1 << 10, konqiLocation.Item2 << 10, "konqiDisappear"));
+
+                        finalEnemies = newFinalEnemies;
+
+                        killedEnemies.add(konqiEnemyId);
+                    }
 
                     return new TuxPlanetSpeedrunAnyPercentLibrary.CollisionProcessing_Enemies.Result(finalEnemies, killedEnemies);
                 }
@@ -20689,7 +20804,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                                 newlyKilledEnemies.add(enemy.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId);
                                 newEnemies.add(enemy.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy());
 
-                                newTuxState = newTuxState.SetYSpeedInMibipixelsPerSecond(TuxPlanetSpeedrunAnyPercentLibrary.TuxState.JUMP_Y_SPEED).SetIsStillHoldingJumpButton(true);
+                                newTuxState = newTuxState.SetYSpeedInMibipixelsPerSecond(TuxPlanetSpeedrunAnyPercentLibrary.TuxState.JUMP_Y_SPEED).SetIsStillHoldingJumpButton(true).SetLastTimeOnGround(null).SetHasAlreadyUsedTeleport(false);
                             } else if (hasCollided) {
                                 isTuxDead = true;
                                 newEnemies.add(enemy);
@@ -20754,14 +20869,16 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         fields: {
             Tilemap: null,
             XOffset: 0,
-            YOffset: 0
+            YOffset: 0,
+            AlwaysIncludeTilemap: false
         },
         ctors: {
-            ctor: function (tilemap, xOffset, yOffset) {
+            ctor: function (tilemap, xOffset, yOffset, alwaysIncludeTilemap) {
                 this.$initialize();
                 this.Tilemap = tilemap;
                 this.XOffset = xOffset;
                 this.YOffset = yOffset;
+                this.AlwaysIncludeTilemap = alwaysIncludeTilemap;
             }
         }
     });
@@ -20770,15 +20887,33 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 GetWebBrowserVersionText: function () {
-                    return "Design and coding by dtsudo (https://github.com/dtsudo) \n\nThis game is a fangame of SuperTux and SuperTux Advance. \n\nThis game is open source, licensed under the AGPL 3.0. \n(Code dependencies and images/font/sound/music licensed under \nAGPL-compatible licenses.) \n\nThe source code is written in C# and transpiled to javascript using \nBridge.NET. \n\nSee the source code for more information (including licensing \ndetails).";
+                    return "Design and coding by dtsudo: \n\nThis game is a fangame of SuperTux and SuperTux Advance. \n\nThis game is open source, licensed under the AGPL 3.0. \n(Code dependencies and images/font/sound/music licensed under \nAGPL-compatible licenses.) \n\nThe source code is written in C# and transpiled to javascript using \nBridge.NET. \n\nSee the source code for more information (including licensing \ndetails).";
                 },
                 GetDesktopVersionText: function () {
                     return "";
                 },
-                Render: function (displayOutput, isWebBrowserVersion, width, height) {
-                    var text = isWebBrowserVersion ? TuxPlanetSpeedrunAnyPercentLibrary.Credits_DesignAndCoding.GetWebBrowserVersionText() : TuxPlanetSpeedrunAnyPercentLibrary.Credits_DesignAndCoding.GetDesktopVersionText();
+                IsHoverOverGitHubUrl: function (mouse, isWebBrowserVersion, width, height) {
+                    if (!isWebBrowserVersion) {
+                        return false;
+                    }
 
-                    displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(10, ((height - 10) | 0), text, TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt, DTLibrary.DTColor.Black());
+                    var mouseX = mouse.DTLibrary$IMouse$GetX();
+                    var mouseY = mouse.DTLibrary$IMouse$GetY();
+
+                    return 394 <= mouseX && mouseX <= 745 && ((height - 38) | 0) <= mouseY && mouseY <= ((height - 13) | 0);
+                },
+                Render: function (displayOutput, isHoverOverGitHubUrl, isWebBrowserVersion, width, height) {
+                    if (isWebBrowserVersion) {
+                        var text = TuxPlanetSpeedrunAnyPercentLibrary.Credits_DesignAndCoding.GetWebBrowserVersionText();
+
+                        displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(10, ((height - 10) | 0), text, TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt, DTLibrary.DTColor.Black());
+
+                        displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(395, ((height - 10) | 0), "https://github.com/dtsudo", TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt, isHoverOverGitHubUrl ? new DTLibrary.DTColor.ctor(0, 0, 255) : DTLibrary.DTColor.Black());
+                    } else {
+                        var text1 = TuxPlanetSpeedrunAnyPercentLibrary.Credits_DesignAndCoding.GetDesktopVersionText();
+
+                        displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(10, ((height - 10) | 0), text1, TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt, DTLibrary.DTColor.Black());
+                    }
                 }
             }
         }
@@ -20800,7 +20935,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 GetText: function () {
-                    return "Image files created by: \n* FrostC \n* Kelvin Shadewing \n* Kenney \n* KnoblePersona \n* Nemisys \n\nSee the source code for more information (including licensing \ndetails).";
+                    return "Image files created by: \n* Benjamin K. Smith, Lanea Zimmerman (AKA Sharm), Daniel Eddeland, \n   William.Thompsonj, Nushio, Adrix89 \n* FrostC \n* Kelvin Shadewing \n* Kenney \n* KnoblePersona \n* Nemisys \n\nSee the source code for more information (including licensing \ndetails).";
                 },
                 Render: function (displayOutput, width, height) {
                     displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(10, ((height - 10) | 0), TuxPlanetSpeedrunAnyPercentLibrary.Credits_Images.GetText(), TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt, DTLibrary.DTColor.Black());
@@ -20813,7 +20948,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 GetText: function () {
-                    return "Music track authors: \n* Jason Lavallee \n* wansti \n\nSee the source code for more information (including licensing \ndetails).";
+                    return "Music track authors: \n* cynicmusic \n* Jason Lavallee \n* Lukas Nystrand \n* Cal McEachern \n* wansti \n\nSee the source code for more information (including licensing \ndetails).";
                 },
                 Render: function (displayOutput, width, height) {
                     displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(10, ((height - 10) | 0), TuxPlanetSpeedrunAnyPercentLibrary.Credits_Music.GetText(), TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt, DTLibrary.DTColor.Black());
@@ -20887,6 +21022,18 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status", {
+        $kind: "nested enum",
+        statics: {
+            fields: {
+                A_Camera: 0,
+                B_Dialogue: 1,
+                C_KonqiDisappear: 2,
+                D_Camera: 3
+            }
+        }
+    });
+
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status", {
         $kind: "nested enum",
         statics: {
@@ -20904,15 +21051,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             fields: {
                 SAVESTATE_CUTSCENE: null,
                 TIME_SLOWDOWN_CUTSCENE: null,
-                LEVEL_THAT_GRANTS_SAVESTATES: 0,
-                LEVEL_THAT_GRANTS_TIME_SLOWDOWN: 0
+                TELEPORT_CUTSCENE: null
             },
             ctors: {
                 init: function () {
                     this.SAVESTATE_CUTSCENE = "savestate_cutscene";
                     this.TIME_SLOWDOWN_CUTSCENE = "time_slowdown_cutscene";
-                    this.LEVEL_THAT_GRANTS_SAVESTATES = 2;
-                    this.LEVEL_THAT_GRANTS_TIME_SLOWDOWN = 4;
+                    this.TELEPORT_CUTSCENE = "teleport_cutscene";
                 }
             },
             methods: {
@@ -20923,7 +21068,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         if (Bridge.referenceEquals(cutsceneName, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TIME_SLOWDOWN_CUTSCENE)) {
                             return TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.GetCutscene();
                         } else {
-                            throw new System.Exception();
+                            if (Bridge.referenceEquals(cutsceneName, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TELEPORT_CUTSCENE)) {
+                                return TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.GetCutscene();
+                            } else {
+                                throw new System.Exception();
+                            }
                         }
                     }
                 }
@@ -20939,10 +21088,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             NewEnemies: null,
             Cutscene: null,
             ShouldGrantSaveStatePower: false,
-            ShouldGrantTimeSlowdownPower: false
+            ShouldGrantTimeSlowdownPower: false,
+            ShouldGrantTeleportPower: false
         },
         ctors: {
-            ctor: function (move, cameraState, newEnemies, cutscene, shouldGrantSaveStatePower, shouldGrantTimeSlowdownPower) {
+            ctor: function (move, cameraState, newEnemies, cutscene, shouldGrantSaveStatePower, shouldGrantTimeSlowdownPower, shouldGrantTeleportPower) {
                 this.$initialize();
                 this.Move = move;
                 this.CameraState = cameraState;
@@ -20950,6 +21100,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.Cutscene = cutscene;
                 this.ShouldGrantSaveStatePower = shouldGrantSaveStatePower;
                 this.ShouldGrantTimeSlowdownPower = shouldGrantTimeSlowdownPower;
+                this.ShouldGrantTeleportPower = shouldGrantTeleportPower;
             }
         }
     });
@@ -21138,6 +21289,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.IEnemy", {
+        $kind: "interface"
+    });
+
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyIdGenerator", {
         fields: {
             id: 0
@@ -21155,10 +21310,6 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 return newId;
             }
         }
-    });
-
-    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.IEnemy", {
-        $kind: "interface"
     });
 
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing", {
@@ -21369,6 +21520,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return "KelvinShadewing/konqi.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KonqiMirrored: 
                             return "KelvinShadewing/konqi_mirrored.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Blazeborn: 
+                            return "FrostC/Blazeborn.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BlazebornMirrored: 
+                            return "FrostC/Blazeborn_mirrored.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Smartcap: 
                             return "KelvinShadewing/smartcap.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SmartcapMirrored: 
@@ -21391,6 +21546,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return "FrostC/spikes.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Signpost: 
                             return "Nemisys/signpost.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt: 
+                            return "BenCreating/PathDirt.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Snow: 
+                            return "BenCreating/Snow/Snow.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.LevelIcons: 
+                            return "KelvinShadewing/level-icons.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TuxOverworld: 
+                            return "KelvinShadewing/tuxO.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.OceanBackground: 
                             return "KnoblePersona/ocean.png";
                         default: 
@@ -21420,55 +21583,71 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             Tilemap: null,
             Tux: null,
             Camera: null,
-            LevelNumberDisplay: null,
+            LevelNameDisplay: null,
             Enemies: null,
             KilledEnemies: null,
+            PreviousMove: null,
             FrameCounter: 0,
             WindowWidth: 0,
             WindowHeight: 0,
-            LevelNumber: 0,
+            Level: 0,
             CanUseSaveStates: false,
             CanUseTimeSlowdown: false,
+            CanUseTeleport: false,
+            StartedLevelOrCheckpointWithSaveStates: false,
+            StartedLevelOrCheckpointWithTimeSlowdown: false,
+            StartedLevelOrCheckpointWithTeleport: false,
+            CheckpointLocation: null,
+            CompletedCutscenesAtCheckpoint: null,
+            KilledEnemiesAtCheckpoint: null,
             CompletedCutscenes: null,
             Cutscene: null
         },
         ctors: {
-            $ctor1: function (levelConfiguration, background, tilemap, tux, camera, levelNumberDisplay, enemies, killedEnemies, frameCounter, windowWidth, windowHeight, levelNumber, canUseSaveStates, canUseTimeSlowdown, completedCutscenes, cutscene) {
+            ctor: function (levelConfiguration, background, tilemap, tux, camera, levelNameDisplay, enemies, killedEnemies, previousMove, frameCounter, windowWidth, windowHeight, level, canUseSaveStates, canUseTimeSlowdown, canUseTeleport, startedLevelOrCheckpointWithSaveStates, startedLevelOrCheckpointWithTimeSlowdown, startedLevelOrCheckpointWithTeleport, checkpointLocation, completedCutscenesAtCheckpoint, killedEnemiesAtCheckpoint, completedCutscenes, cutscene) {
                 this.$initialize();
                 this.LevelConfiguration = levelConfiguration;
                 this.Background = background;
                 this.Tilemap = tilemap;
                 this.Tux = tux;
                 this.Camera = camera;
-                this.LevelNumberDisplay = levelNumberDisplay;
+                this.LevelNameDisplay = levelNameDisplay;
                 this.Enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
                 this.KilledEnemies = new (System.Collections.Generic.List$1(System.String)).$ctor1(killedEnemies);
+                this.PreviousMove = previousMove;
                 this.FrameCounter = frameCounter;
                 this.WindowWidth = windowWidth;
                 this.WindowHeight = windowHeight;
-                this.LevelNumber = levelNumber;
+                this.Level = level;
                 this.CanUseSaveStates = canUseSaveStates;
                 this.CanUseTimeSlowdown = canUseTimeSlowdown;
+                this.CanUseTeleport = canUseTeleport;
+                this.StartedLevelOrCheckpointWithSaveStates = startedLevelOrCheckpointWithSaveStates;
+                this.StartedLevelOrCheckpointWithTimeSlowdown = startedLevelOrCheckpointWithTimeSlowdown;
+                this.StartedLevelOrCheckpointWithTeleport = startedLevelOrCheckpointWithTeleport;
+                this.CheckpointLocation = checkpointLocation;
+                this.CompletedCutscenesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(completedCutscenesAtCheckpoint);
+                this.KilledEnemiesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(killedEnemiesAtCheckpoint);
                 this.CompletedCutscenes = new (System.Collections.Generic.List$1(System.String)).$ctor1(completedCutscenes);
                 this.Cutscene = cutscene;
             },
-            ctor: function (levelNumber, windowWidth, windowHeight, mapInfo, random) {
+            $ctor1: function (level, windowWidth, windowHeight, canUseSaveStates, canUseTimeSlowdown, canUseTeleport, mapInfo, random) {
                 this.$initialize();
                 var levelConfig;
 
-                if (levelNumber === 1) {
+                if (level === TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1) {
                     levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level1(mapInfo, random);
                 } else {
-                    if (levelNumber === 2) {
-                        levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level2(mapInfo, random);
+                    if (level === TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2) {
+                        levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level2(mapInfo, canUseSaveStates, random);
                     } else {
-                        if (levelNumber === 3) {
-                            levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level3(mapInfo, random);
+                        if (level === TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3) {
+                            levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level3(mapInfo, canUseTeleport, random);
                         } else {
-                            if (levelNumber === 4) {
-                                levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level4(mapInfo, random);
+                            if (level === TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4) {
+                                levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level4(mapInfo, canUseTimeSlowdown, random);
                             } else {
-                                if (levelNumber === 5) {
+                                if (level === TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5) {
                                     levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level5(mapInfo, random);
                                 } else {
                                     throw new System.Exception();
@@ -21482,16 +21661,24 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.Background = this.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground();
                 this.Tilemap = this.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(null, null, windowWidth, windowHeight);
                 this.Tux = TuxPlanetSpeedrunAnyPercentLibrary.TuxState.GetDefaultTuxState(this.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(0, 0).Item1, this.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(0, 0).Item2);
-                this.Camera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(this.Tux.XMibi, this.Tux.YMibi, this.Tilemap, windowWidth, windowHeight);
-                this.LevelNumberDisplay = TuxPlanetSpeedrunAnyPercentLibrary.LevelNumberDisplay.GetLevelNumberDisplay(levelNumber);
+                this.Camera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(this.Tux.XMibi, this.Tux.YMibi, this.Tux.TeleportStartingLocation, this.Tux.TeleportInProgressElapsedMicros, this.Tilemap, windowWidth, windowHeight);
+                this.LevelNameDisplay = TuxPlanetSpeedrunAnyPercentLibrary.LevelNameDisplay.GetLevelNameDisplay(TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.GetLevelName(level));
                 this.Enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
                 this.KilledEnemies = new (System.Collections.Generic.List$1(System.String)).ctor();
+                this.PreviousMove = TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove();
                 this.FrameCounter = 0;
                 this.WindowWidth = windowWidth;
                 this.WindowHeight = windowHeight;
-                this.LevelNumber = levelNumber;
-                this.CanUseSaveStates = levelNumber > TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.LEVEL_THAT_GRANTS_SAVESTATES;
-                this.CanUseTimeSlowdown = levelNumber > TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.LEVEL_THAT_GRANTS_TIME_SLOWDOWN;
+                this.Level = level;
+                this.CanUseSaveStates = canUseSaveStates;
+                this.CanUseTimeSlowdown = canUseTimeSlowdown;
+                this.CanUseTeleport = canUseTeleport;
+                this.StartedLevelOrCheckpointWithSaveStates = canUseSaveStates;
+                this.StartedLevelOrCheckpointWithTimeSlowdown = canUseTimeSlowdown;
+                this.StartedLevelOrCheckpointWithTeleport = canUseTeleport;
+                this.CheckpointLocation = null;
+                this.CompletedCutscenesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).ctor();
+                this.KilledEnemiesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).ctor();
                 this.CompletedCutscenes = new (System.Collections.Generic.List$1(System.String)).ctor();
                 this.Cutscene = null;
             }
@@ -21504,13 +21691,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 ProcessFrame: function (gameLogicState, move, debugMode, debugKeyboardInput, debugPreviousKeyboardInput, displayProcessing, soundOutput, elapsedMicrosPerFrame) {
                     var newTilemap = gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(gameLogicState.Tux.XMibi >> 10, gameLogicState.Tux.YMibi >> 10, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
 
-                    var newLevelNumberDisplay = gameLogicState.LevelNumberDisplay.ProcessFrame(elapsedMicrosPerFrame);
+                    var newLevelNameDisplay = gameLogicState.LevelNameDisplay.ProcessFrame(elapsedMicrosPerFrame);
 
                     var newCutscene = gameLogicState.Cutscene;
                     var newCompletedCutscenes = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.CompletedCutscenes);
 
                     var newCanUseSaveStates = gameLogicState.CanUseSaveStates;
                     var newCanUseTimeSlowdown = gameLogicState.CanUseTimeSlowdown;
+                    var newCanUseTeleport = gameLogicState.CanUseTeleport;
 
                     var newCamera = gameLogicState.Camera;
 
@@ -21547,17 +21735,31 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             newCanUseTimeSlowdown = true;
                         }
 
+                        if (cutsceneResult.ShouldGrantTeleportPower) {
+                            newCanUseTeleport = true;
+                        }
+
                         if (newCutscene == null) {
                             newCompletedCutscenes.add(cutsceneName1);
                         }
                     }
 
-                    var result = TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.ProcessFrame(gameLogicState.Tux, move, debugMode, debugKeyboardInput, debugPreviousKeyboardInput, displayProcessing, soundOutput, elapsedMicrosPerFrame, gameLogicState.Tilemap);
+                    if (debugMode && debugKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Two) && !debugPreviousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Two)) {
+                        newCanUseSaveStates = true;
+                    }
+                    if (debugMode && debugKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Three) && !debugPreviousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Three)) {
+                        newCanUseTeleport = true;
+                    }
+                    if (debugMode && debugKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Four) && !debugPreviousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Four)) {
+                        newCanUseTimeSlowdown = true;
+                    }
+
+                    var result = TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.ProcessFrame(gameLogicState.Tux, move, gameLogicState.PreviousMove, gameLogicState.CanUseTeleport, debugMode, debugKeyboardInput, debugPreviousKeyboardInput, displayProcessing, soundOutput, elapsedMicrosPerFrame, gameLogicState.Tilemap);
 
                     var newTuxState = result.TuxState;
 
                     if (newCutscene == null) {
-                        newCamera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(newTuxState.XMibi, newTuxState.YMibi, gameLogicState.Tilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+                        newCamera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(newTuxState.XMibi, newTuxState.YMibi, newTuxState.TeleportStartingLocation, newTuxState.TeleportInProgressElapsedMicros, gameLogicState.Tilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
                     }
 
                     var enemyProcessingResult = TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.ProcessFrame(newTilemap, newCamera.X, newCamera.Y, gameLogicState.WindowWidth, gameLogicState.WindowHeight, newEnemies, gameLogicState.KilledEnemies, elapsedMicrosPerFrame);
@@ -21580,16 +21782,41 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     newKilledEnemies.AddRange(collisionResultEnemy.NewlyKilledEnemies);
 
+                    var newStartedLevelOrCheckpointWithSaveStates = gameLogicState.StartedLevelOrCheckpointWithSaveStates;
+                    var newStartedLevelOrCheckpointWithTimeSlowdown = gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown;
+                    var newStartedLevelOrCheckpointWithTeleport = gameLogicState.StartedLevelOrCheckpointWithTeleport;
+
+                    var newCompletedCutscenesAtCheckpoint = gameLogicState.CompletedCutscenesAtCheckpoint;
+                    var newKilledEnemiesAtCheckpoint = gameLogicState.KilledEnemiesAtCheckpoint;
+
+                    var newCheckpointLocation = gameLogicState.CheckpointLocation;
+
+                    var checkpoint = newTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(newTuxState.XMibi >> 10, newTuxState.YMibi >> 10);
+                    if (checkpoint != null) {
+                        newCheckpointLocation = checkpoint;
+                        newStartedLevelOrCheckpointWithSaveStates = gameLogicState.CanUseSaveStates;
+                        newStartedLevelOrCheckpointWithTimeSlowdown = gameLogicState.CanUseTimeSlowdown;
+                        newStartedLevelOrCheckpointWithTeleport = gameLogicState.CanUseTeleport;
+                        newCompletedCutscenesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.CompletedCutscenes);
+                        newKilledEnemiesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.KilledEnemies);
+                    }
+
                     if (result.HasDied) {
                         var restartedTilemap = gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(null, null, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
 
-                        var originalTuxState = TuxPlanetSpeedrunAnyPercentLibrary.TuxState.GetDefaultTuxState(restartedTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(0, 0).Item1, restartedTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(0, 0).Item2);
+                        var originalTuxState;
 
-                        newCamera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(originalTuxState.XMibi, originalTuxState.YMibi, restartedTilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+                        if (gameLogicState.CheckpointLocation == null) {
+                            originalTuxState = TuxPlanetSpeedrunAnyPercentLibrary.TuxState.GetDefaultTuxState(restartedTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(0, 0).Item1, restartedTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(0, 0).Item2);
+                        } else {
+                            originalTuxState = TuxPlanetSpeedrunAnyPercentLibrary.TuxState.GetDefaultTuxState(gameLogicState.CheckpointLocation.Item1, gameLogicState.CheckpointLocation.Item2);
+                        }
 
-                        return new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.$ctor1(gameLogicState.LevelConfiguration, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground(), restartedTilemap, originalTuxState, newCamera, newLevelNumberDisplay, new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), new (System.Collections.Generic.List$1(System.String)).ctor(), ((gameLogicState.FrameCounter + 1) | 0), gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.LevelNumber, gameLogicState.LevelNumber > TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.LEVEL_THAT_GRANTS_SAVESTATES, gameLogicState.LevelNumber > TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.LEVEL_THAT_GRANTS_TIME_SLOWDOWN, new (System.Collections.Generic.List$1(System.String)).ctor(), null), result.EndLevel, restartedTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic(), result.ShouldStopMusic);
+                        newCamera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(originalTuxState.XMibi, originalTuxState.YMibi, originalTuxState.TeleportStartingLocation, originalTuxState.TeleportInProgressElapsedMicros, restartedTilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+
+                        return new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.ctor(gameLogicState.LevelConfiguration, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground(), restartedTilemap, originalTuxState, newCamera, newLevelNameDisplay, new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), gameLogicState.KilledEnemiesAtCheckpoint, move, ((gameLogicState.FrameCounter + 1) | 0), gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.Level, gameLogicState.StartedLevelOrCheckpointWithSaveStates, gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown, gameLogicState.StartedLevelOrCheckpointWithTeleport, gameLogicState.StartedLevelOrCheckpointWithSaveStates, gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown, gameLogicState.StartedLevelOrCheckpointWithTeleport, gameLogicState.CheckpointLocation, gameLogicState.CompletedCutscenesAtCheckpoint, gameLogicState.KilledEnemiesAtCheckpoint, gameLogicState.CompletedCutscenesAtCheckpoint, null), result.EndLevel, restartedTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic(), result.ShouldStopMusic);
                     } else {
-                        return new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.$ctor1(gameLogicState.LevelConfiguration, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground(), newTilemap, newTuxState, newCamera, newLevelNumberDisplay, newEnemies, newKilledEnemies, ((gameLogicState.FrameCounter + 1) | 0), gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.LevelNumber, newCanUseSaveStates, newCanUseTimeSlowdown, newCompletedCutscenes, newCutscene), result.EndLevel, newTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic(), result.ShouldStopMusic);
+                        return new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.ctor(gameLogicState.LevelConfiguration, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground(), newTilemap, newTuxState, newCamera, newLevelNameDisplay, newEnemies, newKilledEnemies, move, ((gameLogicState.FrameCounter + 1) | 0), gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.Level, newCanUseSaveStates, newCanUseTimeSlowdown, newCanUseTeleport, newStartedLevelOrCheckpointWithSaveStates, newStartedLevelOrCheckpointWithTimeSlowdown, newStartedLevelOrCheckpointWithTeleport, newCheckpointLocation, newCompletedCutscenesAtCheckpoint, newKilledEnemiesAtCheckpoint, newCompletedCutscenes, newCutscene), result.EndLevel, newTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic(), result.ShouldStopMusic);
                     }
                 },
                 Render: function (gameLogicState, displayOutput, elapsedMillis, debug_showHitboxes) {
@@ -21647,7 +21874,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         }
                     }
 
-                    gameLogicState.LevelNumberDisplay.Render(displayOutput, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+                    gameLogicState.LevelNameDisplay.Render(displayOutput, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
 
                     var elapsedTimeString = TuxPlanetSpeedrunAnyPercentLibrary.ElapsedTimeUtil.GetElapsedTimeString(elapsedMillis);
                     var timerText = "Time: " + (elapsedTimeString || "");
@@ -21687,9 +21914,15 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 GetMusicFilename: function (music) {
                     switch (music) {
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Airship2: 
-                            return "JasonLavallee/airship_2.wav";
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo("JasonLavallee/airship_2.ogg", "JasonLavallee/airship_2.wav");
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Theme: 
-                            return "wansti/theme.wav";
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo("wansti/theme.ogg", "wansti/theme.wav");
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.PeaceAtLast: 
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo("Trex0n/peace_at_last.ogg", "Trex0n/peace_at_last.wav");
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Chipdisko: 
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo("LukasNystrand/chipdisko.ogg", "LukasNystrand/chipdisko.wav");
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Jewels: 
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo("cynicmusic/music_jewels.ogg", "cynicmusic/music_jewels.wav");
                         default: 
                             throw new System.Exception();
                     }
@@ -21700,10 +21933,31 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return 40;
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Theme: 
                             return 10;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.PeaceAtLast: 
+                            return 30;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Chipdisko: 
+                            return 70;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Jewels: 
+                            return 30;
                         default: 
                             throw new System.Exception();
                     }
                 }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo", {
+        $kind: "nested class",
+        fields: {
+            DefaultFilename: null,
+            WavFilename: null
+        },
+        ctors: {
+            ctor: function (defaultFilename, wavFilename) {
+                this.$initialize();
+                this.DefaultFilename = defaultFilename;
+                this.WavFilename = wavFilename;
             }
         }
     });
@@ -21716,13 +21970,15 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Click: 
                             return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("Kenney/click3_Modified.wav", "Kenney/click3_Modified.wav");
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.JingleWin01: 
-                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("LittleRobotSoundFactory/Jingle_Win_01_modified.wav", "LittleRobotSoundFactory/Jingle_Win_01_modified.wav");
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("LittleRobotSoundFactory/Jingle_Win_01.ogg", "LittleRobotSoundFactory/Jingle_Win_01_modified.wav");
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Die: 
                             return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("Basto/cut.ogg", "Basto/cut.wav");
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Squish: 
                             return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("SuperTux/squish.wav", "SuperTux/squish.wav");
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Jump: 
                             return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("LittleRobotSoundFactory/Jump_03.wav", "LittleRobotSoundFactory/Jump_03.wav");
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Teleport: 
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("Basto/heavy_splash.ogg", "Basto/heavy_splash.wav");
                         default: 
                             throw new System.Exception();
                     }
@@ -21738,6 +21994,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Squish: 
                             return 30;
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Jump: 
+                            return 30;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Teleport: 
                             return 30;
                         default: 
                             throw new System.Exception();
@@ -21782,6 +22040,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             Logger: null,
             Timer: null,
             IsWebBrowserVersion: false,
+            IsWebPortalVersion: false,
             DebugMode: false,
             Debug_ShowHitBoxes: false,
             MapInfo: null,
@@ -21802,7 +22061,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         ctors: {
-            ctor: function (windowWidth, windowHeight, fps, rng, guidGenerator, logger, timer, fileIO, isWebBrowserVersion, debugMode, initialMusicVolume) {
+            ctor: function (windowWidth, windowHeight, fps, rng, guidGenerator, logger, timer, fileIO, isWebBrowserVersion, isWebPortalVersion, debugMode, initialMusicVolume) {
                 var $t;
                 this.$initialize();
                 this.WindowWidth = windowWidth;
@@ -21813,6 +22072,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.Logger = logger;
                 this.Timer = timer;
                 this.IsWebBrowserVersion = isWebBrowserVersion;
+                this.IsWebPortalVersion = isWebPortalVersion;
                 this.DebugMode = debugMode;
                 this.desiredMusicVolume = ($t = initialMusicVolume, $t != null ? $t : TuxPlanetSpeedrunAnyPercentLibrary.GlobalState.DEFAULT_VOLUME);
                 this.currentMusicVolume = this.desiredMusicVolume;
@@ -21879,9 +22139,36 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         $kind: "interface"
     });
 
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Level", {
+        $kind: "enum",
+        statics: {
+            fields: {
+                Level1: 0,
+                Level2: 1,
+                Level3: 2,
+                Level4: 3,
+                Level5: 4
+            }
+        }
+    });
+
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper", {
         statics: {
             methods: {
+                GetRandomGameMusic: function (random) {
+                    var i = random.DTLibrary$IDTRandom$NextInt(3);
+
+                    switch (i) {
+                        case 0: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Airship2;
+                        case 1: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Chipdisko;
+                        case 2: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Jewels;
+                        default: 
+                            throw new System.Exception();
+                    }
+                },
                 GetTilemap: function (normalizedTilemaps, tuxX, tuxY, windowWidth, windowHeight) {
                     var $t, $t1;
                     var tilemapWidth = 0;
@@ -21913,6 +22200,19 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         return new TuxPlanetSpeedrunAnyPercentLibrary.BoundedTilemap(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap(normalizedTilemaps, tilemapWidth, tilemapHeight));
                     }
 
+                    if (System.Nullable.getValue(tuxX) > tilemapWidth) {
+                        tuxX = tilemapWidth;
+                    }
+                    if (System.Nullable.getValue(tuxX) < 0) {
+                        tuxX = 0;
+                    }
+                    if (System.Nullable.getValue(tuxY) > tilemapHeight) {
+                        tuxY = tilemapHeight;
+                    }
+                    if (System.Nullable.getValue(tuxY) < 0) {
+                        tuxY = 0;
+                    }
+
                     var tilemapsNearTux = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).ctor();
 
                     var halfWindowWidth = windowWidth >> 1;
@@ -21929,24 +22229,26 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     try {
                         while ($t1.moveNext()) {
                             var tilemap1 = $t1.Current;
-                            var tilemapLeft = tilemap1.XOffset;
-                            var tilemapRight = (tilemap1.XOffset + tilemap1.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0;
+                            if (!tilemap1.AlwaysIncludeTilemap) {
+                                var tilemapLeft = tilemap1.XOffset;
+                                var tilemapRight = (tilemap1.XOffset + tilemap1.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0;
 
-                            if (tilemapRight < ((cameraLeft - margin) | 0)) {
-                                continue;
-                            }
-                            if (tilemapLeft > ((cameraRight + margin) | 0)) {
-                                continue;
-                            }
+                                if (tilemapRight < ((cameraLeft - margin) | 0)) {
+                                    continue;
+                                }
+                                if (tilemapLeft > ((cameraRight + margin) | 0)) {
+                                    continue;
+                                }
 
-                            var tilemapBottom = tilemap1.YOffset;
-                            var tilemapTop = (tilemap1.YOffset + tilemap1.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0;
+                                var tilemapBottom = tilemap1.YOffset;
+                                var tilemapTop = (tilemap1.YOffset + tilemap1.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0;
 
-                            if (tilemapTop < ((cameraBottom - margin) | 0)) {
-                                continue;
-                            }
-                            if (tilemapBottom > ((cameraTop + margin) | 0)) {
-                                continue;
+                                if (tilemapTop < ((cameraBottom - margin) | 0)) {
+                                    continue;
+                                }
+                                if (tilemapBottom > ((cameraTop + margin) | 0)) {
+                                    continue;
+                                }
                             }
 
                             tilemapsNearTux.add(tilemap1);
@@ -21963,39 +22265,39 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
-    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.LevelNumberDisplay", {
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.LevelNameDisplay", {
         statics: {
             fields: {
-                LEVEL_NUMBER_DISPLAY_DURATION: 0
+                LEVEL_NAME_DISPLAY_DURATION: 0
             },
             ctors: {
                 init: function () {
-                    this.LEVEL_NUMBER_DISPLAY_DURATION = 3000000;
+                    this.LEVEL_NAME_DISPLAY_DURATION = 3000000;
                 }
             },
             methods: {
-                GetLevelNumberDisplay: function (levelNumber) {
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.LevelNumberDisplay(levelNumber, 0);
+                GetLevelNameDisplay: function (levelName) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.LevelNameDisplay(levelName, 0);
                 }
             }
         },
         fields: {
-            levelNumber: 0,
+            levelName: null,
             elapsedMicros: 0
         },
         ctors: {
-            ctor: function (levelNumber, elapsedMicros) {
+            ctor: function (levelName, elapsedMicros) {
                 this.$initialize();
-                this.levelNumber = levelNumber;
+                this.levelName = levelName;
                 this.elapsedMicros = elapsedMicros;
             }
         },
         methods: {
             ProcessFrame: function (elapsedMicrosPerFrame) {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.LevelNumberDisplay(this.levelNumber, Math.min(((this.elapsedMicros + elapsedMicrosPerFrame) | 0), 3000001));
+                return new TuxPlanetSpeedrunAnyPercentLibrary.LevelNameDisplay(this.levelName, Math.min(((this.elapsedMicros + elapsedMicrosPerFrame) | 0), 3000001));
             },
             Render: function (displayOutput, windowWidth, windowHeight) {
-                if (this.elapsedMicros >= TuxPlanetSpeedrunAnyPercentLibrary.LevelNumberDisplay.LEVEL_NUMBER_DISPLAY_DURATION) {
+                if (this.elapsedMicros >= TuxPlanetSpeedrunAnyPercentLibrary.LevelNameDisplay.LEVEL_NAME_DISPLAY_DURATION) {
                     return;
                 }
 
@@ -22026,8 +22328,84 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                 displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawRectangle(0, ((((Bridge.Int.div(windowHeight, 2)) | 0) + 100) | 0), windowWidth, 100, new DTLibrary.DTColor.$ctor1(0, 0, 0, backgroundAlpha), true);
 
-                var levelNumStr = DTLibrary.StringUtil.ToStringCultureInvariant(this.levelNumber);
-                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(50, ((((Bridge.Int.div(windowHeight, 2)) | 0) + 170) | 0), "Level " + (levelNumStr || ""), TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont32Pt, new DTLibrary.DTColor.$ctor1(255, 255, 255, alpha));
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(50, ((((Bridge.Int.div(windowHeight, 2)) | 0) + 170) | 0), this.levelName, TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont32Pt, new DTLibrary.DTColor.$ctor1(255, 255, 255, alpha));
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil", {
+        statics: {
+            methods: {
+                IsLastLevel: function (level) {
+                    switch (level) {
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1: 
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2: 
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3: 
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4: 
+                            return false;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5: 
+                            return true;
+                        default: 
+                            throw new System.Exception();
+                    }
+                },
+                GetLevelName: function (level) {
+                    switch (level) {
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1: 
+                            return "Level 1";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2: 
+                            return "Level 2";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3: 
+                            return "Level 3";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4: 
+                            return "Level 4";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5: 
+                            return "Level 5";
+                        default: 
+                            throw new System.Exception();
+                    }
+                },
+                ToSerializableInt: function (level) {
+                    switch (level) {
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1: 
+                            return 1;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2: 
+                            return 2;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3: 
+                            return 3;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4: 
+                            return 4;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5: 
+                            return 5;
+                        default: 
+                            throw new System.Exception();
+                    }
+                },
+                FromSerializableInt: function (i) {
+                    var level = TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.TryFromSerializableInt(i);
+
+                    if (level == null) {
+                        throw new System.Exception();
+                    }
+
+                    return System.Nullable.getValue(level);
+                },
+                TryFromSerializableInt: function (i) {
+                    switch (i) {
+                        case 1: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1;
+                        case 2: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2;
+                        case 3: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3;
+                        case 4: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4;
+                        case 5: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5;
+                        default: 
+                            return null;
+                    }
+                }
             }
         }
     });
@@ -22086,21 +22464,21 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary0.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary0_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary0_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary0_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary0_0.set("width", "140");
-                    layersDictionary0_0.set("height", "15");
+                    layersDictionary0_0.set("height", "29");
                     layersDictionary0_0.set("name", "Background");
                     mapDictionary0.get("layers").add(layersDictionary0_0);
                     var layersDictionary0_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary0_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,393,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,31,32,32,32,32,33,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,465,465,465,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,393,0,393,0,393,0,393,0,393,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,464,0,0,0,0,0,0,0,0,393,0,0,393,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,0,0,31,32,32,32,32,32,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,89,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary0_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,447,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,447,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,393,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,31,32,32,32,32,33,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,465,465,465,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,393,0,393,0,393,0,393,0,393,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,464,0,0,0,0,0,0,0,0,393,0,0,393,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,0,0,31,32,32,32,32,32,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,89,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
                     layersDictionary0_1.set("width", "140");
-                    layersDictionary0_1.set("height", "15");
+                    layersDictionary0_1.set("height", "29");
                     layersDictionary0_1.set("name", "Foreground");
                     mapDictionary0.get("layers").add(layersDictionary0_1);
                     var layersDictionary0_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary0_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,363,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary0_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,363,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary0_2.set("width", "140");
-                    layersDictionary0_2.set("height", "15");
+                    layersDictionary0_2.set("height", "29");
                     layersDictionary0_2.set("name", "Solid");
                     mapDictionary0.get("layers").add(layersDictionary0_2);
 
@@ -22153,21 +22531,21 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary1.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary1_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary1_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary1_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary1_0.set("width", "60");
-                    layersDictionary1_0.set("height", "15");
+                    layersDictionary1_0.set("height", "25");
                     layersDictionary1_0.set("name", "Background");
                     mapDictionary1.get("layers").add(layersDictionary1_0);
                     var layersDictionary1_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary1_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,393,0,0,0,0,0,393,0,393,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,31,32,32,32,32,33,0,0,31,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
+                    layersDictionary1_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,393,0,0,0,0,0,393,0,393,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,31,32,32,32,32,33,0,0,31,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
                     layersDictionary1_1.set("width", "60");
-                    layersDictionary1_1.set("height", "15");
+                    layersDictionary1_1.set("height", "25");
                     layersDictionary1_1.set("name", "Foreground");
                     mapDictionary1.get("layers").add(layersDictionary1_1);
                     var layersDictionary1_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary1_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary1_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary1_2.set("width", "60");
-                    layersDictionary1_2.set("height", "15");
+                    layersDictionary1_2.set("height", "25");
                     layersDictionary1_2.set("name", "Solid");
                     mapDictionary1.get("layers").add(layersDictionary1_2);
 
@@ -22360,7 +22738,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary4_0.set("name", "Background");
                     mapDictionary4.get("layers").add(layersDictionary4_0);
                     var layersDictionary4_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary4_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,90,90,90,90,91,0,0,89,90,90,90,90,91,0,0,89,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,2,3,3,4,0,0,0,0,2,3,3,4,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,393,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,393,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,33,0,0,31,32,32,32,32,33,0,0,31,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
+                    layersDictionary4_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,90,90,90,90,91,0,0,89,90,90,90,90,91,0,0,89,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,2,3,3,4,0,0,0,0,2,3,3,4,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,393,0,0,0,0,0,0,0,0,0,447,0,0,0,0,0,0,0,0,0,0,393,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,33,0,0,31,32,32,32,32,33,0,0,31,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
                     layersDictionary4_1.set("width", "60");
                     layersDictionary4_1.set("height", "15");
                     layersDictionary4_1.set("name", "Foreground");
@@ -22433,7 +22811,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary5_1.set("name", "Foreground");
                     mapDictionary5.get("layers").add(layersDictionary5_1);
                     var layersDictionary5_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary5_2.set("data", "320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary5_2.set("data", "320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,452,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary5_2.set("width", "60");
                     layersDictionary5_2.set("height", "35");
                     layersDictionary5_2.set("name", "Solid");
@@ -22488,21 +22866,21 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary6.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary6_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary6_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary6_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary6_0.set("width", "25");
-                    layersDictionary6_0.set("height", "35");
+                    layersDictionary6_0.set("height", "45");
                     layersDictionary6_0.set("name", "Background");
                     mapDictionary6.get("layers").add(layersDictionary6_0);
                     var layersDictionary6_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary6_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,403,0,0,0,0,0,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary6_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,403,0,0,0,0,0,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
                     layersDictionary6_1.set("width", "25");
-                    layersDictionary6_1.set("height", "35");
+                    layersDictionary6_1.set("height", "45");
                     layersDictionary6_1.set("name", "Foreground");
                     mapDictionary6.get("layers").add(layersDictionary6_1);
                     var layersDictionary6_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary6_2.set("data", "0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary6_2.set("data", "0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary6_2.set("width", "25");
-                    layersDictionary6_2.set("height", "35");
+                    layersDictionary6_2.set("height", "45");
                     layersDictionary6_2.set("name", "Solid");
                     mapDictionary6.get("layers").add(layersDictionary6_2);
 
@@ -22555,21 +22933,21 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary7.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary7_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary7_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary7_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary7_0.set("width", "55");
-                    layersDictionary7_0.set("height", "15");
+                    layersDictionary7_0.set("height", "35");
                     layersDictionary7_0.set("name", "Background");
                     mapDictionary7.get("layers").add(layersDictionary7_0);
                     var layersDictionary7_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary7_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,0,0,0,393,0,0,393,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,31,33,0,0,31,33,0,0,31,33,0,0,31,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
+                    layersDictionary7_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,0,0,0,447,0,0,393,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,31,33,0,0,31,33,0,0,31,33,0,0,31,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
                     layersDictionary7_1.set("width", "55");
-                    layersDictionary7_1.set("height", "15");
+                    layersDictionary7_1.set("height", "35");
                     layersDictionary7_1.set("name", "Foreground");
                     mapDictionary7.get("layers").add(layersDictionary7_1);
                     var layersDictionary7_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary7_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,0,0,320,320,0,0,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,0,0,320,320,0,0,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary7_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,0,0,320,320,0,0,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,0,0,320,320,0,0,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary7_2.set("width", "55");
-                    layersDictionary7_2.set("height", "15");
+                    layersDictionary7_2.set("height", "35");
                     layersDictionary7_2.set("name", "Solid");
                     mapDictionary7.get("layers").add(layersDictionary7_2);
 
@@ -22957,19 +23335,19 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary13.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary13_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary13_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary13_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary13_0.set("width", "85");
                     layersDictionary13_0.set("height", "15");
                     layersDictionary13_0.set("name", "Background");
                     mapDictionary13.get("layers").add(layersDictionary13_0);
                     var layersDictionary13_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary13_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,91,0,0,89,91,0,0,89,91,0,0,89,91,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary13_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,91,0,0,89,91,0,0,89,91,0,0,89,91,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
                     layersDictionary13_1.set("width", "85");
                     layersDictionary13_1.set("height", "15");
                     layersDictionary13_1.set("name", "Foreground");
                     mapDictionary13.get("layers").add(layersDictionary13_1);
                     var layersDictionary13_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary13_2.set("data", "320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,0,0,320,320,0,0,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,0,0,320,320,0,0,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary13_2.set("data", "320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,0,0,320,320,0,0,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,0,0,320,320,0,0,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary13_2.set("width", "85");
                     layersDictionary13_2.set("height", "15");
                     layersDictionary13_2.set("name", "Solid");
@@ -23038,7 +23416,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary14_0.set("name", "Background");
                     mapDictionary14.get("layers").add(layersDictionary14_0);
                     var layersDictionary14_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary14_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,0,393,0,0,393,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,464,0,0,464,0,0,464,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,8,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,4,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary14_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,0,393,0,0,393,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,464,0,0,464,0,0,464,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,8,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,4,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary14_1.set("width", "70");
                     layersDictionary14_1.set("height", "30");
                     layersDictionary14_1.set("name", "Foreground");
@@ -23113,13 +23491,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary15_0.set("name", "Background");
                     mapDictionary15.get("layers").add(layersDictionary15_0);
                     var layersDictionary15_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary15_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,66,64,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,0,0,464,464,464,464,464,464,0,0,464,464,464,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,393,0,0,0,0,464,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,59,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,59,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,59,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,59,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,59,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,59,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,1,0,0,0,393,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,59,0,0,0,0,0,0,464,0,0,0,0,464,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,35,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,393,0,0,0,0,0,393,0,0,0,0,393,0,0,0,0,393,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,464,0,0,0,0,464,0,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary15_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,66,64,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,0,0,464,464,464,464,464,464,0,0,464,464,464,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,393,0,0,0,0,464,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,59,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,59,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,59,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,59,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,59,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,59,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,1,0,0,0,393,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,59,0,0,0,0,0,0,464,0,0,0,0,464,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,35,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,393,0,0,0,0,0,393,0,0,0,0,447,0,0,0,0,393,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,464,0,0,0,0,464,0,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary15_1.set("width", "70");
                     layersDictionary15_1.set("height", "50");
                     layersDictionary15_1.set("name", "Foreground");
                     mapDictionary15.get("layers").add(layersDictionary15_1);
                     var layersDictionary15_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary15_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,0,0,363,363,363,363,363,363,0,0,363,363,363,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,363,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,320,0,0,0,0,0,0,363,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,0,0,0,0,320,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,363,0,0,0,0,363,0,0,0,0,363,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,320,0,0,0,0,320,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary15_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,0,0,363,363,363,363,363,363,0,0,363,363,363,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,363,0,0,0,0,0,0,0,412,412,412,452,412,412,412,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,363,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,320,0,0,0,0,0,0,363,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,0,0,0,0,320,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,363,0,0,0,0,363,0,0,0,0,363,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,320,0,0,0,0,320,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary15_2.set("width", "70");
                     layersDictionary15_2.set("height", "50");
                     layersDictionary15_2.set("name", "Solid");
@@ -23128,7 +23506,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary16 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level3C_Finish", mapDictionary16);
+                    dictionary.set("Level3C_Cutscene", mapDictionary16);
 
                     mapDictionary16.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary16_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23182,19 +23560,19 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary16.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary16_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary16_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary16_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,536,537,538,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,541,539,543,0,0,0,0,541,539,543,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary16_0.set("width", "70");
                     layersDictionary16_0.set("height", "30");
                     layersDictionary16_0.set("name", "Background");
                     mapDictionary16.get("layers").add(layersDictionary16_0);
                     var layersDictionary16_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary16_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary16_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,1,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,68,67,90,90,90,90,90,68,67,90,90,90,90,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,464,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,403,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,96,32,32,32,32,32,97,96,32,32,32,32,0,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary16_1.set("width", "70");
                     layersDictionary16_1.set("height", "30");
                     layersDictionary16_1.set("name", "Foreground");
                     mapDictionary16.get("layers").add(layersDictionary16_1);
                     var layersDictionary16_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary16_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary16_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,412,412,412,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,363,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,412,412,412,452,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary16_2.set("width", "70");
                     layersDictionary16_2.set("height", "30");
                     layersDictionary16_2.set("name", "Solid");
@@ -23203,7 +23581,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary17 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level4A_Start", mapDictionary17);
+                    dictionary.set("Level3D_Finish", mapDictionary17);
 
                     mapDictionary17.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary17_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23257,28 +23635,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary17.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary17_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary17_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
-                    layersDictionary17_0.set("width", "30");
-                    layersDictionary17_0.set("height", "30");
+                    layersDictionary17_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,541,553,543,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,541,553,543,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary17_0.set("width", "45");
+                    layersDictionary17_0.set("height", "50");
                     layersDictionary17_0.set("name", "Background");
                     mapDictionary17.get("layers").add(layersDictionary17_0);
                     var layersDictionary17_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary17_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,393,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,60,62,0,0,0,0,0,2,4,0,0,0,0,2,4,0,0,0,0,0,2,4,0,0,0,0,0,2,4,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,60,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
-                    layersDictionary17_1.set("width", "30");
-                    layersDictionary17_1.set("height", "30");
+                    layersDictionary17_1.set("data", "464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,32,32,32,33,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,90,68,61,62,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,96,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,89,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,96,32,32,32,32,32,32,33,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,96,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,89,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,33,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,492,492,493,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,516,516,517,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary17_1.set("width", "45");
+                    layersDictionary17_1.set("height", "50");
                     layersDictionary17_1.set("name", "Foreground");
                     mapDictionary17.get("layers").add(layersDictionary17_1);
                     var layersDictionary17_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary17_2.set("data", "320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
-                    layersDictionary17_2.set("width", "30");
-                    layersDictionary17_2.set("height", "30");
+                    layersDictionary17_2.set("data", "363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary17_2.set("width", "45");
+                    layersDictionary17_2.set("height", "50");
                     layersDictionary17_2.set("name", "Solid");
                     mapDictionary17.get("layers").add(layersDictionary17_2);
 
 
 
                     var mapDictionary18 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level4B_Segment1", mapDictionary18);
+                    dictionary.set("Level4A_Start", mapDictionary18);
 
                     mapDictionary18.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary18_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23338,13 +23716,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary18_0.set("name", "Background");
                     mapDictionary18.get("layers").add(layersDictionary18_0);
                     var layersDictionary18_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary18_1.set("data", "11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,393,0,0,0,60,62,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,60,62,0,0,0,0,465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,464,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,393,0,0,0,0,0,464,0,0,0,0,60,62,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,60");
+                    layersDictionary18_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,393,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,60,62,0,0,0,0,0,2,4,0,0,0,0,2,4,0,0,0,0,0,2,4,0,0,0,0,0,2,4,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,60,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
                     layersDictionary18_1.set("width", "30");
                     layersDictionary18_1.set("height", "30");
                     layersDictionary18_1.set("name", "Foreground");
                     mapDictionary18.get("layers").add(layersDictionary18_1);
                     var layersDictionary18_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary18_2.set("data", "320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,320,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,320,320,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,320,0,0,0,0,320");
+                    layersDictionary18_2.set("data", "320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,320,320,0,0,0,0,0,320,320,0,0,0,0,0,320,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary18_2.set("width", "30");
                     layersDictionary18_2.set("height", "30");
                     layersDictionary18_2.set("name", "Solid");
@@ -23353,7 +23731,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary19 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level4B_Segment2", mapDictionary19);
+                    dictionary.set("Level4B_Segment1", mapDictionary19);
 
                     mapDictionary19.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary19_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23413,13 +23791,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary19_0.set("name", "Background");
                     mapDictionary19.get("layers").add(layersDictionary19_0);
                     var layersDictionary19_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary19_1.set("data", "11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,60,62,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,60,62,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,1,0,0,0,0,0,60,62,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,60,62,0,0,0,0,465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,60,62,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,60");
+                    layersDictionary19_1.set("data", "11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,393,0,0,0,60,62,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,60,62,0,0,0,0,465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,464,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,393,0,0,0,0,0,464,0,0,0,0,60,62,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,60");
                     layersDictionary19_1.set("width", "30");
                     layersDictionary19_1.set("height", "30");
                     layersDictionary19_1.set("name", "Foreground");
                     mapDictionary19.get("layers").add(layersDictionary19_1);
                     var layersDictionary19_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary19_2.set("data", "320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,320,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,320,320,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,320,0,0,0,0,320");
+                    layersDictionary19_2.set("data", "320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,320,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,320,320,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,320,0,0,0,0,320");
                     layersDictionary19_2.set("width", "30");
                     layersDictionary19_2.set("height", "30");
                     layersDictionary19_2.set("name", "Solid");
@@ -23428,7 +23806,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary20 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level4C_Cutscene", mapDictionary20);
+                    dictionary.set("Level4B_Segment2", mapDictionary20);
 
                     mapDictionary20.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary20_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23482,28 +23860,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary20.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary20_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary20_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary20_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary20_0.set("width", "30");
-                    layersDictionary20_0.set("height", "15");
+                    layersDictionary20_0.set("height", "30");
                     layersDictionary20_0.set("name", "Background");
                     mapDictionary20.get("layers").add(layersDictionary20_0);
                     var layersDictionary20_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary20_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,41,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,41,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,403,0,0,0,0,0,60,62,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,41");
+                    layersDictionary20_1.set("data", "11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,60,62,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,60,62,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,1,0,0,0,0,0,60,62,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,60,62,0,0,0,0,465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,60,62,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,60");
                     layersDictionary20_1.set("width", "30");
-                    layersDictionary20_1.set("height", "15");
+                    layersDictionary20_1.set("height", "30");
                     layersDictionary20_1.set("name", "Foreground");
                     mapDictionary20.get("layers").add(layersDictionary20_1);
                     var layersDictionary20_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary20_2.set("data", "320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary20_2.set("data", "320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,320,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,320,320,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,0,320,0,0,0,0,0,320,0,0,0,0,320");
                     layersDictionary20_2.set("width", "30");
-                    layersDictionary20_2.set("height", "15");
+                    layersDictionary20_2.set("height", "30");
                     layersDictionary20_2.set("name", "Solid");
                     mapDictionary20.get("layers").add(layersDictionary20_2);
 
 
 
                     var mapDictionary21 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level4D_Segment1", mapDictionary21);
+                    dictionary.set("Level4C_Cutscene", mapDictionary21);
 
                     mapDictionary21.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary21_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23557,28 +23935,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary21.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary21_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary21_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary21_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary21_0.set("width", "30");
-                    layersDictionary21_0.set("height", "30");
+                    layersDictionary21_0.set("height", "40");
                     layersDictionary21_0.set("name", "Background");
                     mapDictionary21.get("layers").add(layersDictionary21_0);
                     var layersDictionary21_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary21_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,1,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,464,464,0,0,464,464,0,464,464,0,0,464,464,464,464,464,60,62,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,41,62,0,0,0,0,1,0,0,0,0,0,0,0,465,465,465,465,465,465,465,465,465,465,465,465,465,465,465,465,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,464,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,4,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,4,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60");
+                    layersDictionary21_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,41,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,41,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,41,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,403,0,0,0,0,0,60,62,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,62,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,11,4,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,2,41,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,11,4,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,68,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60");
                     layersDictionary21_1.set("width", "30");
-                    layersDictionary21_1.set("height", "30");
+                    layersDictionary21_1.set("height", "40");
                     layersDictionary21_1.set("name", "Foreground");
                     mapDictionary21.get("layers").add(layersDictionary21_1);
                     var layersDictionary21_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary21_2.set("data", "320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,363,363,0,0,363,363,0,363,363,0,0,363,363,363,363,363,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,320,0,0,0,0,0,0,0,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320");
+                    layersDictionary21_2.set("data", "320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,412,412,412,412,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,412,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,452,412,412,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320");
                     layersDictionary21_2.set("width", "30");
-                    layersDictionary21_2.set("height", "30");
+                    layersDictionary21_2.set("height", "40");
                     layersDictionary21_2.set("name", "Solid");
                     mapDictionary21.get("layers").add(layersDictionary21_2);
 
 
 
                     var mapDictionary22 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level4D_Segment2", mapDictionary22);
+                    dictionary.set("Level4D_Segment1", mapDictionary22);
 
                     mapDictionary22.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary22_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23638,13 +24016,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary22_0.set("name", "Background");
                     mapDictionary22.get("layers").add(layersDictionary22_0);
                     var layersDictionary22_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary22_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,1,0,0,0,464,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,393,0,393,0,393,464,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,464,0,0,464,0,0,31,32,32,32,32,32,32,33,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,89,90,90,90,90,90,90,91,0,0,0,0,0,60,62,0,0,0,0,1,0,0,0,0,0,2,4,0,0,0,0,465,0,465,465,465,465,465,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,3,4,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,4,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60");
+                    layersDictionary22_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,1,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,464,464,0,0,464,464,0,464,464,0,0,464,464,464,464,464,60,62,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,41,62,0,0,0,0,1,0,0,0,0,0,0,0,465,465,465,465,465,465,465,465,465,465,465,465,465,465,465,465,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,464,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,4,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,4,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60");
                     layersDictionary22_1.set("width", "30");
                     layersDictionary22_1.set("height", "30");
                     layersDictionary22_1.set("name", "Foreground");
                     mapDictionary22.get("layers").add(layersDictionary22_1);
                     var layersDictionary22_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary22_2.set("data", "320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,0,0,0,363,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,320,0,0,0,320,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,363,0,0,363,0,0,320,320,320,320,320,320,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,320,0,0,320,320,320,320,320,320,320,320,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,320,320,0,0,0,0,363,0,363,363,363,363,363,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320");
+                    layersDictionary22_2.set("data", "320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,363,363,0,0,363,363,0,363,363,0,0,363,363,363,363,363,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,320,0,0,0,0,0,0,0,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,363,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320");
                     layersDictionary22_2.set("width", "30");
                     layersDictionary22_2.set("height", "30");
                     layersDictionary22_2.set("name", "Solid");
@@ -23653,7 +24031,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary23 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level4E_Finish", mapDictionary23);
+                    dictionary.set("Level4D_Segment2", mapDictionary23);
 
                     mapDictionary23.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary23_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23707,28 +24085,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary23.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary23_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary23_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary23_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary23_0.set("width", "30");
-                    layersDictionary23_0.set("height", "15");
+                    layersDictionary23_0.set("height", "30");
                     layersDictionary23_0.set("name", "Background");
                     mapDictionary23.get("layers").add(layersDictionary23_0);
                     var layersDictionary23_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary23_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,492,492,493,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,516,505,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,516,516,517,0,0,0,0,62,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3");
+                    layersDictionary23_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,1,0,0,0,464,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,393,0,393,0,393,464,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,464,0,0,464,0,0,31,32,32,32,32,32,32,33,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,89,90,90,90,90,90,90,91,0,0,0,0,0,60,62,0,0,0,0,1,0,0,0,0,0,2,4,0,0,0,0,465,0,465,465,465,465,465,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,11,3,4,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,4,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60");
                     layersDictionary23_1.set("width", "30");
-                    layersDictionary23_1.set("height", "15");
+                    layersDictionary23_1.set("height", "30");
                     layersDictionary23_1.set("name", "Foreground");
                     mapDictionary23.get("layers").add(layersDictionary23_1);
                     var layersDictionary23_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary23_2.set("data", "320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,320,320,320,320,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,320,320,320,320,320,320,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,357,357,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary23_2.set("data", "320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,0,0,0,363,0,0,0,0,0,0,0,0,363,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,320,0,0,0,320,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,363,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,363,0,0,363,0,0,320,320,320,320,320,320,320,320,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,320,0,0,320,320,320,320,320,320,320,320,0,0,0,0,0,320,320,0,0,0,0,320,0,0,0,0,0,320,320,0,0,0,0,363,0,363,363,363,363,363,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,363,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320");
                     layersDictionary23_2.set("width", "30");
-                    layersDictionary23_2.set("height", "15");
+                    layersDictionary23_2.set("height", "30");
                     layersDictionary23_2.set("name", "Solid");
                     mapDictionary23.get("layers").add(layersDictionary23_2);
 
 
 
                     var mapDictionary24 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5A_Start", mapDictionary24);
+                    dictionary.set("Level4E_Finish", mapDictionary24);
 
                     mapDictionary24.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary24_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23782,28 +24160,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary24.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary24_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary24_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,536,537,538,536,537,538,536,537,538,536,537,538,536,537,538,0,0,0,0,0,0,0,0,541,549,543,0,0,0,0,541,539,543,541,539,543,541,539,543,541,539,543,541,539,543,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,546,547,548,546,547,548,546,547,548,546,547,548,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary24_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary24_0.set("width", "30");
-                    layersDictionary24_0.set("height", "15");
+                    layersDictionary24_0.set("height", "35");
                     layersDictionary24_0.set("name", "Background");
                     mapDictionary24.get("layers").add(layersDictionary24_0);
                     var layersDictionary24_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary24_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,64,3,3,3,3,3,3,3,3,3,4,0,0,61,61,61,61,61,61,67,90,90,90,90,90,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,61,67,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary24_1.set("data", "62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,492,492,493,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,516,505,0,0,0,0,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,516,516,517,0,0,0,0,62,0,0,0,0,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,31,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,31,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,2,92,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,68");
                     layersDictionary24_1.set("width", "30");
-                    layersDictionary24_1.set("height", "15");
+                    layersDictionary24_1.set("height", "35");
                     layersDictionary24_1.set("name", "Foreground");
                     mapDictionary24.get("layers").add(layersDictionary24_1);
                     var layersDictionary24_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary24_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary24_2.set("data", "320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,320,320,320,320,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,320,320,320,320,320,320,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,0,320,320,0,0,0,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary24_2.set("width", "30");
-                    layersDictionary24_2.set("height", "15");
+                    layersDictionary24_2.set("height", "35");
                     layersDictionary24_2.set("name", "Solid");
                     mapDictionary24.get("layers").add(layersDictionary24_2);
 
 
 
                     var mapDictionary25 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment1", mapDictionary25);
+                    dictionary.set("Level5A_Start", mapDictionary25);
 
                     mapDictionary25.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary25_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23857,28 +24235,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary25.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary25_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary25_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
-                    layersDictionary25_0.set("width", "5");
-                    layersDictionary25_0.set("height", "3");
+                    layersDictionary25_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,536,537,538,536,537,538,536,537,538,536,537,538,536,537,538,0,0,0,0,0,0,0,0,541,549,543,0,0,0,0,541,539,543,541,539,543,541,539,543,541,539,543,541,539,543,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,546,547,548,546,547,548,546,547,548,546,547,548,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary25_0.set("width", "30");
+                    layersDictionary25_0.set("height", "14");
                     layersDictionary25_0.set("name", "Background");
                     mapDictionary25.get("layers").add(layersDictionary25_0);
                     var layersDictionary25_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary25_1.set("data", "0,0,464,0,0,2,3,3,3,4,465,465,465,465,465");
-                    layersDictionary25_1.set("width", "5");
-                    layersDictionary25_1.set("height", "3");
+                    layersDictionary25_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,64,3,3,3,3,3,3,3,3,3,4,0,0,61,61,61,61,61,61,67,90,90,90,90,90,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,61,67,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary25_1.set("width", "30");
+                    layersDictionary25_1.set("height", "14");
                     layersDictionary25_1.set("name", "Foreground");
                     mapDictionary25.get("layers").add(layersDictionary25_1);
                     var layersDictionary25_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary25_2.set("data", "0,0,363,0,0,320,320,320,320,320,363,363,363,363,363");
-                    layersDictionary25_2.set("width", "5");
-                    layersDictionary25_2.set("height", "3");
+                    layersDictionary25_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary25_2.set("width", "30");
+                    layersDictionary25_2.set("height", "14");
                     layersDictionary25_2.set("name", "Solid");
                     mapDictionary25.get("layers").add(layersDictionary25_2);
 
 
 
                     var mapDictionary26 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment10", mapDictionary26);
+                    dictionary.set("Level5B_Fragment1", mapDictionary26);
 
                     mapDictionary26.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary26_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -23932,20 +24310,20 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary26.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary26_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary26_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0");
-                    layersDictionary26_0.set("width", "4");
+                    layersDictionary26_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary26_0.set("width", "5");
                     layersDictionary26_0.set("height", "3");
                     layersDictionary26_0.set("name", "Background");
                     mapDictionary26.get("layers").add(layersDictionary26_0);
                     var layersDictionary26_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary26_1.set("data", "0,0,0,0,31,32,32,33,89,90,90,91");
-                    layersDictionary26_1.set("width", "4");
+                    layersDictionary26_1.set("data", "0,0,464,0,0,2,3,3,3,4,465,465,465,465,465");
+                    layersDictionary26_1.set("width", "5");
                     layersDictionary26_1.set("height", "3");
                     layersDictionary26_1.set("name", "Foreground");
                     mapDictionary26.get("layers").add(layersDictionary26_1);
                     var layersDictionary26_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary26_2.set("data", "0,0,0,0,320,320,320,320,320,320,320,320");
-                    layersDictionary26_2.set("width", "4");
+                    layersDictionary26_2.set("data", "0,0,363,0,0,320,320,320,320,320,363,363,363,363,363");
+                    layersDictionary26_2.set("width", "5");
                     layersDictionary26_2.set("height", "3");
                     layersDictionary26_2.set("name", "Solid");
                     mapDictionary26.get("layers").add(layersDictionary26_2);
@@ -23953,7 +24331,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary27 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment11", mapDictionary27);
+                    dictionary.set("Level5B_Fragment10", mapDictionary27);
 
                     mapDictionary27.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary27_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24013,13 +24391,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary27_0.set("name", "Background");
                     mapDictionary27.get("layers").add(layersDictionary27_0);
                     var layersDictionary27_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary27_1.set("data", "0,0,0,0,1,0,464,1,465,0,1,0");
+                    layersDictionary27_1.set("data", "0,0,0,0,31,32,32,33,89,90,90,91");
                     layersDictionary27_1.set("width", "4");
                     layersDictionary27_1.set("height", "3");
                     layersDictionary27_1.set("name", "Foreground");
                     mapDictionary27.get("layers").add(layersDictionary27_1);
                     var layersDictionary27_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary27_2.set("data", "0,0,0,0,320,0,363,320,363,0,320,0");
+                    layersDictionary27_2.set("data", "0,0,0,0,320,320,320,320,320,320,320,320");
                     layersDictionary27_2.set("width", "4");
                     layersDictionary27_2.set("height", "3");
                     layersDictionary27_2.set("name", "Solid");
@@ -24028,7 +24406,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary28 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment12", mapDictionary28);
+                    dictionary.set("Level5B_Fragment11", mapDictionary28);
 
                     mapDictionary28.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary28_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24088,13 +24466,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary28_0.set("name", "Background");
                     mapDictionary28.get("layers").add(layersDictionary28_0);
                     var layersDictionary28_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary28_1.set("data", "0,31,33,393,2,92,94,4,0,465,0,465");
+                    layersDictionary28_1.set("data", "0,0,0,0,1,0,447,1,465,2,4,0");
                     layersDictionary28_1.set("width", "4");
                     layersDictionary28_1.set("height", "3");
                     layersDictionary28_1.set("name", "Foreground");
                     mapDictionary28.get("layers").add(layersDictionary28_1);
                     var layersDictionary28_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary28_2.set("data", "0,320,320,0,320,320,320,320,0,363,0,363");
+                    layersDictionary28_2.set("data", "0,0,0,0,320,0,0,320,363,320,320,0");
                     layersDictionary28_2.set("width", "4");
                     layersDictionary28_2.set("height", "3");
                     layersDictionary28_2.set("name", "Solid");
@@ -24103,7 +24481,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary29 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment2", mapDictionary29);
+                    dictionary.set("Level5B_Fragment12", mapDictionary29);
 
                     mapDictionary29.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary29_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24157,20 +24535,20 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary29.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary29_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary29_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
-                    layersDictionary29_0.set("width", "5");
+                    layersDictionary29_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary29_0.set("width", "4");
                     layersDictionary29_0.set("height", "3");
                     layersDictionary29_0.set("name", "Background");
                     mapDictionary29.get("layers").add(layersDictionary29_0);
                     var layersDictionary29_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary29_1.set("data", "0,393,0,0,393,2,3,3,3,4,0,465,465,0,0");
-                    layersDictionary29_1.set("width", "5");
+                    layersDictionary29_1.set("data", "0,31,33,393,2,92,94,4,0,465,0,465");
+                    layersDictionary29_1.set("width", "4");
                     layersDictionary29_1.set("height", "3");
                     layersDictionary29_1.set("name", "Foreground");
                     mapDictionary29.get("layers").add(layersDictionary29_1);
                     var layersDictionary29_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary29_2.set("data", "0,0,0,0,0,320,320,320,320,320,0,363,363,0,0");
-                    layersDictionary29_2.set("width", "5");
+                    layersDictionary29_2.set("data", "0,320,320,0,320,320,320,320,0,363,0,363");
+                    layersDictionary29_2.set("width", "4");
                     layersDictionary29_2.set("height", "3");
                     layersDictionary29_2.set("name", "Solid");
                     mapDictionary29.get("layers").add(layersDictionary29_2);
@@ -24178,7 +24556,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary30 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment3", mapDictionary30);
+                    dictionary.set("Level5B_Fragment2", mapDictionary30);
 
                     mapDictionary30.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary30_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24238,13 +24616,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary30_0.set("name", "Background");
                     mapDictionary30.get("layers").add(layersDictionary30_0);
                     var layersDictionary30_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary30_1.set("data", "0,0,0,0,0,1,0,0,2,4,0,0,0,0,0");
+                    layersDictionary30_1.set("data", "0,393,0,0,393,2,3,3,3,4,0,465,465,0,0");
                     layersDictionary30_1.set("width", "5");
                     layersDictionary30_1.set("height", "3");
                     layersDictionary30_1.set("name", "Foreground");
                     mapDictionary30.get("layers").add(layersDictionary30_1);
                     var layersDictionary30_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary30_2.set("data", "0,0,0,0,0,320,0,0,320,320,0,0,0,0,0");
+                    layersDictionary30_2.set("data", "0,0,0,0,0,320,320,320,320,320,0,363,363,0,0");
                     layersDictionary30_2.set("width", "5");
                     layersDictionary30_2.set("height", "3");
                     layersDictionary30_2.set("name", "Solid");
@@ -24253,7 +24631,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary31 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment4", mapDictionary31);
+                    dictionary.set("Level5B_Fragment3", mapDictionary31);
 
                     mapDictionary31.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary31_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24313,13 +24691,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary31_0.set("name", "Background");
                     mapDictionary31.get("layers").add(layersDictionary31_0);
                     var layersDictionary31_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary31_1.set("data", "0,393,464,0,393,2,3,3,3,4,0,0,0,0,0");
+                    layersDictionary31_1.set("data", "0,0,0,0,0,1,0,0,2,4,0,0,0,0,0");
                     layersDictionary31_1.set("width", "5");
                     layersDictionary31_1.set("height", "3");
                     layersDictionary31_1.set("name", "Foreground");
                     mapDictionary31.get("layers").add(layersDictionary31_1);
                     var layersDictionary31_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary31_2.set("data", "0,0,363,0,0,320,320,320,320,320,0,0,0,0,0");
+                    layersDictionary31_2.set("data", "0,0,0,0,0,320,0,0,320,320,0,0,0,0,0");
                     layersDictionary31_2.set("width", "5");
                     layersDictionary31_2.set("height", "3");
                     layersDictionary31_2.set("name", "Solid");
@@ -24328,7 +24706,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary32 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment5", mapDictionary32);
+                    dictionary.set("Level5B_Fragment4", mapDictionary32);
 
                     mapDictionary32.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary32_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24388,13 +24766,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary32_0.set("name", "Background");
                     mapDictionary32.get("layers").add(layersDictionary32_0);
                     var layersDictionary32_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary32_1.set("data", "393,0,0,393,0,2,4,0,2,4,465,0,0,465,465");
+                    layersDictionary32_1.set("data", "0,393,464,0,393,2,3,3,3,4,0,0,0,0,0");
                     layersDictionary32_1.set("width", "5");
                     layersDictionary32_1.set("height", "3");
                     layersDictionary32_1.set("name", "Foreground");
                     mapDictionary32.get("layers").add(layersDictionary32_1);
                     var layersDictionary32_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary32_2.set("data", "0,0,0,0,0,320,320,0,320,320,363,0,0,363,363");
+                    layersDictionary32_2.set("data", "0,0,363,0,0,320,320,320,320,320,0,0,0,0,0");
                     layersDictionary32_2.set("width", "5");
                     layersDictionary32_2.set("height", "3");
                     layersDictionary32_2.set("name", "Solid");
@@ -24403,7 +24781,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary33 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment6", mapDictionary33);
+                    dictionary.set("Level5B_Fragment5", mapDictionary33);
 
                     mapDictionary33.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary33_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24463,13 +24841,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary33_0.set("name", "Background");
                     mapDictionary33.get("layers").add(layersDictionary33_0);
                     var layersDictionary33_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary33_1.set("data", "0,0,0,0,0,1,464,464,464,1,0,2,3,4,0");
+                    layersDictionary33_1.set("data", "393,0,0,393,0,2,4,0,2,4,465,0,0,465,465");
                     layersDictionary33_1.set("width", "5");
                     layersDictionary33_1.set("height", "3");
                     layersDictionary33_1.set("name", "Foreground");
                     mapDictionary33.get("layers").add(layersDictionary33_1);
                     var layersDictionary33_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary33_2.set("data", "0,0,0,0,0,320,363,363,363,320,0,320,320,320,0");
+                    layersDictionary33_2.set("data", "0,0,0,0,0,320,320,0,320,320,363,0,0,363,363");
                     layersDictionary33_2.set("width", "5");
                     layersDictionary33_2.set("height", "3");
                     layersDictionary33_2.set("name", "Solid");
@@ -24478,7 +24856,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary34 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment7", mapDictionary34);
+                    dictionary.set("Level5B_Fragment6", mapDictionary34);
 
                     mapDictionary34.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary34_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24538,13 +24916,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary34_0.set("name", "Background");
                     mapDictionary34.get("layers").add(layersDictionary34_0);
                     var layersDictionary34_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary34_1.set("data", "0,0,0,0,0,1,0,0,0,1,0,0,0,0,0");
+                    layersDictionary34_1.set("data", "0,0,0,0,0,1,464,464,464,1,0,2,3,4,0");
                     layersDictionary34_1.set("width", "5");
                     layersDictionary34_1.set("height", "3");
                     layersDictionary34_1.set("name", "Foreground");
                     mapDictionary34.get("layers").add(layersDictionary34_1);
                     var layersDictionary34_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary34_2.set("data", "0,0,0,0,0,320,0,0,0,320,0,0,0,0,0");
+                    layersDictionary34_2.set("data", "0,0,0,0,0,320,363,363,363,320,0,320,320,320,0");
                     layersDictionary34_2.set("width", "5");
                     layersDictionary34_2.set("height", "3");
                     layersDictionary34_2.set("name", "Solid");
@@ -24553,7 +24931,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary35 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment8", mapDictionary35);
+                    dictionary.set("Level5B_Fragment7", mapDictionary35);
 
                     mapDictionary35.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary35_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24613,13 +24991,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary35_0.set("name", "Background");
                     mapDictionary35.get("layers").add(layersDictionary35_0);
                     var layersDictionary35_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary35_1.set("data", "0,0,0,0,0,1,0,0,393,30,0,0,2,3,35");
+                    layersDictionary35_1.set("data", "0,0,0,0,0,1,0,0,0,1,0,0,0,0,0");
                     layersDictionary35_1.set("width", "5");
                     layersDictionary35_1.set("height", "3");
                     layersDictionary35_1.set("name", "Foreground");
                     mapDictionary35.get("layers").add(layersDictionary35_1);
                     var layersDictionary35_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary35_2.set("data", "0,0,0,0,0,320,0,0,0,320,0,0,320,320,320");
+                    layersDictionary35_2.set("data", "0,0,0,0,0,320,0,0,0,320,0,0,0,0,0");
                     layersDictionary35_2.set("width", "5");
                     layersDictionary35_2.set("height", "3");
                     layersDictionary35_2.set("name", "Solid");
@@ -24628,7 +25006,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary36 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5B_Fragment9", mapDictionary36);
+                    dictionary.set("Level5B_Fragment8", mapDictionary36);
 
                     mapDictionary36.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary36_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24682,20 +25060,20 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary36.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary36_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary36_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0");
-                    layersDictionary36_0.set("width", "4");
+                    layersDictionary36_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary36_0.set("width", "5");
                     layersDictionary36_0.set("height", "3");
                     layersDictionary36_0.set("name", "Background");
                     mapDictionary36.get("layers").add(layersDictionary36_0);
                     var layersDictionary36_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary36_1.set("data", "0,464,464,0,2,3,3,4,0,0,465,465");
-                    layersDictionary36_1.set("width", "4");
+                    layersDictionary36_1.set("data", "0,0,0,0,0,1,0,0,393,30,0,0,2,3,35");
+                    layersDictionary36_1.set("width", "5");
                     layersDictionary36_1.set("height", "3");
                     layersDictionary36_1.set("name", "Foreground");
                     mapDictionary36.get("layers").add(layersDictionary36_1);
                     var layersDictionary36_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary36_2.set("data", "0,363,363,0,320,320,320,320,0,0,363,363");
-                    layersDictionary36_2.set("width", "4");
+                    layersDictionary36_2.set("data", "0,0,0,0,0,320,0,0,0,320,0,0,320,320,320");
+                    layersDictionary36_2.set("width", "5");
                     layersDictionary36_2.set("height", "3");
                     layersDictionary36_2.set("name", "Solid");
                     mapDictionary36.get("layers").add(layersDictionary36_2);
@@ -24703,7 +25081,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
                     var mapDictionary37 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
-                    dictionary.set("Level5C_Finish", mapDictionary37);
+                    dictionary.set("Level5B_Fragment9", mapDictionary37);
 
                     mapDictionary37.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var tilesetDictionary37_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
@@ -24757,23 +25135,98 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary37.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary37_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary37_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
-                    layersDictionary37_0.set("width", "15");
-                    layersDictionary37_0.set("height", "15");
+                    layersDictionary37_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary37_0.set("width", "4");
+                    layersDictionary37_0.set("height", "3");
                     layersDictionary37_0.set("name", "Background");
                     mapDictionary37.get("layers").add(layersDictionary37_0);
                     var layersDictionary37_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary37_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,488,489,490,491,492,492,493,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,500,513,514,515,516,516,517,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
-                    layersDictionary37_1.set("width", "15");
-                    layersDictionary37_1.set("height", "15");
+                    layersDictionary37_1.set("data", "0,464,464,0,2,3,3,4,0,0,465,465");
+                    layersDictionary37_1.set("width", "4");
+                    layersDictionary37_1.set("height", "3");
                     layersDictionary37_1.set("name", "Foreground");
                     mapDictionary37.get("layers").add(layersDictionary37_1);
                     var layersDictionary37_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary37_2.set("data", "0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,357,357,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
-                    layersDictionary37_2.set("width", "15");
-                    layersDictionary37_2.set("height", "15");
+                    layersDictionary37_2.set("data", "0,363,363,0,320,320,320,320,0,0,363,363");
+                    layersDictionary37_2.set("width", "4");
+                    layersDictionary37_2.set("height", "3");
                     layersDictionary37_2.set("name", "Solid");
                     mapDictionary37.get("layers").add(layersDictionary37_2);
+
+
+
+                    var mapDictionary38 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
+                    dictionary.set("Level5C_Finish", mapDictionary38);
+
+                    mapDictionary38.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
+                    var tilesetDictionary38_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary38_0.set("firstgid", "1");
+                    tilesetDictionary38_0.set("imagewidth", "464");
+                    tilesetDictionary38_0.set("imageheight", "176");
+                    tilesetDictionary38_0.set("name", "TsSnow");
+                    tilesetDictionary38_0.set("tilewidth", "16");
+                    tilesetDictionary38_0.set("tileheight", "16");
+                    mapDictionary38.get("tilesets").add(tilesetDictionary38_0);
+                    var tilesetDictionary38_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary38_1.set("firstgid", "320");
+                    tilesetDictionary38_1.set("imagewidth", "80");
+                    tilesetDictionary38_1.set("imageheight", "192");
+                    tilesetDictionary38_1.set("name", "Solid");
+                    tilesetDictionary38_1.set("tilewidth", "16");
+                    tilesetDictionary38_1.set("tileheight", "16");
+                    mapDictionary38.get("tilesets").add(tilesetDictionary38_1);
+                    var tilesetDictionary38_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary38_2.set("firstgid", "380");
+                    tilesetDictionary38_2.set("imagewidth", "128");
+                    tilesetDictionary38_2.set("imageheight", "160");
+                    tilesetDictionary38_2.set("name", "Actors");
+                    tilesetDictionary38_2.set("tilewidth", "16");
+                    tilesetDictionary38_2.set("tileheight", "16");
+                    mapDictionary38.get("tilesets").add(tilesetDictionary38_2);
+                    var tilesetDictionary38_3 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary38_3.set("firstgid", "460");
+                    tilesetDictionary38_3.set("imagewidth", "128");
+                    tilesetDictionary38_3.set("imageheight", "32");
+                    tilesetDictionary38_3.set("name", "Spikes");
+                    tilesetDictionary38_3.set("tilewidth", "16");
+                    tilesetDictionary38_3.set("tileheight", "16");
+                    mapDictionary38.get("tilesets").add(tilesetDictionary38_3);
+                    var tilesetDictionary38_4 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary38_4.set("firstgid", "476");
+                    tilesetDictionary38_4.set("imagewidth", "192");
+                    tilesetDictionary38_4.set("imageheight", "80");
+                    tilesetDictionary38_4.set("name", "Igloo");
+                    tilesetDictionary38_4.set("tilewidth", "16");
+                    tilesetDictionary38_4.set("tileheight", "16");
+                    mapDictionary38.get("tilesets").add(tilesetDictionary38_4);
+                    var tilesetDictionary38_5 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary38_5.set("firstgid", "536");
+                    tilesetDictionary38_5.set("imagewidth", "80");
+                    tilesetDictionary38_5.set("imageheight", "80");
+                    tilesetDictionary38_5.set("name", "Signpost");
+                    tilesetDictionary38_5.set("tilewidth", "16");
+                    tilesetDictionary38_5.set("tileheight", "16");
+                    mapDictionary38.get("tilesets").add(tilesetDictionary38_5);
+
+                    mapDictionary38.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
+                    var layersDictionary38_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary38_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary38_0.set("width", "22");
+                    layersDictionary38_0.set("height", "24");
+                    layersDictionary38_0.set("name", "Background");
+                    mapDictionary38.get("layers").add(layersDictionary38_0);
+                    var layersDictionary38_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary38_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,492,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,516,516,517,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary38_1.set("width", "22");
+                    layersDictionary38_1.set("height", "24");
+                    layersDictionary38_1.set("name", "Foreground");
+                    mapDictionary38.get("layers").add(layersDictionary38_1);
+                    var layersDictionary38_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary38_2.set("data", "0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary38_2.set("width", "22");
+                    layersDictionary38_2.set("height", "24");
+                    layersDictionary38_2.set("name", "Solid");
+                    mapDictionary38.get("layers").add(layersDictionary38_2);
 
 
 
@@ -24889,7 +25342,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator", {
         statics: {
             methods: {
-                GetTilemap: function (data, enemyIdGenerator, cutsceneName, scalingFactorScaled) {
+                GetTilemap: function (data, enemyIdGenerator, cutsceneName, scalingFactorScaled, gameMusic) {
                     var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
                     var tilesets = data.Tilesets;
 
@@ -24992,7 +25445,71 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         }
                     }
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.Tilemap(backgroundSpritesArray, foregroundSpritesArray, isGroundArray, isKillZoneArray, isSpikesArray, isEndOfLevelArray, isCutsceneArray, ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileWidth, scalingFactorScaled), 128)) | 0), ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileHeight, scalingFactorScaled), 128)) | 0), enemies, cutsceneName, tuxLocation);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Tilemap(backgroundSpritesArray, foregroundSpritesArray, isGroundArray, isKillZoneArray, isSpikesArray, isEndOfLevelArray, isCutsceneArray, TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.ComputeCheckpointArray(numberOfTileColumns, numberOfTileRows, solidLayerData, solidTileset, actorsTileset, scalingFactorScaled), ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileWidth, scalingFactorScaled), 128)) | 0), ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileHeight, scalingFactorScaled), 128)) | 0), enemies, cutsceneName, tuxLocation, gameMusic);
+                },
+                ComputeCheckpointArray: function (numberOfTileColumns, numberOfTileRows, solidLayerData, solidTileset, actorsTileset, scalingFactorScaled) {
+                    var $t, $t1, $t2, $t3;
+                    var checkpointArray = System.Array.init(numberOfTileColumns, null, System.Array.type(System.Tuple$2(System.Int32,System.Int32)));
+                    var solidLayerGids = System.Array.init(numberOfTileColumns, null, System.Array.type(System.Int32));
+
+                    for (var i = 0; i < numberOfTileColumns; i = (i + 1) | 0) {
+                        checkpointArray[System.Array.index(i, checkpointArray)] = System.Array.init(numberOfTileRows, null, System.Tuple$2(System.Int32,System.Int32));
+                        for (var j = 0; j < numberOfTileRows; j = (j + 1) | 0) {
+                            ($t = checkpointArray[System.Array.index(i, checkpointArray)])[System.Array.index(j, $t)] = null;
+                        }
+
+                        solidLayerGids[System.Array.index(i, solidLayerGids)] = System.Array.init(numberOfTileRows, 0, System.Int32);
+                        for (var j1 = 0; j1 < numberOfTileRows; j1 = (j1 + 1) | 0) {
+                            ($t1 = solidLayerGids[System.Array.index(i, solidLayerGids)])[System.Array.index(j1, $t1)] = 0;
+                        }
+                    }
+
+                    var dataIndex = 0;
+                    for (var j2 = (numberOfTileRows - 1) | 0; j2 >= 0; j2 = (j2 - 1) | 0) {
+                        for (var i1 = 0; i1 < numberOfTileColumns; i1 = (i1 + 1) | 0) {
+                            var solidGid = System.Array.getItem(solidLayerData, dataIndex, System.Int32);
+                            dataIndex = (dataIndex + 1) | 0;
+
+                            ($t2 = solidLayerGids[System.Array.index(i1, solidLayerGids)])[System.Array.index(j2, $t2)] = solidGid;
+                        }
+                    }
+
+                    for (var i2 = 0; i2 < solidLayerGids.length; i2 = (i2 + 1) | 0) {
+                        for (var j3 = 0; j3 < solidLayerGids[System.Array.index(i2, solidLayerGids)].length; j3 = (j3 + 1) | 0) {
+                            if (((($t3 = solidLayerGids[System.Array.index(i2, solidLayerGids)])[System.Array.index(j3, $t3)] - actorsTileset.FirstGid) | 0) === 72) {
+                                TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.SetCheckpoint(checkpointArray, solidLayerGids, actorsTileset, { Item1: ((Bridge.Int.mul(Bridge.Int.mul(i2, solidTileset.TileWidth), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileWidth, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))), 2)) | 0)) | 0), Item2: ((Bridge.Int.mul(Bridge.Int.mul(j3, solidTileset.TileHeight), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(16, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0) }, i2, j3);
+                            }
+                        }
+                    }
+
+                    return checkpointArray;
+                },
+                SetCheckpoint: function (checkpointArray, solidLayerGids, actorsTileset, checkpointDestination, i, j) {
+                    var $t, $t1, $t2;
+                    if (i < 0 || i >= checkpointArray.length) {
+                        return;
+                    }
+
+                    if (j < 0 || j >= checkpointArray[System.Array.index(i, checkpointArray)].length) {
+                        return;
+                    }
+
+                    var normalizedGid = (($t = solidLayerGids[System.Array.index(i, solidLayerGids)])[System.Array.index(j, $t)] - actorsTileset.FirstGid) | 0;
+
+                    if (normalizedGid !== 72 && normalizedGid !== 32) {
+                        return;
+                    }
+
+                    if (($t1 = checkpointArray[System.Array.index(i, checkpointArray)])[System.Array.index(j, $t1)] != null) {
+                        return;
+                    }
+
+                    ($t2 = checkpointArray[System.Array.index(i, checkpointArray)])[System.Array.index(j, $t2)] = checkpointDestination;
+
+                    TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.SetCheckpoint(checkpointArray, solidLayerGids, actorsTileset, checkpointDestination, i, ((j - 1) | 0));
+                    TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.SetCheckpoint(checkpointArray, solidLayerGids, actorsTileset, checkpointDestination, i, ((j + 1) | 0));
+                    TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.SetCheckpoint(checkpointArray, solidLayerGids, actorsTileset, checkpointDestination, ((i - 1) | 0), j);
+                    TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.SetCheckpoint(checkpointArray, solidLayerGids, actorsTileset, checkpointDestination, ((i + 1) | 0), j);
                 },
                 GetSprite: function (tilesets, gid, scalingFactorScaled) {
                     var tilesetToGameImageMapping = new (System.Collections.Generic.Dictionary$2(System.String,TuxPlanetSpeedrunAnyPercentLibrary.GameImage))();
@@ -25315,13 +25832,879 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Overworld", {
+        statics: {
+            methods: {
+                /**
+                 * Can possibly throw DTDeserializationException
+                 *
+                 * @static
+                 * @public
+                 * @this TuxPlanetSpeedrunAnyPercentLibrary.Overworld
+                 * @memberof TuxPlanetSpeedrunAnyPercentLibrary.Overworld
+                 * @param   {DTLibrary.ByteList.Iterator}                     iterator
+                 * @return  {TuxPlanetSpeedrunAnyPercentLibrary.Overworld}
+                 */
+                TryDeserialize: function (iterator) {
+                    var windowWidth = iterator.TryPopInt();
+                    var windowHeight = iterator.TryPopInt();
+
+                    var tuxXIndex = iterator.TryPopInt();
+                    var tuxYIndex = iterator.TryPopInt();
+                    var tuxXMibi = iterator.TryPopInt();
+                    var tuxYMibi = iterator.TryPopInt();
+
+                    var elapsedMicros = iterator.TryPopInt();
+
+                    var intSet = iterator.TryPopIntSet();
+
+                    if (intSet == null) {
+                        throw new DTLibrary.DTDeserializationException();
+                    }
+
+                    var completedLevels = new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(System.Linq.Enumerable.from(intSet).select(function (x) {
+                            return TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.FromSerializableInt(x);
+                        }));
+
+                    var rngSeed = iterator.TryPopString();
+
+                    var pathCount = iterator.TryPopInt();
+
+                    var path = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+
+                    for (var i = 0; i < pathCount; i = (i + 1) | 0) {
+                        var x = iterator.TryPopInt();
+                        var y = iterator.TryPopInt();
+                        path.add({ Item1: x, Item2: y });
+                    }
+
+                    var reachableTilesCount = iterator.TryPopInt();
+
+                    var reachableTiles = new (System.Collections.Generic.HashSet$1(System.Tuple$2(System.Int32,System.Int32))).$ctor3(new DTLibrary.IntTupleEqualityComparer());
+
+                    for (var i1 = 0; i1 < reachableTilesCount; i1 = (i1 + 1) | 0) {
+                        var x1 = iterator.TryPopInt();
+                        var y1 = iterator.TryPopInt();
+                        reachableTiles.add({ Item1: x1, Item2: y1 });
+                    }
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Overworld.$ctor1(windowWidth, windowHeight, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.GenerateOverworldMap(windowWidth, windowHeight, rngSeed), completedLevels, reachableTiles, tuxXIndex, tuxYIndex, tuxXMibi, tuxYMibi, path, elapsedMicros);
+                }
+            }
+        },
+        fields: {
+            tuxXIndex: 0,
+            tuxYIndex: 0,
+            tuxXMibi: 0,
+            tuxYMibi: 0,
+            path: null,
+            completedLevels: null,
+            reachableTiles: null,
+            overworldMap: null,
+            windowWidth: 0,
+            windowHeight: 0,
+            elapsedMicros: 0
+        },
+        ctors: {
+            ctor: function (windowWidth, windowHeight, rngSeed, completedLevels) {
+                this.$initialize();
+                this.windowWidth = windowWidth;
+                this.windowHeight = windowHeight;
+
+                this.overworldMap = TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.GenerateOverworldMap(windowWidth, windowHeight, rngSeed);
+
+                this.tuxXIndex = this.overworldMap.StartingLocation.Item1;
+                this.tuxYIndex = this.overworldMap.StartingLocation.Item2;
+                this.tuxXMibi = (((Bridge.Int.mul(this.tuxXIndex, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_WIDTH_IN_PIXELS) + 24) | 0)) << 10;
+                this.tuxYMibi = (((Bridge.Int.mul(this.tuxYIndex, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_HEIGHT_IN_PIXELS) + 24) | 0)) << 10;
+                this.path = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+                this.completedLevels = new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(completedLevels);
+                this.reachableTiles = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetReachableTiles(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(completedLevels).toList(TuxPlanetSpeedrunAnyPercentLibrary.Level));
+
+                this.elapsedMicros = 0;
+            },
+            $ctor1: function (windowWidth, windowHeight, overworldMap, completedLevels, reachableTiles, tuxXIndex, tuxYIndex, tuxXMibi, tuxYMibi, path, elapsedMicros) {
+                this.$initialize();
+                this.windowWidth = windowWidth;
+                this.windowHeight = windowHeight;
+                this.overworldMap = overworldMap;
+                this.completedLevels = new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(completedLevels);
+                this.reachableTiles = new (System.Collections.Generic.HashSet$1(System.Tuple$2(System.Int32,System.Int32))).$ctor2(reachableTiles, new DTLibrary.IntTupleEqualityComparer());
+                this.tuxXIndex = tuxXIndex;
+                this.tuxYIndex = tuxYIndex;
+                this.tuxXMibi = tuxXMibi;
+                this.tuxYMibi = tuxYMibi;
+                this.path = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(path);
+
+                this.elapsedMicros = elapsedMicros;
+            }
+        },
+        methods: {
+            CompleteLevel: function (level) {
+                var newCompletedLevels = new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(this.completedLevels);
+
+                newCompletedLevels.add(level);
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.Overworld.$ctor1(this.windowWidth, this.windowHeight, this.overworldMap, newCompletedLevels, TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetReachableTiles(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(newCompletedLevels).toList(TuxPlanetSpeedrunAnyPercentLibrary.Level)), this.tuxXIndex, this.tuxYIndex, this.tuxXMibi, this.tuxYMibi, this.path, this.elapsedMicros);
+            },
+            ProcessFrame: function (keyboardInput, previousKeyboardInput, windowWidth, windowHeight, elapsedMicrosPerFrame) {
+                var selectedLevel = null;
+
+                var newPath = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(this.path);
+
+                if (newPath.Count === 0) {
+                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Z) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Z) || keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Space) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Space) || keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Enter) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Enter)) {
+                        selectedLevel = this.overworldMap.GetLevel(this.tuxXIndex, this.tuxYIndex);
+                    }
+
+                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.RightArrow)) {
+                        var p = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 1, Item2: 0 });
+
+                        if (p.Count > 0) {
+                            newPath = p;
+                        }
+                    }
+                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.LeftArrow)) {
+                        var p1 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: -1, Item2: 0 });
+
+                        if (p1.Count > 0) {
+                            newPath = p1;
+                        }
+                    }
+                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.UpArrow)) {
+                        var p2 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 0, Item2: 1 });
+
+                        if (p2.Count > 0) {
+                            newPath = p2;
+                        }
+                    }
+                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.DownArrow)) {
+                        var p3 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 0, Item2: -1 });
+
+                        if (p3.Count > 0) {
+                            newPath = p3;
+                        }
+                    }
+                }
+
+                var amountOfMibipixelsToWalk = (Bridge.Int.div(elapsedMicrosPerFrame, 3)) | 0;
+
+                var newTuxXMibi = this.tuxXMibi;
+                var newTuxYMibi = this.tuxYMibi;
+
+                var newTuxXIndex = this.tuxXIndex;
+                var newTuxYIndex = this.tuxYIndex;
+
+                while (true) {
+                    if (amountOfMibipixelsToWalk <= 0) {
+                        break;
+                    }
+
+                    if (newPath.Count === 0) {
+                        break;
+                    }
+
+                    var nextLocation = newPath.getItem(0);
+
+                    var nextLocationXMibi = (((Bridge.Int.mul(nextLocation.Item1, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_WIDTH_IN_PIXELS) + 24) | 0)) << 10;
+                    var nextLocationYMibi = (((Bridge.Int.mul(nextLocation.Item2, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_HEIGHT_IN_PIXELS) + 24) | 0)) << 10;
+
+                    var deltaX = Math.abs(((newTuxXMibi - nextLocationXMibi) | 0));
+
+                    if (deltaX > amountOfMibipixelsToWalk) {
+                        var isMovingRight = nextLocationXMibi > newTuxXMibi;
+                        newTuxXMibi = (newTuxXMibi + (isMovingRight ? amountOfMibipixelsToWalk : ((-amountOfMibipixelsToWalk) | 0))) | 0;
+                        amountOfMibipixelsToWalk = 0;
+                        continue;
+                    }
+
+                    newTuxXMibi = nextLocationXMibi;
+                    amountOfMibipixelsToWalk = (amountOfMibipixelsToWalk - deltaX) | 0;
+
+                    var deltaY = Math.abs(((newTuxYMibi - nextLocationYMibi) | 0));
+
+                    if (deltaY > amountOfMibipixelsToWalk) {
+                        var isMovingUp = nextLocationYMibi > newTuxYMibi;
+                        newTuxYMibi = (newTuxYMibi + (isMovingUp ? amountOfMibipixelsToWalk : ((-amountOfMibipixelsToWalk) | 0))) | 0;
+                        amountOfMibipixelsToWalk = 0;
+                        continue;
+                    }
+
+                    newTuxYMibi = nextLocationYMibi;
+                    amountOfMibipixelsToWalk = (amountOfMibipixelsToWalk - deltaY) | 0;
+
+                    newTuxXIndex = newPath.getItem(0).Item1;
+                    newTuxYIndex = newPath.getItem(0).Item2;
+
+                    newPath = System.Linq.Enumerable.from(newPath).skip(1).toList(System.Tuple$2(System.Int32,System.Int32));
+                }
+
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+                if (newElapsedMicros > 2000000000) {
+                    newElapsedMicros = 1;
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.Overworld.Result(new TuxPlanetSpeedrunAnyPercentLibrary.Overworld.$ctor1(this.windowWidth, this.windowHeight, this.overworldMap, this.completedLevels, this.reachableTiles, newTuxXIndex, newTuxYIndex, newTuxXMibi, newTuxYMibi, newPath, newElapsedMicros), selectedLevel);
+            },
+            Render: function (displayOutput) {
+                var cameraXCenter = this.tuxXMibi >> 10;
+                var cameraYCenter = this.tuxYMibi >> 10;
+
+                if (cameraXCenter < ((Bridge.Int.div(this.windowWidth, 2)) | 0)) {
+                    cameraXCenter = (Bridge.Int.div(this.windowWidth, 2)) | 0;
+                }
+                if (cameraXCenter > ((this.overworldMap.GetMapWidthInPixels() - ((Bridge.Int.div(this.windowWidth, 2)) | 0)) | 0)) {
+                    cameraXCenter = (this.overworldMap.GetMapWidthInPixels() - ((Bridge.Int.div(this.windowWidth, 2)) | 0)) | 0;
+                }
+                if (cameraYCenter < ((Bridge.Int.div(this.windowHeight, 2)) | 0)) {
+                    cameraYCenter = (Bridge.Int.div(this.windowHeight, 2)) | 0;
+                }
+                if (cameraYCenter > ((this.overworldMap.GetMapHeightInPixels() - ((Bridge.Int.div(this.windowHeight, 2)) | 0)) | 0)) {
+                    cameraYCenter = (this.overworldMap.GetMapHeightInPixels() - ((Bridge.Int.div(this.windowHeight, 2)) | 0)) | 0;
+                }
+
+                var translatedDisplayOutput = new (DTLibrary.TranslatedDisplayOutput$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage,TuxPlanetSpeedrunAnyPercentLibrary.GameFont))(displayOutput, ((-(((cameraXCenter - ((Bridge.Int.div(this.windowWidth, 2)) | 0)) | 0))) | 0), ((-(((cameraYCenter - ((Bridge.Int.div(this.windowHeight, 2)) | 0)) | 0))) | 0));
+
+                this.overworldMap.Render(translatedDisplayOutput, new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(this.completedLevels));
+
+                translatedDisplayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TuxOverworld, System.Array.getCount(this.path, System.Tuple$2(System.Int32,System.Int32)) > 0 ? Bridge.Int.mul(((((Bridge.Int.div(this.elapsedMicros, 200000)) | 0)) % 4), 14) : 0, 0, 14, 17, (((this.tuxXMibi >> 10) - 21) | 0), (((((this.tuxYMibi >> 10) - 25) | 0) + 15) | 0), 0, 384);
+            },
+            Serialize: function (list) {
+                var $t, $t1;
+                list.AddInt(this.windowWidth);
+                list.AddInt(this.windowHeight);
+
+                list.AddInt(this.tuxXIndex);
+                list.AddInt(this.tuxYIndex);
+                list.AddInt(this.tuxXMibi);
+                list.AddInt(this.tuxYMibi);
+
+                list.AddInt(this.elapsedMicros);
+
+                list.AddIntSet(new (System.Collections.Generic.HashSet$1(System.Int32)).$ctor1(System.Linq.Enumerable.from(this.completedLevels).select(function (x) {
+                        return TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.ToSerializableInt(x);
+                    })));
+
+                list.AddString(this.overworldMap.RngSeed);
+
+                list.AddInt(System.Array.getCount(this.path, System.Tuple$2(System.Int32,System.Int32)));
+
+                $t = Bridge.getEnumerator(this.path, System.Tuple$2(System.Int32,System.Int32));
+                try {
+                    while ($t.moveNext()) {
+                        var x = $t.Current;
+                        list.AddInt(x.Item1);
+                        list.AddInt(x.Item2);
+                    }
+                } finally {
+                    if (Bridge.is($t, System.IDisposable)) {
+                        $t.System$IDisposable$Dispose();
+                    }
+                }
+
+                list.AddInt(this.reachableTiles.Count);
+
+                $t1 = Bridge.getEnumerator(this.reachableTiles);
+                try {
+                    while ($t1.moveNext()) {
+                        var x1 = $t1.Current;
+                        list.AddInt(x1.Item1);
+                        list.AddInt(x1.Item2);
+                    }
+                } finally {
+                    if (Bridge.is($t1, System.IDisposable)) {
+                        $t1.System$IDisposable$Dispose();
+                    }
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Overworld.Result", {
+        $kind: "nested class",
+        fields: {
+            Overworld: null,
+            SelectedLevel: null
+        },
+        ctors: {
+            ctor: function (overworld, selectedLevel) {
+                this.$initialize();
+                this.Overworld = overworld;
+                this.SelectedLevel = selectedLevel;
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap", {
+        statics: {
+            methods: {
+                GenerateOverworldGameMap: function (windowWidth, windowHeight, random) {
+                    var tilemap = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GenerateOverworldGameMapTileArray(windowWidth, windowHeight, random);
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap(tilemap);
+                }
+            }
+        },
+        fields: {
+            Tilemap: null,
+            StartingLocation: null
+        },
+        ctors: {
+            ctor: function (tilemap) {
+                var $t, $t1;
+                this.$initialize();
+                var list = new (System.Collections.Generic.List$1(System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile))).ctor();
+
+                for (var i = 0; i < tilemap.length; i = (i + 1) | 0) {
+                    list.add(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)).$ctor1(tilemap[System.Array.index(i, tilemap)]));
+                }
+
+                this.Tilemap = list;
+                this.StartingLocation = null;
+
+                for (var i1 = 0; i1 < tilemap.length; i1 = (i1 + 1) | 0) {
+                    for (var j = 0; j < tilemap[System.Array.index(i1, tilemap)].length; j = (j + 1) | 0) {
+                        if (($t = tilemap[System.Array.index(i1, tilemap)])[System.Array.index(j, $t)].Type === TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level && System.Nullable.getValue(($t1 = tilemap[System.Array.index(i1, tilemap)])[System.Array.index(j, $t1)].Level) === TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1) {
+                            this.StartingLocation = { Item1: i1, Item2: j };
+                            break;
+                        }
+                    }
+
+                    if (this.StartingLocation != null) {
+                        break;
+                    }
+                }
+
+                if (this.StartingLocation == null) {
+                    throw new System.Exception();
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile", {
+        $kind: "nested class",
+        fields: {
+            Type: 0,
+            Level: null
+        },
+        ctors: {
+            ctor: function (type, level) {
+                this.$initialize();
+                this.Type = type;
+                this.Level = level;
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType", {
+        $kind: "nested enum",
+        statics: {
+            fields: {
+                Path: 0,
+                Level: 1,
+                NonPath: 2
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator", {
+        statics: {
+            methods: {
+                GenerateOverworldGameMapTileArray: function (windowWidth, windowHeight, random) {
+                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
+                    var path = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+
+                    path.add({ Item1: 0, Item2: 0 });
+
+                    path = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GeneratePathHelper(path, random));
+
+                    var minX = null;
+                    var minY = null;
+
+                    $t = Bridge.getEnumerator(path);
+                    try {
+                        while ($t.moveNext()) {
+                            var tile = $t.Current;
+                            if (minX == null || System.Nullable.getValue(minX) > tile.Item1) {
+                                minX = tile.Item1;
+                            }
+                            if (minY == null || System.Nullable.getValue(minY) > tile.Item2) {
+                                minY = tile.Item2;
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
+                    }
+
+                    var padding = 2;
+
+                    path = System.Linq.Enumerable.from(path).select(function (tile1) {
+                            return { Item1: ((((tile1.Item1 - System.Nullable.getValue(minX)) | 0) + padding) | 0), Item2: ((((tile1.Item2 - System.Nullable.getValue(minY)) | 0) + padding) | 0) };
+                        }).toList(System.Tuple$2(System.Int32,System.Int32));
+
+                    var numberOfColumns = Math.max(((((System.Linq.Enumerable.from(path).select(function (tile1) {
+                            return tile1.Item1;
+                        }).max() + 1) | 0) + padding) | 0), ((((Bridge.Int.div(windowWidth, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_WIDTH_IN_PIXELS)) | 0) + 1) | 0));
+                    var numberOfRows = Math.max(((((System.Linq.Enumerable.from(path).select(function (tile1) {
+                            return tile1.Item2;
+                        }).max() + 1) | 0) + padding) | 0), ((((Bridge.Int.div(windowHeight, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_HEIGHT_IN_PIXELS)) | 0) + 1) | 0));
+
+                    var tilemap = System.Array.init(numberOfColumns, null, System.Array.type(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile));
+
+                    for (var i = 0; i < tilemap.length; i = (i + 1) | 0) {
+                        tilemap[System.Array.index(i, tilemap)] = System.Array.init(numberOfRows, null, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile);
+
+                        for (var j = 0; j < tilemap[System.Array.index(i, tilemap)].length; j = (j + 1) | 0) {
+                            ($t1 = tilemap[System.Array.index(i, tilemap)])[System.Array.index(j, $t1)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath, null);
+                        }
+                    }
+
+                    for (var i1 = 0; i1 < path.Count; i1 = (i1 + 1) | 0) {
+                        ($t2 = tilemap[System.Array.index(path.getItem(i1).Item1, tilemap)])[System.Array.index(path.getItem(i1).Item2, $t2)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Path, null);
+                    }
+
+                    var level1Index = 0;
+                    var level2Index = (10 + random.DTLibrary$IDTRandom$NextInt(4)) | 0;
+
+                    var level5Index = 49;
+                    var level4Index = (35 + random.DTLibrary$IDTRandom$NextInt(4)) | 0;
+
+                    var level3Index = (((((Bridge.Int.div((((level2Index + level4Index) | 0)), 2)) | 0) + random.DTLibrary$IDTRandom$NextInt(4)) | 0) - 2) | 0;
+
+                    ($t3 = tilemap[System.Array.index(path.getItem(level1Index).Item1, tilemap)])[System.Array.index(path.getItem(level1Index).Item2, $t3)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1);
+                    ($t4 = tilemap[System.Array.index(path.getItem(level2Index).Item1, tilemap)])[System.Array.index(path.getItem(level2Index).Item2, $t4)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2);
+                    ($t5 = tilemap[System.Array.index(path.getItem(level3Index).Item1, tilemap)])[System.Array.index(path.getItem(level3Index).Item2, $t5)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3);
+                    ($t6 = tilemap[System.Array.index(path.getItem(level4Index).Item1, tilemap)])[System.Array.index(path.getItem(level4Index).Item2, $t6)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4);
+                    ($t7 = tilemap[System.Array.index(path.getItem(level5Index).Item1, tilemap)])[System.Array.index(path.getItem(level5Index).Item2, $t7)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5);
+
+                    return tilemap;
+                },
+                GeneratePathHelper: function (path, random) {
+                    var $t, $t1;
+                    if (System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) === 50) {
+                        return new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(path);
+                    }
+
+                    var x = System.Array.getItem(path, ((System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) - 1) | 0), System.Tuple$2(System.Int32,System.Int32)).Item1;
+                    var y = System.Array.getItem(path, ((System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) - 1) | 0), System.Tuple$2(System.Int32,System.Int32)).Item2;
+
+                    var occupiedSpaces = new (System.Collections.Generic.HashSet$1(System.Tuple$2(System.Int32,System.Int32))).$ctor2(path, new DTLibrary.IntTupleEqualityComparer());
+
+                    var potentialNextSteps = function (_o1) {
+                            _o1.add({ Item1: ((x - 1) | 0), Item2: y });
+                            _o1.add({ Item1: ((x + 1) | 0), Item2: y });
+                            _o1.add({ Item1: x, Item2: ((y - 1) | 0) });
+                            _o1.add({ Item1: x, Item2: ((y + 1) | 0) });
+                            return _o1;
+                        }(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                    DTLibrary.ListUtil.Shuffle(System.Tuple$2(System.Int32,System.Int32), potentialNextSteps, random);
+
+                    $t = Bridge.getEnumerator(potentialNextSteps);
+                    try {
+                        while ($t.moveNext()) {
+                            var potentialNextStep = { v : $t.Current };
+                            if (occupiedSpaces.contains(potentialNextStep.v)) {
+                                continue;
+                            }
+
+                            var adjacentSpaces = (function ($me, potentialNextStep) {
+                                    return function (_o2) {
+                                        _o2.add({ Item1: ((potentialNextStep.v.Item1 - 1) | 0), Item2: ((potentialNextStep.v.Item2 - 1) | 0) });
+                                        _o2.add({ Item1: ((potentialNextStep.v.Item1 - 1) | 0), Item2: potentialNextStep.v.Item2 });
+                                        _o2.add({ Item1: ((potentialNextStep.v.Item1 - 1) | 0), Item2: ((potentialNextStep.v.Item2 + 1) | 0) });
+                                        _o2.add({ Item1: potentialNextStep.v.Item1, Item2: ((potentialNextStep.v.Item2 - 1) | 0) });
+                                        _o2.add({ Item1: potentialNextStep.v.Item1, Item2: ((potentialNextStep.v.Item2 + 1) | 0) });
+                                        _o2.add({ Item1: ((potentialNextStep.v.Item1 + 1) | 0), Item2: ((potentialNextStep.v.Item2 - 1) | 0) });
+                                        _o2.add({ Item1: ((potentialNextStep.v.Item1 + 1) | 0), Item2: potentialNextStep.v.Item2 });
+                                        _o2.add({ Item1: ((potentialNextStep.v.Item1 + 1) | 0), Item2: ((potentialNextStep.v.Item2 + 1) | 0) });
+                                        return _o2;
+                                    };
+                                })(this, potentialNextStep)(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+
+                            var isTooClose = false;
+
+                            $t1 = Bridge.getEnumerator(adjacentSpaces);
+                            try {
+                                while ($t1.moveNext()) {
+                                    var adjacentSpace = $t1.Current;
+                                    if (occupiedSpaces.contains(adjacentSpace)) {
+                                        if (!Bridge.objectEquals(adjacentSpace, System.Array.getItem(path, ((System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) - 1) | 0), System.Tuple$2(System.Int32,System.Int32)))) {
+                                            if (System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) > 1 && !Bridge.objectEquals(adjacentSpace, System.Array.getItem(path, ((System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) - 2) | 0), System.Tuple$2(System.Int32,System.Int32)))) {
+                                                isTooClose = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            } finally {
+                                if (Bridge.is($t1, System.IDisposable)) {
+                                    $t1.System$IDisposable$Dispose();
+                                }
+                            }
+
+                            if (isTooClose) {
+                                continue;
+                            }
+
+                            var newList = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(path);
+                            newList.add(potentialNextStep.v);
+
+                            newList = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GeneratePathHelper(newList, random);
+
+                            if (newList != null) {
+                                return newList;
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
+                    }
+
+                    return null;
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap", {
+        statics: {
+            fields: {
+                TILE_WIDTH_IN_PIXELS: 0,
+                TILE_HEIGHT_IN_PIXELS: 0
+            },
+            ctors: {
+                init: function () {
+                    this.TILE_WIDTH_IN_PIXELS = 48;
+                    this.TILE_HEIGHT_IN_PIXELS = 48;
+                }
+            },
+            methods: {
+                GenerateOverworldMap: function (windowWidth, windowHeight, rngSeed) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap(windowWidth, windowHeight, rngSeed);
+                }
+            }
+        },
+        fields: {
+            OverworldGameMap: null,
+            pathTilemap: null,
+            backgroundTilemap: null,
+            RngSeed: null
+        },
+        props: {
+            StartingLocation: {
+                get: function () {
+                    return this.OverworldGameMap.StartingLocation;
+                }
+            }
+        },
+        ctors: {
+            ctor: function (windowWidth, windowHeight, rngSeed) {
+                this.$initialize();
+                var random = new DTLibrary.DTDeterministicRandom.ctor();
+                random.DeserializeFromString(rngSeed);
+
+                this.OverworldGameMap = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.GenerateOverworldGameMap(windowWidth, windowHeight, random);
+
+                var result = TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.GenerateSpriteTilemap(this.OverworldGameMap, random);
+
+                this.pathTilemap = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.ShallowCopyTArray(TuxPlanetSpeedrunAnyPercentLibrary.Sprite, result.PathTiles);
+                this.backgroundTilemap = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.ShallowCopyTArray(TuxPlanetSpeedrunAnyPercentLibrary.Sprite, result.BackgroundTiles);
+
+                this.RngSeed = rngSeed;
+            }
+        },
+        methods: {
+            GetTileType: function (i, j) {
+                if (i < 0 || i >= System.Array.getCount(this.OverworldGameMap.Tilemap, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile))) {
+                    return TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath;
+                }
+
+                if (j < 0 || j >= System.Array.getCount(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)) {
+                    return TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath;
+                }
+
+                return System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type;
+            },
+            GetLevel: function (i, j) {
+                if (i < 0 || i >= System.Array.getCount(this.OverworldGameMap.Tilemap, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile))) {
+                    return null;
+                }
+
+                if (j < 0 || j >= System.Array.getCount(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)) {
+                    return null;
+                }
+
+                return System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Level;
+            },
+            GetMapWidthInPixels: function () {
+                return Bridge.Int.mul(this.pathTilemap.length, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_WIDTH_IN_PIXELS);
+            },
+            GetMapHeightInPixels: function () {
+                return Bridge.Int.mul(this.pathTilemap[System.Array.index(0, this.pathTilemap)].length, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_HEIGHT_IN_PIXELS);
+            },
+            Render: function (displayOutput, completedLevels) {
+                var $t, $t1;
+                var renderX = 0;
+
+                for (var i = 0; i < this.pathTilemap.length; i = (i + 1) | 0) {
+                    var renderY = 0;
+
+                    for (var j = 0; j < this.pathTilemap[System.Array.index(i, this.pathTilemap)].length; j = (j + 1) | 0) {
+                        var background = ($t = this.backgroundTilemap[System.Array.index(i, this.backgroundTilemap)])[System.Array.index(j, $t)];
+
+                        if (background != null) {
+                            displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(background.Image, background.X, background.Y, background.Width, background.Height, renderX, renderY, 0, background.ScalingFactorScaled);
+                        }
+
+                        var path = ($t1 = this.pathTilemap[System.Array.index(i, this.pathTilemap)])[System.Array.index(j, $t1)];
+
+                        if (path != null) {
+                            displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(path.Image, path.X, path.Y, path.Width, path.Height, renderX, renderY, 0, path.ScalingFactorScaled);
+                        }
+
+                        if (System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type === TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level) {
+                            var hasCompletedLevel = completedLevels.contains(System.Nullable.getValue(System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Level));
+
+                            displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.LevelIcons, hasCompletedLevel ? 16 : 0, 0, 16, 16, renderX, renderY, 0, 384);
+                        }
+
+                        renderY = (renderY + TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_HEIGHT_IN_PIXELS) | 0;
+                    }
+
+                    renderX = (renderX + TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_WIDTH_IN_PIXELS) | 0;
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator", {
+        statics: {
+            methods: {
+                GenerateSpriteTilemap: function (map, random) {
+                    var $t, $t1;
+                    var numColumns = System.Array.getCount(map.Tilemap, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile));
+                    var numRows = System.Array.getCount(System.Array.getItem(map.Tilemap, 0, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile);
+
+                    var pathTilemap = System.Array.init(numColumns, null, System.Array.type(TuxPlanetSpeedrunAnyPercentLibrary.Sprite));
+
+                    for (var i = 0; i < numColumns; i = (i + 1) | 0) {
+                        pathTilemap[System.Array.index(i, pathTilemap)] = System.Array.init(numRows, null, TuxPlanetSpeedrunAnyPercentLibrary.Sprite);
+
+                        for (var j = 0; j < numRows; j = (j + 1) | 0) {
+                            var spriteX;
+                            var spriteY;
+
+                            switch (System.Array.getItem(System.Array.getItem(map.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type) {
+                                case TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Path: 
+                                case TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level: 
+                                    var pathOnLeft = i > 0 && System.Array.getItem(System.Array.getItem(map.Tilemap, ((i - 1) | 0), System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type !== TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath;
+                                    var pathOnRight = i < ((numColumns - 1) | 0) && System.Array.getItem(System.Array.getItem(map.Tilemap, ((i + 1) | 0), System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type !== TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath;
+                                    var pathOnBottom = j > 0 && System.Array.getItem(System.Array.getItem(map.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), ((j - 1) | 0), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type !== TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath;
+                                    var pathOnTop = j < ((numRows - 1) | 0) && System.Array.getItem(System.Array.getItem(map.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), ((j + 1) | 0), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type !== TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath;
+                                    if (!pathOnLeft && !pathOnRight && !pathOnBottom && !pathOnTop) {
+                                        spriteX = 2;
+                                        spriteY = 3;
+                                    } else if (!pathOnLeft && !pathOnRight && !pathOnBottom && pathOnTop) {
+                                        spriteX = 0;
+                                        spriteY = 8;
+                                    } else if (!pathOnLeft && !pathOnRight && pathOnBottom && !pathOnTop) {
+                                        spriteX = 0;
+                                        spriteY = 7;
+                                    } else if (!pathOnLeft && !pathOnRight && pathOnBottom && pathOnTop) {
+                                        spriteX = 2;
+                                        spriteY = 4;
+                                    } else if (!pathOnLeft && pathOnRight && !pathOnBottom && !pathOnTop) {
+                                        spriteX = 1;
+                                        spriteY = 7;
+                                    } else if (!pathOnLeft && pathOnRight && !pathOnBottom && pathOnTop) {
+                                        spriteX = 0;
+                                        spriteY = 2;
+                                    } else if (!pathOnLeft && pathOnRight && pathOnBottom && !pathOnTop) {
+                                        spriteX = 0;
+                                        spriteY = 0;
+                                    } else if (!pathOnLeft && pathOnRight && pathOnBottom && pathOnTop) {
+                                        spriteX = 0;
+                                        spriteY = 1;
+                                    } else if (pathOnLeft && !pathOnRight && !pathOnBottom && !pathOnTop) {
+                                        spriteX = 2;
+                                        spriteY = 7;
+                                    } else if (pathOnLeft && !pathOnRight && !pathOnBottom && pathOnTop) {
+                                        spriteX = 2;
+                                        spriteY = 2;
+                                    } else if (pathOnLeft && !pathOnRight && pathOnBottom && !pathOnTop) {
+                                        spriteX = 2;
+                                        spriteY = 0;
+                                    } else if (pathOnLeft && !pathOnRight && pathOnBottom && pathOnTop) {
+                                        spriteX = 2;
+                                        spriteY = 1;
+                                    } else if (pathOnLeft && pathOnRight && !pathOnBottom && !pathOnTop) {
+                                        spriteX = 2;
+                                        spriteY = 3;
+                                    } else if (pathOnLeft && pathOnRight && !pathOnBottom && pathOnTop) {
+                                        spriteX = 1;
+                                        spriteY = 2;
+                                    } else if (pathOnLeft && pathOnRight && pathOnBottom && !pathOnTop) {
+                                        spriteX = 1;
+                                        spriteY = 0;
+                                    } else if (pathOnLeft && pathOnRight && pathOnBottom && pathOnTop) {
+                                        spriteX = 1;
+                                        spriteY = 1;
+                                    } else {
+                                        throw new System.Exception();
+                                    }
+                                    break;
+                                case TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath: 
+                                    spriteX = null;
+                                    spriteY = null;
+                                    break;
+                                default: 
+                                    throw new System.Exception();
+                            }
+
+                            if (spriteX != null) {
+                                ($t = pathTilemap[System.Array.index(i, pathTilemap)])[System.Array.index(j, $t)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, System.Nullable.getValue(spriteX) << 4, System.Nullable.getValue(spriteY) << 4, 16, 16, 384);
+                            } else {
+                                ($t1 = pathTilemap[System.Array.index(i, pathTilemap)])[System.Array.index(j, $t1)] = null;
+                            }
+                        }
+                    }
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.Result(pathTilemap, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.GenerateBackgroundTiles(numColumns, numRows, random));
+                },
+                GenerateBackgroundTiles: function (numColumns, numRows, random) {
+                    var $t;
+                    var tilemap = System.Array.init(numColumns, null, System.Array.type(TuxPlanetSpeedrunAnyPercentLibrary.Sprite));
+
+                    for (var i = 0; i < numColumns; i = (i + 1) | 0) {
+                        tilemap[System.Array.index(i, tilemap)] = System.Array.init(numRows, null, TuxPlanetSpeedrunAnyPercentLibrary.Sprite);
+
+                        for (var j = 0; j < numRows; j = (j + 1) | 0) {
+                            ($t = tilemap[System.Array.index(i, tilemap)])[System.Array.index(j, $t)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Snow, random.DTLibrary$IDTRandom$NextInt(3) << 4, 80, 16, 16, 384);
+                        }
+                    }
+
+                    return tilemap;
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.Result", {
+        $kind: "nested class",
+        fields: {
+            PathTiles: null,
+            BackgroundTiles: null
+        },
+        ctors: {
+            ctor: function (pathTiles, backgroundTiles) {
+                this.$initialize();
+                this.PathTiles = pathTiles;
+                this.BackgroundTiles = backgroundTiles;
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil", {
+        statics: {
+            methods: {
+                GetPath: function (overworldGameMap, reachableTiles, currentLocation, directionOfTravel) {
+                    var returnValue = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+
+                    var nextTile = { Item1: ((currentLocation.Item1 + directionOfTravel.Item1) | 0), Item2: ((currentLocation.Item2 + directionOfTravel.Item2) | 0) };
+
+                    if (!System.Linq.Enumerable.from(reachableTiles).contains(nextTile, new DTLibrary.IntTupleEqualityComparer())) {
+                        return returnValue;
+                    }
+
+                    while (true) {
+                        returnValue.add(nextTile);
+
+                        if (System.Array.getItem(System.Array.getItem(overworldGameMap.Tilemap, nextTile.Item1, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), nextTile.Item2, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type === TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level) {
+                            break;
+                        }
+
+                        var possibleNextTiles = function (_o1) {
+                                _o1.add({ Item1: ((nextTile.Item1 - 1) | 0), Item2: nextTile.Item2 });
+                                _o1.add({ Item1: ((nextTile.Item1 + 1) | 0), Item2: nextTile.Item2 });
+                                _o1.add({ Item1: nextTile.Item1, Item2: ((nextTile.Item2 - 1) | 0) });
+                                _o1.add({ Item1: nextTile.Item1, Item2: ((nextTile.Item2 + 1) | 0) });
+                                return _o1;
+                            }(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                        possibleNextTiles = System.Linq.Enumerable.from(possibleNextTiles).where(function (x) {
+                                return System.Linq.Enumerable.from(reachableTiles).contains(x, new DTLibrary.IntTupleEqualityComparer());
+                            }).where(function (x) {
+                            return !System.Linq.Enumerable.from(returnValue).contains(x, new DTLibrary.IntTupleEqualityComparer());
+                        }).where(function (x) {
+                            return !Bridge.objectEquals(x, currentLocation);
+                        }).toList(System.Tuple$2(System.Int32,System.Int32));
+
+                        if (possibleNextTiles.Count !== 1) {
+                            break;
+                        }
+
+                        nextTile = possibleNextTiles.getItem(0);
+                    }
+
+                    return returnValue;
+                },
+                GetReachableTiles: function (overworldGameMap, completedLevels) {
+                    var completedLevelsSet = new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(completedLevels);
+
+                    var returnValue = new (System.Collections.Generic.HashSet$1(System.Tuple$2(System.Int32,System.Int32))).$ctor3(new DTLibrary.IntTupleEqualityComparer());
+
+                    var toBeProcessed = new (System.Collections.Generic.Queue$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+                    toBeProcessed.Enqueue(overworldGameMap.StartingLocation);
+
+                    while (toBeProcessed.Count > 0) {
+                        var location = toBeProcessed.Dequeue();
+                        var x = location.Item1;
+                        var y = location.Item2;
+
+                        if (returnValue.contains(location)) {
+                            continue;
+                        }
+
+                        if (x < 0 || x >= System.Array.getCount(overworldGameMap.Tilemap, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile))) {
+                            continue;
+                        }
+                        if (y < 0 || y >= System.Array.getCount(System.Array.getItem(overworldGameMap.Tilemap, 0, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)) {
+                            continue;
+                        }
+
+                        if (System.Array.getItem(System.Array.getItem(overworldGameMap.Tilemap, x, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), y, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type === TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath) {
+                            continue;
+                        }
+
+                        returnValue.add(location);
+
+                        if (System.Array.getItem(System.Array.getItem(overworldGameMap.Tilemap, x, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), y, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type === TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level && !completedLevelsSet.contains(System.Nullable.getValue(System.Array.getItem(System.Array.getItem(overworldGameMap.Tilemap, x, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), y, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Level))) {
+                            continue;
+                        }
+
+                        toBeProcessed.Enqueue({ Item1: ((x - 1) | 0), Item2: y });
+                        toBeProcessed.Enqueue({ Item1: ((x + 1) | 0), Item2: y });
+                        toBeProcessed.Enqueue({ Item1: x, Item2: ((y - 1) | 0) });
+                        toBeProcessed.Enqueue({ Item1: x, Item2: ((y + 1) | 0) });
+                    }
+
+                    return returnValue;
+                }
+            }
+        }
+    });
+
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option", {
         $kind: "nested enum",
         statics: {
             fields: {
                 Continue: 0,
                 RestartLevel: 1,
-                BackToTitleScreen: 2
+                BackToMapScreen: 2,
+                BackToTitleScreen: 3
             }
         }
     });
@@ -25382,14 +26765,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 var list = this.fileIO.DTLibrary$IFileIO$FetchData(TuxPlanetSpeedrunAnyPercentLibrary.TuxPlanetSpeedrunAnyPercent.FILE_ID_FOR_SESSION_STATE);
 
                 if (list == null) {
-                    sessionState.ClearData();
+                    sessionState.ClearData(windowWidth, windowHeight);
                     return;
                 }
 
                 try {
                     var iterator = list.GetIterator();
                     sessionState.TryDeserializeEverythingExceptGameLogic(iterator);
-                    sessionState.StartLevel(sessionState.CurrentLevel, windowWidth, windowHeight, mapInfo);
 
                     if (iterator.HasNextByte()) {
                         throw new DTLibrary.DTDeserializationException();
@@ -25397,7 +26779,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 } catch ($e1) {
                     $e1 = System.Exception.create($e1);
                     if (Bridge.is($e1, DTLibrary.DTDeserializationException)) {
-                        sessionState.ClearData();
+                        sessionState.ClearData(windowWidth, windowHeight);
                     } else {
                         throw $e1;
                     }
@@ -25465,31 +26847,56 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.SessionState", {
         fields: {
-            CurrentLevel: 0,
+            Overworld: null,
             GameLogic: null,
+            CanUseSaveStates: false,
+            CanUseTimeSlowdown: false,
+            CanUseTeleport: false,
             HasWon: false,
             ElapsedMillis: 0,
             random: null,
             randomValuesUsedForGeneratingLevels: null
         },
+        props: {
+            CurrentLevel: {
+                get: function () {
+                    if (this.GameLogic == null) {
+                        return null;
+                    }
+                    return this.GameLogic.Level;
+                }
+            }
+        },
         ctors: {
-            ctor: function () {
+            ctor: function (windowWidth, windowHeight) {
                 this.$initialize();
-                this.CurrentLevel = 1;
+                var random = new DTLibrary.DTDeterministicRandom.$ctor1(new System.Random.ctor().Next$1(10000000));
+
+                this.Overworld = new TuxPlanetSpeedrunAnyPercentLibrary.Overworld.ctor(windowWidth, windowHeight, random.DTLibrary$IDTDeterministicRandom$SerializeToString(), new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).ctor());
+
                 this.GameLogic = null;
+                this.CanUseSaveStates = false;
+                this.CanUseTimeSlowdown = false;
+                this.CanUseTeleport = false;
                 this.HasWon = false;
                 this.ElapsedMillis = 0;
-                this.random = new DTLibrary.DTDeterministicRandom.$ctor1(new System.Random.ctor().Next$1(10000000));
-                this.randomValuesUsedForGeneratingLevels = new (System.Collections.Generic.Dictionary$2(System.Int32,System.String))();
+                this.random = random;
+                this.randomValuesUsedForGeneratingLevels = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.Level,System.String))();
             }
         },
         methods: {
-            ClearData: function () {
-                this.CurrentLevel = 1;
+            ClearData: function (windowWidth, windowHeight) {
+                this.random.DTLibrary$IDTRandom$NextBool();
+
+                this.Overworld = new TuxPlanetSpeedrunAnyPercentLibrary.Overworld.ctor(windowWidth, windowHeight, this.random.DTLibrary$IDTDeterministicRandom$SerializeToString(), new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).ctor());
+
                 this.GameLogic = null;
+                this.CanUseSaveStates = false;
+                this.CanUseTimeSlowdown = false;
+                this.CanUseTeleport = false;
                 this.HasWon = false;
                 this.ElapsedMillis = 0;
-                this.randomValuesUsedForGeneratingLevels = new (System.Collections.Generic.Dictionary$2(System.Int32,System.String))();
+                this.randomValuesUsedForGeneratingLevels = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.Level,System.String))();
             },
             AddRandomSeed: function (seed) {
                 this.random.DTLibrary$IDTRandom$AddSeed(seed);
@@ -25501,45 +26908,64 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             AddElapsedMillis: function (elapsedMillis) {
                 this.ElapsedMillis = (this.ElapsedMillis + elapsedMillis) | 0;
             },
+            SetOverworld: function (overworld) {
+                this.Overworld = overworld;
+            },
+            CompleteLevel: function (level, canUseSaveStates, canUseTimeSlowdown, canUseTeleport) {
+                this.Overworld = this.Overworld.CompleteLevel(level);
+                if (canUseSaveStates) {
+                    this.CanUseSaveStates = true;
+                }
+                if (canUseTimeSlowdown) {
+                    this.CanUseTimeSlowdown = true;
+                }
+                if (canUseTeleport) {
+                    this.CanUseTeleport = true;
+                }
+
+                this.GameLogic = null;
+            },
             WinGame: function () {
                 this.HasWon = true;
             },
             SetGameLogic: function (gameLogicState) {
                 this.GameLogic = gameLogicState;
             },
-            StartLevel: function (levelNumber, windowWidth, windowHeight, mapInfo) {
-                this.CurrentLevel = levelNumber;
-
+            StartLevel: function (level, windowWidth, windowHeight, mapInfo) {
                 this.random.DTLibrary$IDTRandom$NextBool();
-                this.random.DTLibrary$IDTRandom$AddSeed(levelNumber);
 
-                if (!this.randomValuesUsedForGeneratingLevels.containsKey(this.CurrentLevel)) {
-                    this.randomValuesUsedForGeneratingLevels.set(this.CurrentLevel, this.random.DTLibrary$IDTDeterministicRandom$SerializeToString());
+                if (!this.randomValuesUsedForGeneratingLevels.containsKey(level)) {
+                    this.randomValuesUsedForGeneratingLevels.set(level, this.random.DTLibrary$IDTDeterministicRandom$SerializeToString());
                 }
 
                 var rngForGeneratingLevel = new DTLibrary.DTDeterministicRandom.ctor();
-                rngForGeneratingLevel.DTLibrary$IDTDeterministicRandom$DeserializeFromString(this.randomValuesUsedForGeneratingLevels.get(this.CurrentLevel));
+                rngForGeneratingLevel.DeserializeFromString(this.randomValuesUsedForGeneratingLevels.get(level));
 
-                this.GameLogic = new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.ctor(levelNumber, windowWidth, windowHeight, mapInfo, rngForGeneratingLevel);
+                this.GameLogic = new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.$ctor1(level, windowWidth, windowHeight, this.CanUseSaveStates, this.CanUseTimeSlowdown, this.CanUseTeleport, mapInfo, rngForGeneratingLevel);
             },
             SerializeEverythingExceptGameLogic: function (list) {
                 var $t;
-                list.AddInt(this.CurrentLevel);
+                this.Overworld.Serialize(list);
+
+                list.AddBool(this.CanUseSaveStates);
+                list.AddBool(this.CanUseTimeSlowdown);
+                list.AddBool(this.CanUseTeleport);
+
                 list.AddBool(this.HasWon);
                 list.AddInt(this.ElapsedMillis);
 
                 list.AddInt(this.randomValuesUsedForGeneratingLevels.count);
 
                 $t = Bridge.getEnumerator(System.Linq.Enumerable.from(this.randomValuesUsedForGeneratingLevels).orderBy(function (x) {
-                        return x.key;
-                    }).toList(System.Collections.Generic.KeyValuePair$2(System.Int32,System.String)));
+                        return TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.ToSerializableInt(x.key);
+                    }).toList(System.Collections.Generic.KeyValuePair$2(TuxPlanetSpeedrunAnyPercentLibrary.Level,System.String)));
                 try {
                     while ($t.moveNext()) {
                         var kvp = $t.Current;
-                        var levelNum = kvp.key;
+                        var level = kvp.key;
                         var rngValue = kvp.value;
 
-                        list.AddInt(levelNum);
+                        list.AddInt(TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.ToSerializableInt(level));
                         list.AddString(rngValue);
                     }
                 } finally {
@@ -25559,8 +26985,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
              * @return  {void}
              */
             TryDeserializeEverythingExceptGameLogic: function (iterator) {
-                var currentLevel = iterator.TryPopInt();
-                this.CurrentLevel = currentLevel;
+                this.Overworld = TuxPlanetSpeedrunAnyPercentLibrary.Overworld.TryDeserialize(iterator);
+
+                this.CanUseSaveStates = iterator.TryPopBool();
+                this.CanUseTimeSlowdown = iterator.TryPopBool();
+                this.CanUseTeleport = iterator.TryPopBool();
 
                 var hasWon = iterator.TryPopBool();
                 this.HasWon = hasWon;
@@ -25568,14 +26997,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 var elapsedMillis = iterator.TryPopInt();
                 this.ElapsedMillis = elapsedMillis;
 
-                this.randomValuesUsedForGeneratingLevels = new (System.Collections.Generic.Dictionary$2(System.Int32,System.String))();
+                this.randomValuesUsedForGeneratingLevels = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.Level,System.String))();
                 var numKeyValuePairs = iterator.TryPopInt();
 
                 for (var i = 0; i < numKeyValuePairs; i = (i + 1) | 0) {
-                    var levelNum = iterator.TryPopInt();
+                    var level = iterator.TryPopInt();
                     var rngValue = iterator.TryPopString();
 
-                    this.randomValuesUsedForGeneratingLevels.set(levelNum, rngValue);
+                    this.randomValuesUsedForGeneratingLevels.set(TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.FromSerializableInt(level), rngValue);
                 }
             }
         }
@@ -25852,6 +27281,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 JUMP_Y_SPEED: 0,
                 JUMP_BUFFER_DURATION: 0,
                 LAST_TIME_ON_GROUND_BUFFER_DURATION: 0,
+                TELEPORT_DURATION: 0,
+                TELEPORT_COOLDOWN: 0,
                 FINISHED_LEVEL_ANIMATION_DURATION: 0,
                 IS_DEAD_ANIMATION_DURATION: 0
             },
@@ -25860,13 +27291,15 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     this.JUMP_Y_SPEED = 1100000;
                     this.JUMP_BUFFER_DURATION = 500000;
                     this.LAST_TIME_ON_GROUND_BUFFER_DURATION = 500000;
+                    this.TELEPORT_DURATION = 150000;
+                    this.TELEPORT_COOLDOWN = 10000;
                     this.FINISHED_LEVEL_ANIMATION_DURATION = 1500000;
                     this.IS_DEAD_ANIMATION_DURATION = 3000000;
                 }
             },
             methods: {
                 GetDefaultTuxState: function (x, y) {
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(x << 10, y << 10, 0, 0, new (System.Collections.Generic.List$1(System.Boolean)).ctor(), false, null, 0, null, false, null, true);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(x << 10, y << 10, 0, 0, new (System.Collections.Generic.List$1(System.Boolean)).ctor(), false, null, null, null, null, false, 0, null, false, null, true);
                 }
             }
         },
@@ -25878,6 +27311,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             PreviousJumps: null,
             IsOnGround: false,
             LastTimeOnGround: null,
+            TeleportStartingLocation: null,
+            TeleportInProgressElapsedMicros: null,
+            TeleportCooldown: null,
+            HasAlreadyUsedTeleport: false,
             SpriteElapsedMicros: 0,
             HasFinishedLevelElapsedMicros: null,
             IsStillHoldingJumpButton: false,
@@ -25897,7 +27334,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         ctors: {
-            ctor: function (xMibi, yMibi, xSpeedInMibipixelsPerSecond, ySpeedInMibipixelsPerSecond, previousJumps, isOnGround, lastTimeOnGround, spriteElapsedMicros, hasFinishedLevelElapsedMicros, isStillHoldingJumpButton, isDeadElapsedMicros, isFacingRight) {
+            ctor: function (xMibi, yMibi, xSpeedInMibipixelsPerSecond, ySpeedInMibipixelsPerSecond, previousJumps, isOnGround, lastTimeOnGround, teleportStartingLocation, teleportInProgressElapsedMicros, teleportCooldown, hasAlreadyUsedTeleport, spriteElapsedMicros, hasFinishedLevelElapsedMicros, isStillHoldingJumpButton, isDeadElapsedMicros, isFacingRight) {
                 this.$initialize();
                 this.XMibi = xMibi;
                 this.YMibi = yMibi;
@@ -25906,6 +27343,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.PreviousJumps = new (System.Collections.Generic.List$1(System.Boolean)).$ctor1(previousJumps);
                 this.IsOnGround = isOnGround;
                 this.LastTimeOnGround = lastTimeOnGround;
+                this.TeleportStartingLocation = teleportStartingLocation;
+                this.TeleportInProgressElapsedMicros = teleportInProgressElapsedMicros;
+                this.TeleportCooldown = teleportCooldown;
+                this.HasAlreadyUsedTeleport = hasAlreadyUsedTeleport;
                 this.SpriteElapsedMicros = spriteElapsedMicros;
                 this.HasFinishedLevelElapsedMicros = hasFinishedLevelElapsedMicros;
                 this.IsStillHoldingJumpButton = isStillHoldingJumpButton;
@@ -25915,13 +27356,19 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             SetYSpeedInMibipixelsPerSecond: function (ySpeedInMibipixelsPerSecond) {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(this.XMibi, this.YMibi, this.XSpeedInMibipixelsPerSecond, ySpeedInMibipixelsPerSecond, this.PreviousJumps, this.IsOnGround, this.LastTimeOnGround, this.SpriteElapsedMicros, this.HasFinishedLevelElapsedMicros, this.IsStillHoldingJumpButton, this.IsDeadElapsedMicros, this.IsFacingRight);
+                return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(this.XMibi, this.YMibi, this.XSpeedInMibipixelsPerSecond, ySpeedInMibipixelsPerSecond, this.PreviousJumps, this.IsOnGround, this.LastTimeOnGround, this.TeleportStartingLocation, this.TeleportInProgressElapsedMicros, this.TeleportCooldown, this.HasAlreadyUsedTeleport, this.SpriteElapsedMicros, this.HasFinishedLevelElapsedMicros, this.IsStillHoldingJumpButton, this.IsDeadElapsedMicros, this.IsFacingRight);
+            },
+            SetLastTimeOnGround: function (lastTimeOnGround) {
+                return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(this.XMibi, this.YMibi, this.XSpeedInMibipixelsPerSecond, this.YSpeedInMibipixelsPerSecond, this.PreviousJumps, this.IsOnGround, lastTimeOnGround, this.TeleportStartingLocation, this.TeleportInProgressElapsedMicros, this.TeleportCooldown, this.HasAlreadyUsedTeleport, this.SpriteElapsedMicros, this.HasFinishedLevelElapsedMicros, this.IsStillHoldingJumpButton, this.IsDeadElapsedMicros, this.IsFacingRight);
             },
             SetIsStillHoldingJumpButton: function (isStillHoldingJumpButton) {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(this.XMibi, this.YMibi, this.XSpeedInMibipixelsPerSecond, this.YSpeedInMibipixelsPerSecond, this.PreviousJumps, this.IsOnGround, this.LastTimeOnGround, this.SpriteElapsedMicros, this.HasFinishedLevelElapsedMicros, isStillHoldingJumpButton, this.IsDeadElapsedMicros, this.IsFacingRight);
+                return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(this.XMibi, this.YMibi, this.XSpeedInMibipixelsPerSecond, this.YSpeedInMibipixelsPerSecond, this.PreviousJumps, this.IsOnGround, this.LastTimeOnGround, this.TeleportStartingLocation, this.TeleportInProgressElapsedMicros, this.TeleportCooldown, this.HasAlreadyUsedTeleport, this.SpriteElapsedMicros, this.HasFinishedLevelElapsedMicros, isStillHoldingJumpButton, this.IsDeadElapsedMicros, this.IsFacingRight);
+            },
+            SetHasAlreadyUsedTeleport: function (hasAlreadyUsedTeleport) {
+                return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(this.XMibi, this.YMibi, this.XSpeedInMibipixelsPerSecond, this.YSpeedInMibipixelsPerSecond, this.PreviousJumps, this.IsOnGround, this.LastTimeOnGround, this.TeleportStartingLocation, this.TeleportInProgressElapsedMicros, this.TeleportCooldown, hasAlreadyUsedTeleport, this.SpriteElapsedMicros, this.HasFinishedLevelElapsedMicros, this.IsStillHoldingJumpButton, this.IsDeadElapsedMicros, this.IsFacingRight);
             },
             Kill: function () {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(this.XMibi, this.YMibi, 0, 0, new (System.Collections.Generic.List$1(System.Boolean)).ctor(), false, null, 0, null, false, 0, this.IsFacingRight);
+                return new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(this.XMibi, this.YMibi, 0, 0, new (System.Collections.Generic.List$1(System.Boolean)).ctor(), false, null, null, null, null, true, 0, null, false, 0, this.IsFacingRight);
             },
             GetHitboxes: function () {
                 return Bridge.fn.bind(this, function (_o1) {
@@ -25950,7 +27397,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var newIsDeadElapsedMicros = (System.Nullable.getValue(tuxState.IsDeadElapsedMicros) + elapsedMicrosPerFrame) | 0;
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(tuxState.XMibi, tuxState.YMibi, 0, 0, new (System.Collections.Generic.List$1(System.Boolean)).ctor(), false, null, ((tuxState.SpriteElapsedMicros + elapsedMicrosPerFrame) | 0), null, false, newIsDeadElapsedMicros, tuxState.IsFacingRight), false, newIsDeadElapsedMicros >= TuxPlanetSpeedrunAnyPercentLibrary.TuxState.IS_DEAD_ANIMATION_DURATION || move.Respawn, false);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(tuxState.XMibi, tuxState.YMibi, 0, 0, new (System.Collections.Generic.List$1(System.Boolean)).ctor(), false, null, null, null, null, true, ((tuxState.SpriteElapsedMicros + elapsedMicrosPerFrame) | 0), null, false, newIsDeadElapsedMicros, tuxState.IsFacingRight), false, newIsDeadElapsedMicros >= TuxPlanetSpeedrunAnyPercentLibrary.TuxState.IS_DEAD_ANIMATION_DURATION || move.Respawn, false);
                 },
                 GetMoveInfo: function (tuxState, move) {
                     if (tuxState.HasFinishedLevel) {
@@ -25980,9 +27427,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     return new TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.MoveInfo(isMovingRight, isMovingLeft, hasJumped);
                 },
-                ProcessFrame: function (tuxState, move, debugMode, debugKeyboardInput, debugPreviousKeyboardInput, displayProcessing, soundOutput, elapsedMicrosPerFrame, tilemap) {
+                ProcessFrame_TuxTeleport: function (tuxState, elapsedMicrosPerFrame) {
+                    var newTeleportInProgressElapsedMicros = Bridge.Int.clip32(System.Nullable.getValue(tuxState.TeleportInProgressElapsedMicros) + elapsedMicrosPerFrame);
+                    var hasFinishedTeleporting;
+
+                    if (System.Nullable.getValue(newTeleportInProgressElapsedMicros) >= TuxPlanetSpeedrunAnyPercentLibrary.TuxState.TELEPORT_DURATION) {
+                        hasFinishedTeleporting = true;
+                    } else {
+                        hasFinishedTeleporting = false;
+                    }
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(tuxState.XMibi, tuxState.YMibi, tuxState.XSpeedInMibipixelsPerSecond, tuxState.YSpeedInMibipixelsPerSecond, tuxState.PreviousJumps, tuxState.IsOnGround, tuxState.LastTimeOnGround, hasFinishedTeleporting ? null : tuxState.TeleportStartingLocation, hasFinishedTeleporting ? null : newTeleportInProgressElapsedMicros, hasFinishedTeleporting ? TuxPlanetSpeedrunAnyPercentLibrary.TuxState.TELEPORT_COOLDOWN : null, hasFinishedTeleporting ? true : false, tuxState.SpriteElapsedMicros, tuxState.HasFinishedLevelElapsedMicros, tuxState.IsStillHoldingJumpButton, tuxState.IsDeadElapsedMicros, tuxState.IsFacingRight), false, false, false);
+                },
+                IsTeleportable: function (tilemap, x, y) {
+                    return !tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y) && !tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y) && !tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone(x, y);
+                },
+                ProcessFrame: function (tuxState, move, previousMove, canUseTeleport, debugMode, debugKeyboardInput, debugPreviousKeyboardInput, displayProcessing, soundOutput, elapsedMicrosPerFrame, tilemap) {
                     if (tuxState.IsDead) {
                         return TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.ProcessFrame_TuxDead(tuxState, move, elapsedMicrosPerFrame, soundOutput);
+                    }
+
+                    if (tuxState.TeleportInProgressElapsedMicros != null) {
+                        return TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.ProcessFrame_TuxTeleport(tuxState, elapsedMicrosPerFrame);
                     }
 
                     var moveInfo = TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.GetMoveInfo(tuxState, move);
@@ -26169,7 +27635,80 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         newIsDeadElapsedMicros = 0;
                     }
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(newXMibi, newYMibi, newXSpeedInMibipixelsPerSecond, newYSpeedInMibipixelsPerSecond, newPreviousJumps, newIsOnGround, newLastTimeOnGround, newSpriteElapsedMicros, newHasFinishedLevelElapsedMicros, newIsStillHoldingJumpButton, newIsDeadElapsedMicros, isMovingRight ? true : (isMovingLeft ? false : tuxState.IsFacingRight)), System.Nullable.hasValue(newHasFinishedLevelElapsedMicros) && System.Nullable.getValue(newHasFinishedLevelElapsedMicros) >= TuxPlanetSpeedrunAnyPercentLibrary.TuxState.FINISHED_LEVEL_ANIMATION_DURATION, false, System.Nullable.hasValue(newHasFinishedLevelElapsedMicros));
+                    var newTeleportCooldown = tuxState.TeleportCooldown;
+                    if (newTeleportCooldown != null) {
+                        newTeleportCooldown = Bridge.Int.clip32(System.Nullable.getValue(newTeleportCooldown) - elapsedMicrosPerFrame);
+                        if (System.Nullable.getValue(newTeleportCooldown) <= 0) {
+                            newTeleportCooldown = null;
+                        }
+                    }
+
+                    var newTeleportStartingLocation = null;
+                    var newTeleportInProgressElapsedMicros = tuxState.TeleportInProgressElapsedMicros;
+                    if (newIsDeadElapsedMicros == null && canUseTeleport && newHasFinishedLevelElapsedMicros == null && tuxState.TeleportCooldown == null && !tuxState.HasAlreadyUsedTeleport && move.Teleported && !previousMove.Teleported) {
+                        soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$PlaySound(TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Teleport);
+
+                        newTeleportStartingLocation = { Item1: tuxState.XMibi, Item2: tuxState.YMibi };
+                        newTeleportInProgressElapsedMicros = 0;
+
+                        var deltaX;
+
+                        if (move.ArrowRight && !move.ArrowLeft) {
+                            deltaX = 1;
+                        } else {
+                            if (move.ArrowLeft && !move.ArrowRight) {
+                                deltaX = -1;
+                            } else {
+                                deltaX = 0;
+                            }
+                        }
+
+                        var deltaY;
+
+                        if (move.ArrowUp && !move.ArrowDown) {
+                            deltaY = 1;
+                        } else {
+                            if (move.ArrowDown && !move.ArrowUp) {
+                                deltaY = -1;
+                            } else {
+                                deltaY = 0;
+                            }
+                        }
+
+                        if (deltaX === 0 && deltaY === 0) {
+                            deltaX = tuxState.IsFacingRight ? 1 : -1;
+                        }
+
+                        var interval = 100;
+
+                        if (deltaX === 0 || deltaY === 0) {
+                            interval = 141;
+                        }
+
+                        while (true) {
+                            if (interval === 0) {
+                                newTeleportStartingLocation = null;
+                                newTeleportInProgressElapsedMicros = null;
+                                newTeleportCooldown = TuxPlanetSpeedrunAnyPercentLibrary.TuxState.TELEPORT_COOLDOWN;
+                                break;
+                            }
+
+                            proposedNewXMibi = (newXMibi + Bridge.Int.mul(Bridge.Int.mul(Bridge.Int.mul(deltaX, 1024), interval), 2)) | 0;
+                            proposedNewYMibi = (newYMibi + Bridge.Int.mul(Bridge.Int.mul(Bridge.Int.mul(deltaY, 1024), interval), 2)) | 0;
+                            interval = (interval - 1) | 0;
+
+                            if (TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.IsTeleportable(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) - 12) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) - 48) | 0)) && TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.IsTeleportable(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) - 12) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) + 24) | 0)) && TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.IsTeleportable(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) + 12) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) - 48) | 0)) && TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.IsTeleportable(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) + 12) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) + 24) | 0))) {
+                                newXMibi = proposedNewXMibi;
+                                newYMibi = proposedNewYMibi;
+                                newXSpeedInMibipixelsPerSecond = Bridge.Int.mul(Bridge.Int.mul(deltaX, 1024), (deltaX === 0 || deltaY === 0 ? 1448 : 1024));
+                                newYSpeedInMibipixelsPerSecond = Bridge.Int.mul(Bridge.Int.mul(deltaY, 1024), (deltaX === 0 || deltaY === 0 ? 1448 : 1024));
+                                newLastTimeOnGround = null;
+                                break;
+                            }
+                        }
+                    }
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.TuxStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.TuxState(newXMibi, newYMibi, newXSpeedInMibipixelsPerSecond, newYSpeedInMibipixelsPerSecond, newPreviousJumps, newIsOnGround, newLastTimeOnGround, newTeleportStartingLocation, newTeleportInProgressElapsedMicros, newTeleportCooldown, tuxState.HasAlreadyUsedTeleport ? !newIsOnGround : false, newSpriteElapsedMicros, newHasFinishedLevelElapsedMicros, newIsStillHoldingJumpButton, newIsDeadElapsedMicros, isMovingRight ? true : (isMovingLeft ? false : tuxState.IsFacingRight)), System.Nullable.hasValue(newHasFinishedLevelElapsedMicros) && System.Nullable.getValue(newHasFinishedLevelElapsedMicros) >= TuxPlanetSpeedrunAnyPercentLibrary.TuxState.FINISHED_LEVEL_ANIMATION_DURATION, false, System.Nullable.hasValue(newHasFinishedLevelElapsedMicros));
                 },
                 Render: function (tuxState, displayOutput, camera, windowWidth, windowHeight) {
                     var image = tuxState.IsFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Tux : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TuxMirrored;
@@ -26186,6 +27725,20 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         var deadYOffset = (((Bridge.Int.div(((Bridge.Int.div(Bridge.Int.mul(((Bridge.Int.div(Bridge.Int.mul(acceleration, time), 1000)) | 0), time), 2)) | 0), 1000)) | 0) + ((Bridge.Int.div(Bridge.Int.mul(initialDeadYVelocity, time), 1000)) | 0)) | 0;
 
                         displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(image, ((64 + Bridge.Int.mul(spriteNum, 32)) | 0), 192, 32, 32, ((((Bridge.Int.div(tuxState.XMibi, 1024)) | 0) - 48) | 0), ((((((Bridge.Int.div(tuxState.YMibi, 1024)) | 0) - 48) | 0) + deadYOffset) | 0), 0, 384);
+                    } else if (tuxState.TeleportInProgressElapsedMicros != null) {
+                        var deltaX = System.Int64(tuxState.XMibi - tuxState.TeleportStartingLocation.Item1);
+                        var deltaY = System.Int64(tuxState.YMibi - tuxState.TeleportStartingLocation.Item2);
+
+                        for (var i = Math.max(0, ((System.Nullable.getValue(tuxState.TeleportInProgressElapsedMicros) - 50000) | 0)); i < System.Nullable.getValue(tuxState.TeleportInProgressElapsedMicros); i = (i + (5000)) | 0) {
+                            var renderXMibi = System.Int64.clip32(System.Int64(tuxState.TeleportStartingLocation.Item1).add(deltaX.mul(System.Int64(i)).div(System.Int64(TuxPlanetSpeedrunAnyPercentLibrary.TuxState.TELEPORT_DURATION))));
+                            var renderYMibi = System.Int64.clip32(System.Int64(tuxState.TeleportStartingLocation.Item2).add(deltaY.mul(System.Int64(i)).div(System.Int64(TuxPlanetSpeedrunAnyPercentLibrary.TuxState.TELEPORT_DURATION))));
+
+                            var alpha = (Bridge.Int.div(Bridge.Int.mul((((i - (((System.Nullable.getValue(tuxState.TeleportInProgressElapsedMicros) - 50000) | 0))) | 0)), 170), 50000)) | 0;
+
+                            if (alpha > 0 && alpha <= 255) {
+                                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawRectangle((((renderXMibi >> 10) - 20) | 0), (((renderYMibi >> 10) - 20) | 0), 40, 40, new DTLibrary.DTColor.$ctor1(255, 255, 255, alpha), true);
+                            }
+                        }
                     } else {
                         var spriteNum1;
 
@@ -26275,6 +27828,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.VersionInfo)).ctor();
 
                     list.add(new TuxPlanetSpeedrunAnyPercentLibrary.VersionInfo("1.00", "1204514613893229"));
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.VersionInfo("1.01", "3012096945791874"));
 
                     return list;
                 }
@@ -26818,18 +28372,24 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 TuxMirrored: 10,
                 Konqi: 11,
                 KonqiMirrored: 12,
-                Smartcap: 13,
-                SmartcapMirrored: 14,
-                BossHealth: 15,
-                C4: 16,
-                Coin: 17,
-                EarthShell: 18,
-                Igloo: 19,
-                Actors: 20,
-                Solid: 21,
-                Spikes: 22,
-                Signpost: 23,
-                OceanBackground: 24
+                Blazeborn: 13,
+                BlazebornMirrored: 14,
+                Smartcap: 15,
+                SmartcapMirrored: 16,
+                BossHealth: 17,
+                C4: 18,
+                Coin: 19,
+                EarthShell: 20,
+                Igloo: 21,
+                Actors: 22,
+                Solid: 23,
+                Spikes: 24,
+                Signpost: 25,
+                PathDirt: 26,
+                Snow: 27,
+                LevelIcons: 28,
+                TuxOverworld: 29,
+                OceanBackground: 30
             }
         }
     });
@@ -26911,9 +28471,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         inherits: [DTLibrary.IKeyboard],
         alias: ["IsPressed", "DTLibrary$IKeyboard$IsPressed"],
         ctors: {
-            ctor: function () {
+            ctor: function (disableArrowKeyScrolling) {
                 this.$initialize();
-                eval("\r\n\t\t\t\twindow.BridgeKeyboardJavascript = ((function () {\r\n\t\t\t\t\t'use strict';\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar keysBeingPressed = [];\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar mapKeyToCanonicalKey = function (key) {\r\n\t\t\t\t\t\tif (key === 'A')\r\n\t\t\t\t\t\t\treturn 'a';\r\n\t\t\t\t\t\tif (key === 'B')\r\n\t\t\t\t\t\t\treturn 'b';\r\n\t\t\t\t\t\tif (key === 'C')\r\n\t\t\t\t\t\t\treturn 'c';\r\n\t\t\t\t\t\tif (key === 'D')\r\n\t\t\t\t\t\t\treturn 'd';\r\n\t\t\t\t\t\tif (key === 'E')\r\n\t\t\t\t\t\t\treturn 'e';\r\n\t\t\t\t\t\tif (key === 'F')\r\n\t\t\t\t\t\t\treturn 'f';\r\n\t\t\t\t\t\tif (key === 'G')\r\n\t\t\t\t\t\t\treturn 'g';\r\n\t\t\t\t\t\tif (key === 'H')\r\n\t\t\t\t\t\t\treturn 'h';\r\n\t\t\t\t\t\tif (key === 'I')\r\n\t\t\t\t\t\t\treturn 'i';\r\n\t\t\t\t\t\tif (key === 'J')\r\n\t\t\t\t\t\t\treturn 'j';\r\n\t\t\t\t\t\tif (key === 'K')\r\n\t\t\t\t\t\t\treturn 'k';\r\n\t\t\t\t\t\tif (key === 'L')\r\n\t\t\t\t\t\t\treturn 'l';\r\n\t\t\t\t\t\tif (key === 'M')\r\n\t\t\t\t\t\t\treturn 'm';\r\n\t\t\t\t\t\tif (key === 'N')\r\n\t\t\t\t\t\t\treturn 'n';\r\n\t\t\t\t\t\tif (key === 'O')\r\n\t\t\t\t\t\t\treturn 'o';\r\n\t\t\t\t\t\tif (key === 'P')\r\n\t\t\t\t\t\t\treturn 'p';\r\n\t\t\t\t\t\tif (key === 'Q')\r\n\t\t\t\t\t\t\treturn 'q';\r\n\t\t\t\t\t\tif (key === 'R')\r\n\t\t\t\t\t\t\treturn 'r';\r\n\t\t\t\t\t\tif (key === 'S')\r\n\t\t\t\t\t\t\treturn 's';\r\n\t\t\t\t\t\tif (key === 'T')\r\n\t\t\t\t\t\t\treturn 't';\r\n\t\t\t\t\t\tif (key === 'U')\r\n\t\t\t\t\t\t\treturn 'u';\r\n\t\t\t\t\t\tif (key === 'V')\r\n\t\t\t\t\t\t\treturn 'v';\r\n\t\t\t\t\t\tif (key === 'W')\r\n\t\t\t\t\t\t\treturn 'w';\r\n\t\t\t\t\t\tif (key === 'X')\r\n\t\t\t\t\t\t\treturn 'x';\r\n\t\t\t\t\t\tif (key === 'Y')\r\n\t\t\t\t\t\t\treturn 'y';\r\n\t\t\t\t\t\tif (key === 'Z')\r\n\t\t\t\t\t\t\treturn 'z';\r\n\t\t\t\t\t\tif (key === '!')\r\n\t\t\t\t\t\t\treturn '1';\r\n\t\t\t\t\t\tif (key === '@')\r\n\t\t\t\t\t\t\treturn '2';\r\n\t\t\t\t\t\tif (key === '#')\r\n\t\t\t\t\t\t\treturn '3';\r\n\t\t\t\t\t\tif (key === '$')\r\n\t\t\t\t\t\t\treturn '4';\r\n\t\t\t\t\t\tif (key === '%')\r\n\t\t\t\t\t\t\treturn '5';\r\n\t\t\t\t\t\tif (key === '^')\r\n\t\t\t\t\t\t\treturn '6';\r\n\t\t\t\t\t\tif (key === '&')\r\n\t\t\t\t\t\t\treturn '7';\r\n\t\t\t\t\t\tif (key === '*')\r\n\t\t\t\t\t\t\treturn '8';\r\n\t\t\t\t\t\tif (key === '(')\r\n\t\t\t\t\t\t\treturn '9';\r\n\t\t\t\t\t\tif (key === ')')\r\n\t\t\t\t\t\t\treturn '0';\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\treturn key;\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar keyDownHandler = function (e) {\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tvar key = mapKeyToCanonicalKey(e.key);\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tfor (var i = 0; i < keysBeingPressed.length; i++) {\r\n\t\t\t\t\t\t\tif (keysBeingPressed[i] === key)\r\n\t\t\t\t\t\t\t\treturn;\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tkeysBeingPressed.push(key);\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar keyUpHandler = function (e) {\r\n\t\t\t\t\t\tvar key = mapKeyToCanonicalKey(e.key);\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tvar newArray = [];\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tfor (var i = 0; i < keysBeingPressed.length; i++) {\r\n\t\t\t\t\t\t\tif (keysBeingPressed[i] !== key)\r\n\t\t\t\t\t\t\t\tnewArray.push(keysBeingPressed[i]);\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tkeysBeingPressed = newArray;\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\tdocument.addEventListener('keydown', function (e) { keyDownHandler(e); }, false);\r\n\t\t\t\t\tdocument.addEventListener('keyup', function (e) { keyUpHandler(e); }, false);\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar isKeyPressed = function (k) {\r\n\t\t\t\t\t\tfor (var i = 0; i < keysBeingPressed.length; i++) {\r\n\t\t\t\t\t\t\tif (keysBeingPressed[i] === k)\r\n\t\t\t\t\t\t\t\treturn true;\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\treturn false;\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\treturn {\r\n\t\t\t\t\t\tisKeyPressed: isKeyPressed\r\n\t\t\t\t\t};\r\n\t\t\t\t})());\r\n\t\t\t");
+                eval("\r\n\t\t\t\twindow.BridgeKeyboardJavascript = ((function () {\r\n\t\t\t\t\t'use strict';\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar keysBeingPressed = [];\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar disableArrowKeyScrolling = " + ((disableArrowKeyScrolling ? "true" : "false") || "") + ";\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar mapKeyToCanonicalKey = function (key) {\r\n\t\t\t\t\t\tif (key === 'A')\r\n\t\t\t\t\t\t\treturn 'a';\r\n\t\t\t\t\t\tif (key === 'B')\r\n\t\t\t\t\t\t\treturn 'b';\r\n\t\t\t\t\t\tif (key === 'C')\r\n\t\t\t\t\t\t\treturn 'c';\r\n\t\t\t\t\t\tif (key === 'D')\r\n\t\t\t\t\t\t\treturn 'd';\r\n\t\t\t\t\t\tif (key === 'E')\r\n\t\t\t\t\t\t\treturn 'e';\r\n\t\t\t\t\t\tif (key === 'F')\r\n\t\t\t\t\t\t\treturn 'f';\r\n\t\t\t\t\t\tif (key === 'G')\r\n\t\t\t\t\t\t\treturn 'g';\r\n\t\t\t\t\t\tif (key === 'H')\r\n\t\t\t\t\t\t\treturn 'h';\r\n\t\t\t\t\t\tif (key === 'I')\r\n\t\t\t\t\t\t\treturn 'i';\r\n\t\t\t\t\t\tif (key === 'J')\r\n\t\t\t\t\t\t\treturn 'j';\r\n\t\t\t\t\t\tif (key === 'K')\r\n\t\t\t\t\t\t\treturn 'k';\r\n\t\t\t\t\t\tif (key === 'L')\r\n\t\t\t\t\t\t\treturn 'l';\r\n\t\t\t\t\t\tif (key === 'M')\r\n\t\t\t\t\t\t\treturn 'm';\r\n\t\t\t\t\t\tif (key === 'N')\r\n\t\t\t\t\t\t\treturn 'n';\r\n\t\t\t\t\t\tif (key === 'O')\r\n\t\t\t\t\t\t\treturn 'o';\r\n\t\t\t\t\t\tif (key === 'P')\r\n\t\t\t\t\t\t\treturn 'p';\r\n\t\t\t\t\t\tif (key === 'Q')\r\n\t\t\t\t\t\t\treturn 'q';\r\n\t\t\t\t\t\tif (key === 'R')\r\n\t\t\t\t\t\t\treturn 'r';\r\n\t\t\t\t\t\tif (key === 'S')\r\n\t\t\t\t\t\t\treturn 's';\r\n\t\t\t\t\t\tif (key === 'T')\r\n\t\t\t\t\t\t\treturn 't';\r\n\t\t\t\t\t\tif (key === 'U')\r\n\t\t\t\t\t\t\treturn 'u';\r\n\t\t\t\t\t\tif (key === 'V')\r\n\t\t\t\t\t\t\treturn 'v';\r\n\t\t\t\t\t\tif (key === 'W')\r\n\t\t\t\t\t\t\treturn 'w';\r\n\t\t\t\t\t\tif (key === 'X')\r\n\t\t\t\t\t\t\treturn 'x';\r\n\t\t\t\t\t\tif (key === 'Y')\r\n\t\t\t\t\t\t\treturn 'y';\r\n\t\t\t\t\t\tif (key === 'Z')\r\n\t\t\t\t\t\t\treturn 'z';\r\n\t\t\t\t\t\tif (key === '!')\r\n\t\t\t\t\t\t\treturn '1';\r\n\t\t\t\t\t\tif (key === '@')\r\n\t\t\t\t\t\t\treturn '2';\r\n\t\t\t\t\t\tif (key === '#')\r\n\t\t\t\t\t\t\treturn '3';\r\n\t\t\t\t\t\tif (key === '$')\r\n\t\t\t\t\t\t\treturn '4';\r\n\t\t\t\t\t\tif (key === '%')\r\n\t\t\t\t\t\t\treturn '5';\r\n\t\t\t\t\t\tif (key === '^')\r\n\t\t\t\t\t\t\treturn '6';\r\n\t\t\t\t\t\tif (key === '&')\r\n\t\t\t\t\t\t\treturn '7';\r\n\t\t\t\t\t\tif (key === '*')\r\n\t\t\t\t\t\t\treturn '8';\r\n\t\t\t\t\t\tif (key === '(')\r\n\t\t\t\t\t\t\treturn '9';\r\n\t\t\t\t\t\tif (key === ')')\r\n\t\t\t\t\t\t\treturn '0';\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\treturn key;\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar keyDownHandler = function (e) {\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tif (disableArrowKeyScrolling) {\r\n\t\t\t\t\t\t\tif (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === ' ')\r\n\t\t\t\t\t\t\t\te.preventDefault();\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tvar key = mapKeyToCanonicalKey(e.key);\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tfor (var i = 0; i < keysBeingPressed.length; i++) {\r\n\t\t\t\t\t\t\tif (keysBeingPressed[i] === key)\r\n\t\t\t\t\t\t\t\treturn;\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tkeysBeingPressed.push(key);\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar keyUpHandler = function (e) {\r\n\t\t\t\t\t\tvar key = mapKeyToCanonicalKey(e.key);\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tvar newArray = [];\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tfor (var i = 0; i < keysBeingPressed.length; i++) {\r\n\t\t\t\t\t\t\tif (keysBeingPressed[i] !== key)\r\n\t\t\t\t\t\t\t\tnewArray.push(keysBeingPressed[i]);\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tkeysBeingPressed = newArray;\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\tdocument.addEventListener('keydown', function (e) { keyDownHandler(e); }, false);\r\n\t\t\t\t\tdocument.addEventListener('keyup', function (e) { keyUpHandler(e); }, false);\r\n\t\t\t\t\t\r\n\t\t\t\t\tvar isKeyPressed = function (k) {\r\n\t\t\t\t\t\tfor (var i = 0; i < keysBeingPressed.length; i++) {\r\n\t\t\t\t\t\t\tif (keysBeingPressed[i] === k)\r\n\t\t\t\t\t\t\t\treturn true;\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\treturn false;\r\n\t\t\t\t\t};\r\n\t\t\t\t\t\r\n\t\t\t\t\treturn {\r\n\t\t\t\t\t\tisKeyPressed: isKeyPressed\r\n\t\t\t\t\t};\r\n\t\t\t\t})());\r\n\t\t\t");
             }
         },
         methods: {
@@ -27117,7 +28677,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             fields: {
                 Airship2: 0,
-                Theme: 1
+                Theme: 1,
+                PeaceAtLast: 2,
+                Chipdisko: 3,
+                Jewels: 4
             }
         }
     });
@@ -27130,7 +28693,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 JingleWin01: 1,
                 Die: 2,
                 Squish: 3,
-                Jump: 4
+                Jump: 4,
+                Teleport: 5
             }
         }
     });
@@ -27180,6 +28744,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "IsKillZone", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone",
             "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
             "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
+            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
             "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
             "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
@@ -27222,6 +28787,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             },
             GetCutscene: function (x, y) {
                 return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene(x, y);
+            },
+            GetCheckpoint: function (x, y) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(x, y);
             },
             GetWidth: function () {
                 return this.width;
@@ -27279,7 +28847,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     }
 
                     return System.Linq.Enumerable.from(tilemaps).select(function (t) {
-                            return new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(t.Tilemap, ((t.XOffset - System.Nullable.getValue(minX)) | 0), ((t.YOffset - System.Nullable.getValue(minY)) | 0));
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(t.Tilemap, ((t.XOffset - System.Nullable.getValue(minX)) | 0), ((t.YOffset - System.Nullable.getValue(minY)) | 0), t.AlwaysIncludeTilemap);
                         }).toList(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset);
                 }
             }
@@ -27296,6 +28864,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "IsKillZone", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone",
             "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
             "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
+            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
             "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
             "RenderForegroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles",
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
@@ -27380,6 +28949,18 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     if (cutscene != null) {
                         return cutscene;
+                    }
+                }
+
+                return null;
+            },
+            GetCheckpoint: function (x, y) {
+                for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
+                    var tilemap = this.tilemaps.getItem(i);
+                    var checkpoint = tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0));
+
+                    if (checkpoint != null) {
+                        return { Item1: ((checkpoint.Item1 + tilemap.XOffset) | 0), Item2: ((checkpoint.Item2 + tilemap.YOffset) | 0) };
                     }
                 }
 
@@ -27482,11 +29063,12 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var dialogueList = new TuxPlanetSpeedrunAnyPercentLibrary.DialogueList(dialogues);
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState(TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.A_Camera, 0, dialogueList);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState(true, TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.A_Camera, 0, dialogueList);
                 }
             }
         },
         fields: {
+            isFirstFrame: false,
             status: 0,
             konqiDisappearElapsedMicros: 0,
             dialogueList: null
@@ -27497,8 +29079,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "Render", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$Render"
         ],
         ctors: {
-            ctor: function (status, konqiDisappearElapsedMicros, dialogueList) {
+            ctor: function (isFirstFrame, status, konqiDisappearElapsedMicros, dialogueList) {
                 this.$initialize();
+                this.isFirstFrame = isFirstFrame;
                 this.status = status;
                 this.konqiDisappearElapsedMicros = konqiDisappearElapsedMicros;
                 this.dialogueList = dialogueList;
@@ -27522,7 +29105,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                             newDialogueList = this.dialogueList;
 
-                            if (cameraState.X >= destinationCameraState.X) {
+                            if (cameraState.X >= destinationCameraState.X && Math.abs(((cameraState.Y - destinationCameraState.Y) | 0)) <= 25) {
                                 newCameraState = cameraState;
                                 newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.B_Dialogue;
                             } else {
@@ -27555,13 +29138,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         break;
                     case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.D_Camera: 
                         {
-                            var destinationCameraState1 = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(tuxXMibi, tuxYMibi, tilemap, windowWidth, windowHeight);
+                            var destinationCameraState1 = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(tuxXMibi, tuxYMibi, null, null, tilemap, windowWidth, windowHeight);
 
                             newDialogueList = this.dialogueList;
                             newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.D_Camera;
 
                             if (cameraState.X <= destinationCameraState1.X) {
-                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, true, false);
+                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, true, false, false);
                             } else {
                                 newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState1, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
                             }
@@ -27572,10 +29155,137 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         throw new System.Exception();
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState(newStatus, newKonqiDisappearElapsedMicros, newDialogueList), this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.D_Camera, false);
+                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.D_Camera, false, false);
             },
             Render: function (displayOutput, windowWidth, windowHeight) {
                 if (this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.B_Dialogue) {
+                    this.dialogueList.Render(displayOutput, windowWidth, windowHeight);
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ICutscene],
+        statics: {
+            fields: {
+                KONQI_DISAPPEAR_WAIT_TIME: 0
+            },
+            ctors: {
+                init: function () {
+                    this.KONQI_DISAPPEAR_WAIT_TIME = 500000;
+                }
+            },
+            methods: {
+                GetCutscene: function () {
+                    var dialogues = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue)).ctor();
+
+                    dialogues.add(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue.GetDialogue(500, 460, 490, 40, "Hello again!"));
+
+                    dialogues.add(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue.GetDialogue(10, 460, 172, 40, "Hi Konqi!"));
+
+                    dialogues.add(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue.GetDialogue(500, 400, 490, 60, "The terrain ahead is rough, but I \ncan grant you a new power!"));
+
+                    dialogues.add(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue.GetDialogue(500, 400, 490, 60, "Press X to do a short-range \nteleport!"));
+
+                    var dialogueList = new TuxPlanetSpeedrunAnyPercentLibrary.DialogueList(dialogues);
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport(true, TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.A_Camera, 0, dialogueList);
+                }
+            }
+        },
+        fields: {
+            isFirstFrame: false,
+            status: 0,
+            konqiDisappearElapsedMicros: 0,
+            dialogueList: null
+        },
+        alias: [
+            "GetCutsceneName", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$GetCutsceneName",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$Render"
+        ],
+        ctors: {
+            ctor: function (isFirstFrame, status, konqiDisappearElapsedMicros, dialogueList) {
+                this.$initialize();
+                this.isFirstFrame = isFirstFrame;
+                this.status = status;
+                this.konqiDisappearElapsedMicros = konqiDisappearElapsedMicros;
+                this.dialogueList = dialogueList;
+            }
+        },
+        methods: {
+            GetCutsceneName: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TELEPORT_CUTSCENE;
+            },
+            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap) {
+                var newCameraState;
+                var newDialogueList;
+                var newStatus = new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status();
+                var newKonqiDisappearElapsedMicros = this.konqiDisappearElapsedMicros;
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                switch (this.status) {
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.A_Camera: 
+                        {
+                            var destinationCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.GetCameraState(Math.min((((tuxXMibi >> 10) + 440) | 0), ((tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth() - ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0)), tuxYMibi >> 10);
+
+                            newDialogueList = this.dialogueList;
+
+                            if (cameraState.X >= destinationCameraState.X && Math.abs(((cameraState.Y - destinationCameraState.Y) | 0)) <= 25) {
+                                newCameraState = cameraState;
+                                newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.B_Dialogue;
+                            } else {
+                                newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
+                                newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.A_Camera;
+                            }
+
+                            break;
+                        }
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.B_Dialogue: 
+                        var dialogueListResult = this.dialogueList.ProcessFrame(move, elapsedMicrosPerFrame);
+                        newCameraState = cameraState;
+                        newDialogueList = dialogueListResult.DialogueList;
+                        if (dialogueListResult.IsDone) {
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.C_KonqiDisappear;
+                            newEnemies.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyRemoveKonqiCutscene("enemyRemoveKonqiCutscene_cutscene_teleport"));
+                        } else {
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.B_Dialogue;
+                        }
+                        break;
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.C_KonqiDisappear: 
+                        newKonqiDisappearElapsedMicros = (newKonqiDisappearElapsedMicros + elapsedMicrosPerFrame) | 0;
+                        newCameraState = cameraState;
+                        newDialogueList = this.dialogueList;
+                        if (newKonqiDisappearElapsedMicros >= TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.KONQI_DISAPPEAR_WAIT_TIME) {
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.D_Camera;
+                        } else {
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.C_KonqiDisappear;
+                        }
+                        break;
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.D_Camera: 
+                        {
+                            var destinationCameraState1 = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(tuxXMibi, tuxYMibi, null, null, tilemap, windowWidth, windowHeight);
+
+                            newDialogueList = this.dialogueList;
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.D_Camera;
+
+                            if (cameraState.X <= destinationCameraState1.X) {
+                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, false, false, true);
+                            } else {
+                                newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState1, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
+                            }
+
+                            break;
+                        }
+                    default: 
+                        throw new System.Exception();
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), false, false, this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.D_Camera);
+            },
+            Render: function (displayOutput, windowWidth, windowHeight) {
+                if (this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.B_Dialogue) {
                     this.dialogueList.Render(displayOutput, windowWidth, windowHeight);
                 }
             }
@@ -27607,11 +29317,12 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var dialogueList = new TuxPlanetSpeedrunAnyPercentLibrary.DialogueList(dialogues);
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown(TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.A_Camera, 0, dialogueList);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown(true, TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.A_Camera, 0, dialogueList);
                 }
             }
         },
         fields: {
+            isFirstFrame: false,
             status: 0,
             konqiDisappearElapsedMicros: 0,
             dialogueList: null
@@ -27622,8 +29333,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "Render", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$Render"
         ],
         ctors: {
-            ctor: function (status, konqiDisappearElapsedMicros, dialogueList) {
+            ctor: function (isFirstFrame, status, konqiDisappearElapsedMicros, dialogueList) {
                 this.$initialize();
+                this.isFirstFrame = isFirstFrame;
                 this.status = status;
                 this.konqiDisappearElapsedMicros = konqiDisappearElapsedMicros;
                 this.dialogueList = dialogueList;
@@ -27643,11 +29355,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 switch (this.status) {
                     case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.A_Camera: 
                         {
-                            var destinationCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.GetCameraState((((tuxXMibi >> 10) + 440) | 0), tuxYMibi >> 10);
+                            var destinationCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.GetCameraState(Math.min((((tuxXMibi >> 10) + 440) | 0), ((tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth() - ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0)), tuxYMibi >> 10);
 
                             newDialogueList = this.dialogueList;
 
-                            if (cameraState.X >= destinationCameraState.X) {
+                            if (cameraState.X >= destinationCameraState.X && Math.abs(((cameraState.Y - destinationCameraState.Y) | 0)) <= 5) {
                                 newCameraState = cameraState;
                                 newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.B_Dialogue;
                             } else {
@@ -27680,13 +29392,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         break;
                     case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.D_Camera: 
                         {
-                            var destinationCameraState1 = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(tuxXMibi, tuxYMibi, tilemap, windowWidth, windowHeight);
+                            var destinationCameraState1 = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(tuxXMibi, tuxYMibi, null, null, tilemap, windowWidth, windowHeight);
 
                             newDialogueList = this.dialogueList;
                             newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.D_Camera;
 
                             if (cameraState.X <= destinationCameraState1.X) {
-                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, false, true);
+                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, false, true, false);
                             } else {
                                 newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState1, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
                             }
@@ -27697,12 +29409,139 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         throw new System.Exception();
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown(newStatus, newKonqiDisappearElapsedMicros, newDialogueList), false, this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.D_Camera);
+                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), false, this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.D_Camera, false);
             },
             Render: function (displayOutput, windowWidth, windowHeight) {
                 if (this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.B_Dialogue) {
                     this.dialogueList.Render(displayOutput, windowWidth, windowHeight);
                 }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            methods: {
+                GetEnemyBlazeborn: function (xMibi, yMibi, isFacingRight, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn(xMibi, yMibi, isFacingRight, 0, enemyId);
+                },
+                IsGroundOrSpike: function (tilemap, x, y) {
+                    return tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y) || tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y);
+                }
+            }
+        },
+        fields: {
+            xMibi: 0,
+            yMibi: 0,
+            isFacingRight: false,
+            elapsedMicros: 0,
+            EnemyId: null
+        },
+        props: {
+            IsKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return false;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, isFacingRight, elapsedMicros, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.isFacingRight = isFacingRight;
+                this.elapsedMicros = elapsedMicros;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 48, 42));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDamageBoxes: function () {
+                return new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor();
+            },
+            GetDeadEnemy: function () {
+                return null;
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
+                var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+
+                if (newElapsedMicros > 2000000000) {
+                    newElapsedMicros = 0;
+                }
+
+                var newXMibi = this.xMibi;
+                var newYMibi = this.yMibi;
+                var newIsFacingRight = this.isFacingRight;
+
+                if (this.isFacingRight) {
+                    newXMibi = (newXMibi + (((Bridge.Int.div(Bridge.Int.mul(elapsedMicrosPerFrame, 180), 1000)) | 0))) | 0;
+                } else {
+                    newXMibi = (newXMibi - (((Bridge.Int.div(Bridge.Int.mul(elapsedMicrosPerFrame, 180), 1000)) | 0))) | 0;
+                }
+
+                if (newIsFacingRight) {
+                    if (TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn.IsGroundOrSpike(tilemap, (((newXMibi >> 10) + 24) | 0), newYMibi >> 10)) {
+                        newIsFacingRight = false;
+                    }
+                    if (!TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn.IsGroundOrSpike(tilemap, (((newXMibi >> 10) + 12) | 0), (((newYMibi >> 10) - 33) | 0))) {
+                        newIsFacingRight = false;
+                    }
+                } else {
+                    if (TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn.IsGroundOrSpike(tilemap, (((newXMibi >> 10) - 24) | 0), newYMibi >> 10)) {
+                        newIsFacingRight = true;
+                    }
+                    if (!TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn.IsGroundOrSpike(tilemap, (((newXMibi >> 10) - 12) | 0), (((newYMibi >> 10) - 33) | 0))) {
+                        newIsFacingRight = true;
+                    }
+                }
+
+                var isOutOfBounds = (((newXMibi >> 10) + 24) | 0) < ((((cameraX - ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newXMibi >> 10) - 24) | 0) > ((((cameraX + ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newYMibi >> 10) + 24) | 0) < ((((cameraY - ((Bridge.Int.div(windowHeight, 2)) | 0)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newYMibi >> 10) - 24) | 0) > ((((cameraY + ((Bridge.Int.div(windowHeight, 2)) | 0)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0);
+
+                if (!isOutOfBounds) {
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn(newXMibi, newYMibi, newIsFacingRight, newElapsedMicros, this.EnemyId));
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor());
+            },
+            Render: function (displayOutput) {
+                var image = this.isFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Blazeborn : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BlazebornMirrored;
+
+                var spriteNum = (Bridge.Int.div((this.elapsedMicros % 1000000), 250000)) | 0;
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(image, Bridge.Int.mul(spriteNum, 16), 0, 16, 16, (((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 0, 384);
             }
         }
     });
@@ -28121,13 +29960,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             },
             GetHitboxes: function () {
                 return Bridge.fn.bind(this, function (_o1) {
-                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 27) | 0), 48, 54));
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 27) | 0), 48, 45));
                         return _o1;
                     })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
             },
             GetDamageBoxes: function () {
                 return Bridge.fn.bind(this, function (_o1) {
-                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 27) | 0), 48, 54));
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 27) | 0), 48, 45));
                         return _o1;
                     })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
             },
@@ -28384,6 +30223,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "IsSpikes", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes",
             "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
             "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
+            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
             "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
             "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
@@ -28415,6 +30255,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetCutscene: function (x, y) {
                 return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene(x, y);
             },
+            GetCheckpoint: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(x, y);
+            },
             GetWidth: function () {
                 return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth();
             },
@@ -28426,7 +30269,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             },
             GetEnemies: function (xOffset, yOffset) {
                 var enemies = Bridge.fn.bind(this, function (_o1) {
-                        _o1.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyLevel5Spikes.GetEnemyLevel5Spikes(((-147456 + (xOffset << 10)) | 0), yOffset << 10, 20, ((this.endingXMibi + (xOffset << 10)) | 0), "level5Spikes"));
+                        _o1.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyLevel5Spikes.GetEnemyLevel5Spikes(((-147456 + (xOffset << 10)) | 0), yOffset << 10, 30, ((this.endingXMibi + (xOffset << 10)) | 0), "level5Spikes"));
                         return _o1;
                     })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor());
 
@@ -28452,12 +30295,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ILevelConfiguration],
         statics: {
             methods: {
-                ConstructUnnormalizedTilemaps: function (mapInfo) {
+                ConstructUnnormalizedTilemaps: function (mapInfo, random) {
+                    var gameMusic = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetRandomGameMusic(random);
+
                     var enemyIdGenerator = new TuxPlanetSpeedrunAnyPercentLibrary.EnemyIdGenerator();
 
                     var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).ctor();
 
-                    var level1TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level1"), enemyIdGenerator, null, 384), 0, 0);
+                    var level1TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level1"), enemyIdGenerator, null, 384, gameMusic), 0, 0, false);
 
                     list.add(level1TilemapWithOffset);
 
@@ -28475,7 +30320,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         ctors: {
             ctor: function (mapInfo, random) {
                 this.$initialize();
-                var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level1.ConstructUnnormalizedTilemaps(mapInfo);
+                var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level1.ConstructUnnormalizedTilemaps(mapInfo, random);
 
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
             }
@@ -28494,82 +30339,84 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ILevelConfiguration],
         statics: {
             methods: {
-                ConstructUnnormalizedTilemaps: function (mapInfo, random) {
+                ConstructUnnormalizedTilemaps: function (mapInfo, canAlreadyUseSaveStates, random) {
+                    var gameMusic = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetRandomGameMusic(random);
+
                     var enemyIdGenerator = new TuxPlanetSpeedrunAnyPercentLibrary.EnemyIdGenerator();
 
                     var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).ctor();
 
-                    var startTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2A_Start"), enemyIdGenerator, null, 384), 0, 0);
+                    var startTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2A_Start"), enemyIdGenerator, null, 384, gameMusic), 0, 0, false);
 
                     list.add(startTilemapWithOffset);
 
-                    var chooseAPath1TilemapA = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop1"), enemyIdGenerator, null, 384);
+                    var chooseAPath1TilemapA = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop1"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var chooseAPath1TilemapB = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop2"), enemyIdGenerator, null, 384);
+                    var chooseAPath1TilemapB = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop2"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var chooseAPath1TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? chooseAPath1TilemapA : chooseAPath1TilemapB, 0, ((-chooseAPath1TilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var chooseAPath1TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? chooseAPath1TilemapA : chooseAPath1TilemapB, 0, ((-chooseAPath1TilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(chooseAPath1TilemapWithOffset);
 
-                    var level2bPlatformTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Platform"), enemyIdGenerator, null, 384);
+                    var level2bPlatformTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Platform"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2bPlatformTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2bPlatformTilemap, 0, ((chooseAPath1TilemapWithOffset.YOffset - level2bPlatformTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var level2bPlatformTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2bPlatformTilemap, 0, ((chooseAPath1TilemapWithOffset.YOffset - level2bPlatformTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(level2bPlatformTilemapWithOffset);
 
-                    var chooseAPath2TilemapA = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop1"), enemyIdGenerator, null, 384);
+                    var chooseAPath2TilemapA = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop1"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var chooseAPath2TilemapB = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop2"), enemyIdGenerator, null, 384);
+                    var chooseAPath2TilemapB = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop2"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var chooseAPath2TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? chooseAPath2TilemapA : chooseAPath2TilemapB, 0, ((level2bPlatformTilemapWithOffset.YOffset - chooseAPath2TilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var chooseAPath2TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? chooseAPath2TilemapA : chooseAPath2TilemapB, 0, ((level2bPlatformTilemapWithOffset.YOffset - chooseAPath2TilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(chooseAPath2TilemapWithOffset);
 
-                    var level2cLowerFloorTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2C_LowerFloor"), enemyIdGenerator, null, 384);
+                    var level2cLowerFloorTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2C_LowerFloor"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2cLowerFloorTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2cLowerFloorTilemap, chooseAPath2TilemapWithOffset.XOffset, ((chooseAPath2TilemapWithOffset.YOffset - level2cLowerFloorTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var level2cLowerFloorTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2cLowerFloorTilemap, chooseAPath2TilemapWithOffset.XOffset, ((chooseAPath2TilemapWithOffset.YOffset - level2cLowerFloorTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(level2cLowerFloorTilemapWithOffset);
 
-                    var cutsceneTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2D_Cutscene"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.SAVESTATE_CUTSCENE, 384);
+                    var cutsceneTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2D_Cutscene"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.SAVESTATE_CUTSCENE, 384, gameMusic);
 
-                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(cutsceneTilemap, ((level2cLowerFloorTilemapWithOffset.XOffset + level2cLowerFloorTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0), level2cLowerFloorTilemapWithOffset.YOffset);
+                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseSaveStates ? new TuxPlanetSpeedrunAnyPercentLibrary.NoCutsceneWrappedTilemap(cutsceneTilemap) : cutsceneTilemap, ((level2cLowerFloorTilemapWithOffset.XOffset + level2cLowerFloorTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0), level2cLowerFloorTilemapWithOffset.YOffset, false);
 
                     list.add(cutsceneTilemapWithOffset);
 
-                    var level2eTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2E"), enemyIdGenerator, null, 384);
+                    var level2eTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2E"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2eTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2eTilemap, ((cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0), ((cutsceneTilemapWithOffset.YOffset + 960) | 0));
+                    var level2eTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2eTilemap, ((cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0), ((cutsceneTilemapWithOffset.YOffset + 960) | 0), false);
 
                     list.add(level2eTilemapWithOffset);
 
-                    var level2fTilemapA = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop1"), enemyIdGenerator, null, 384);
-                    var level2fTilemapB = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop2"), enemyIdGenerator, null, 384);
-                    var level2fTilemapC = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop3"), enemyIdGenerator, null, 384);
-                    var level2fTilemapD = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop4"), enemyIdGenerator, null, 384);
+                    var level2fTilemapA = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop1"), enemyIdGenerator, null, 384, gameMusic);
+                    var level2fTilemapB = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop2"), enemyIdGenerator, null, 384, gameMusic);
+                    var level2fTilemapC = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop3"), enemyIdGenerator, null, 384, gameMusic);
+                    var level2fTilemapD = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop4"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2fTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapA : level2fTilemapB) : (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapC : level2fTilemapD), level2eTilemapWithOffset.XOffset, ((level2eTilemapWithOffset.YOffset - level2fTilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var level2fTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapA : level2fTilemapB) : (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapC : level2fTilemapD), level2eTilemapWithOffset.XOffset, ((level2eTilemapWithOffset.YOffset - level2fTilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(level2fTilemapWithOffset);
 
-                    var level2fPlatformTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Platform"), enemyIdGenerator, null, 384);
+                    var level2fPlatformTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Platform"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2fPlatformTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2fPlatformTilemap, level2fTilemapWithOffset.XOffset, ((level2fTilemapWithOffset.YOffset - level2fPlatformTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var level2fPlatformTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2fPlatformTilemap, level2fTilemapWithOffset.XOffset, ((level2fTilemapWithOffset.YOffset - level2fPlatformTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(level2fPlatformTilemapWithOffset);
 
-                    var level2fTilemapA2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop1"), enemyIdGenerator, null, 384);
-                    var level2fTilemapB2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop2"), enemyIdGenerator, null, 384);
-                    var level2fTilemapC2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop3"), enemyIdGenerator, null, 384);
-                    var level2fTilemapD2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop4"), enemyIdGenerator, null, 384);
+                    var level2fTilemapA2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop1"), enemyIdGenerator, null, 384, gameMusic);
+                    var level2fTilemapB2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop2"), enemyIdGenerator, null, 384, gameMusic);
+                    var level2fTilemapC2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop3"), enemyIdGenerator, null, 384, gameMusic);
+                    var level2fTilemapD2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop4"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2fTilemapWithOffset2 = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapA2 : level2fTilemapB2) : (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapC2 : level2fTilemapD2), level2fPlatformTilemapWithOffset.XOffset, ((level2fPlatformTilemapWithOffset.YOffset - level2fTilemapA2.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var level2fTilemapWithOffset2 = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapA2 : level2fTilemapB2) : (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapC2 : level2fTilemapD2), level2fPlatformTilemapWithOffset.XOffset, ((level2fPlatformTilemapWithOffset.YOffset - level2fTilemapA2.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(level2fTilemapWithOffset2);
 
-                    var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2G_Finish"), enemyIdGenerator, null, 384);
+                    var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2G_Finish"), enemyIdGenerator, null, 384, gameMusic);
 
-                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, level2fTilemapWithOffset2.XOffset, ((level2fTilemapWithOffset2.YOffset - finishTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0)));
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, level2fTilemapWithOffset2.XOffset, ((level2fTilemapWithOffset2.YOffset - finishTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false));
 
                     return list;
                 }
@@ -28583,9 +30430,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap"
         ],
         ctors: {
-            ctor: function (mapInfo, random) {
+            ctor: function (mapInfo, canAlreadyUseSaveStates, random) {
                 this.$initialize();
-                var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level2.ConstructUnnormalizedTilemaps(mapInfo, random);
+                var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level2.ConstructUnnormalizedTilemaps(mapInfo, canAlreadyUseSaveStates, random);
+
+                if (canAlreadyUseSaveStates) {
+                    unnormalizedTilemaps.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(), 0, 0, true));
+                }
 
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
             }
@@ -28604,26 +30455,34 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ILevelConfiguration],
         statics: {
             methods: {
-                ConstructUnnormalizedTilemaps: function (mapInfo, random) {
+                ConstructUnnormalizedTilemaps: function (mapInfo, canAlreadyUseTeleport, random) {
+                    var gameMusic = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetRandomGameMusic(random);
+
                     var enemyIdGenerator = new TuxPlanetSpeedrunAnyPercentLibrary.EnemyIdGenerator();
 
                     var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).ctor();
 
-                    var startTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3A_Start"), enemyIdGenerator, null, 384);
+                    var startTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3A_Start"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var startTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(startTilemap, 0, 0);
+                    var startTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(startTilemap, 0, 0, false);
 
                     list.add(startTilemapWithOffset);
 
-                    var dropTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3B_Drop"), enemyIdGenerator, null, 384);
+                    var dropTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3B_Drop"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var dropTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(dropTilemap, ((startTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth() + Bridge.Int.mul(Bridge.Int.mul(random.DTLibrary$IDTRandom$NextInt(10), 16), 3)) | 0), -1440);
+                    var dropTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(dropTilemap, ((startTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth() + Bridge.Int.mul(Bridge.Int.mul(random.DTLibrary$IDTRandom$NextInt(10), 16), 3)) | 0), -1440, false);
 
                     list.add(dropTilemapWithOffset);
 
-                    var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3C_Finish"), enemyIdGenerator, null, 384);
+                    var cutsceneTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3C_Cutscene"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TELEPORT_CUTSCENE, 384, gameMusic);
 
-                    var finishTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, ((((dropTilemapWithOffset.XOffset + dropTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0) + Bridge.Int.mul(Bridge.Int.mul(random.DTLibrary$IDTRandom$NextInt(10), 16), 3)) | 0), ((dropTilemapWithOffset.YOffset - 1440) | 0));
+                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseTeleport ? new TuxPlanetSpeedrunAnyPercentLibrary.NoCutsceneWrappedTilemap(cutsceneTilemap) : cutsceneTilemap, ((((dropTilemapWithOffset.XOffset + dropTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0) + Bridge.Int.mul(Bridge.Int.mul(random.DTLibrary$IDTRandom$NextInt(10), 16), 3)) | 0), ((dropTilemapWithOffset.YOffset - 1440) | 0), false);
+
+                    list.add(cutsceneTilemapWithOffset);
+
+                    var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3D_Finish"), enemyIdGenerator, null, 384, gameMusic);
+
+                    var finishTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, ((cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0), ((cutsceneTilemapWithOffset.YOffset - 1392) | 0), false);
 
                     list.add(finishTilemapWithOffset);
 
@@ -28639,9 +30498,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap"
         ],
         ctors: {
-            ctor: function (mapInfo, random) {
+            ctor: function (mapInfo, canAlreadyUseTeleport, random) {
                 this.$initialize();
-                var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level3.ConstructUnnormalizedTilemaps(mapInfo, random);
+                var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level3.ConstructUnnormalizedTilemaps(mapInfo, canAlreadyUseTeleport, random);
+
+                if (canAlreadyUseTeleport) {
+                    unnormalizedTilemaps.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(), 0, 0, true));
+                }
 
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
             }
@@ -28660,42 +30523,44 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ILevelConfiguration],
         statics: {
             methods: {
-                ConstructUnnormalizedTilemaps: function (mapInfo, random) {
+                ConstructUnnormalizedTilemaps: function (mapInfo, canAlreadyUseTimeSlowdown, random) {
+                    var gameMusic = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetRandomGameMusic(random);
+
                     var enemyIdGenerator = new TuxPlanetSpeedrunAnyPercentLibrary.EnemyIdGenerator();
 
                     var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).ctor();
 
-                    var startTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4A_Start"), enemyIdGenerator, null, 384);
+                    var startTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4A_Start"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var startTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(startTilemap, 0, 0);
+                    var startTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(startTilemap, 0, 0, false);
 
                     list.add(startTilemapWithOffset);
 
-                    var level4bTilemap1 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4B_Segment1"), enemyIdGenerator, null, 384);
+                    var level4bTilemap1 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4B_Segment1"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level4bTilemap2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4B_Segment2"), enemyIdGenerator, null, 384);
+                    var level4bTilemap2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4B_Segment2"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level4bTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? level4bTilemap1 : level4bTilemap2, 0, startTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight());
+                    var level4bTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? level4bTilemap1 : level4bTilemap2, 0, startTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight(), false);
 
                     list.add(level4bTilemapWithOffset);
 
-                    var cutsceneTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4C_Cutscene"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TIME_SLOWDOWN_CUTSCENE, 384);
+                    var cutsceneTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4C_Cutscene"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TIME_SLOWDOWN_CUTSCENE, 384, gameMusic);
 
-                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(cutsceneTilemap, 0, ((level4bTilemapWithOffset.YOffset + level4bTilemap1.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseTimeSlowdown ? new TuxPlanetSpeedrunAnyPercentLibrary.NoCutsceneWrappedTilemap(cutsceneTilemap) : cutsceneTilemap, 0, ((level4bTilemapWithOffset.YOffset + level4bTilemap1.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(cutsceneTilemapWithOffset);
 
-                    var level4dTilemap1 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4D_Segment1"), enemyIdGenerator, null, 384);
+                    var level4dTilemap1 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4D_Segment1"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level4dTilemap2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4D_Segment2"), enemyIdGenerator, null, 384);
+                    var level4dTilemap2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4D_Segment2"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level4dTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? level4dTilemap1 : level4dTilemap2, 0, ((cutsceneTilemapWithOffset.YOffset + cutsceneTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var level4dTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? level4dTilemap1 : level4dTilemap2, 0, ((cutsceneTilemapWithOffset.YOffset + cutsceneTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(level4dTilemapWithOffset);
 
-                    var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4E_Finish"), enemyIdGenerator, null, 384);
+                    var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4E_Finish"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var finishTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, 0, ((level4dTilemapWithOffset.YOffset + level4dTilemap1.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0));
+                    var finishTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, 0, ((level4dTilemapWithOffset.YOffset + level4dTilemap1.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
 
                     list.add(finishTilemapWithOffset);
 
@@ -28711,9 +30576,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap"
         ],
         ctors: {
-            ctor: function (mapInfo, random) {
+            ctor: function (mapInfo, canAlreadyUseTimeSlowdown, random) {
                 this.$initialize();
-                var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level4.ConstructUnnormalizedTilemaps(mapInfo, random);
+                var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level4.ConstructUnnormalizedTilemaps(mapInfo, canAlreadyUseTimeSlowdown, random);
+
+                if (canAlreadyUseTimeSlowdown) {
+                    unnormalizedTilemaps.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(), 0, 0, true));
+                }
 
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
             }
@@ -28733,11 +30602,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 ConstructUnnormalizedTilemaps: function (mapInfo, random) {
+                    var gameMusic = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetRandomGameMusic(random);
+
                     var enemyIdGenerator = new TuxPlanetSpeedrunAnyPercentLibrary.EnemyIdGenerator();
 
                     var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).ctor();
 
-                    var startTilemap = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level5A_Start"), enemyIdGenerator, null, 384), 0, 0);
+                    var startTilemap = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level5A_Start"), enemyIdGenerator, null, 384, gameMusic), 0, 0, false);
 
                     list.add(startTilemap);
 
@@ -28753,9 +30624,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         var numberOfFragmentTilemaps = 12;
                         var mapInfoName = "Level5B_Fragment" + (DTLibrary.StringUtil.ToStringCultureInvariant((((random.DTLibrary$IDTRandom$NextInt(numberOfFragmentTilemaps) + 1) | 0))) || "");
 
-                        var fragmentTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem(mapInfoName), enemyIdGenerator, null, 384);
+                        var fragmentTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem(mapInfoName), enemyIdGenerator, null, 384, gameMusic);
 
-                        var fragmentTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(fragmentTilemap, xOffset, yOffset);
+                        var fragmentTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(fragmentTilemap, xOffset, yOffset, false);
 
                         list.add(fragmentTilemapWithOffset);
 
@@ -28780,7 +30651,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         }
                     }
 
-                    var finishTilemap = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level5C_Finish"), enemyIdGenerator, null, 384), xOffset, 0);
+                    var finishTilemap = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level5C_Finish"), enemyIdGenerator, null, 384, gameMusic), xOffset, 0, false);
 
                     list.add(finishTilemap);
 
@@ -28822,27 +30693,140 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
-    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame.KeyboardWithoutEsc", {
-        inherits: [DTLibrary.IKeyboard],
-        $kind: "nested class",
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.NoCutsceneWrappedTilemap", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ITilemap],
         fields: {
-            underlyingKeyboard: null
+            tilemap: null
         },
-        alias: ["IsPressed", "DTLibrary$IKeyboard$IsPressed"],
+        alias: [
+            "IsGround", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround",
+            "IsKillZone", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone",
+            "IsSpikes", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes",
+            "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
+            "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
+            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
+            "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
+            "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
+            "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
+            "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
+            "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
+            "RenderForegroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles"
+        ],
         ctors: {
-            ctor: function (underlyingKeyboard) {
+            ctor: function (tilemap) {
                 this.$initialize();
-                this.underlyingKeyboard = underlyingKeyboard;
+                this.tilemap = tilemap;
             }
         },
         methods: {
-            IsPressed: function (key) {
-                if (key === DTLibrary.Key.Esc) {
-                    return false;
-                }
-
-                return this.underlyingKeyboard.DTLibrary$IKeyboard$IsPressed(key);
+            IsGround: function (x, y) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y);
+            },
+            IsKillZone: function (x, y) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone(x, y);
+            },
+            IsSpikes: function (x, y) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y);
+            },
+            IsEndOfLevel: function (x, y) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel(x, y);
+            },
+            GetCutscene: function (x, y) {
+                return null;
+            },
+            GetCheckpoint: function (x, y) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(x, y);
+            },
+            GetWidth: function () {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth();
+            },
+            GetHeight: function () {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight();
+            },
+            GetTuxLocation: function (xOffset, yOffset) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(xOffset, yOffset);
+            },
+            GetEnemies: function (xOffset, yOffset) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies(xOffset, yOffset);
+            },
+            PlayMusic: function () {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic();
+            },
+            RenderBackgroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
+                this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
+            },
+            RenderForegroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
+                this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
             }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ITilemap],
+        fields: {
+            removeKonqiEnemy: null
+        },
+        alias: [
+            "IsGround", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround",
+            "IsKillZone", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone",
+            "IsSpikes", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes",
+            "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
+            "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
+            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
+            "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
+            "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
+            "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
+            "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
+            "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
+            "RenderForegroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles"
+        ],
+        ctors: {
+            ctor: function () {
+                this.$initialize();
+                this.removeKonqiEnemy = function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyRemoveKonqiCutscene("SpawnRemoveKonqiTilemap_removeKonqi"));
+                        return _o1;
+                    }(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor());
+            }
+        },
+        methods: {
+            IsGround: function (x, y) {
+                return false;
+            },
+            IsKillZone: function (x, y) {
+                return false;
+            },
+            IsSpikes: function (x, y) {
+                return false;
+            },
+            IsEndOfLevel: function (x, y) {
+                return false;
+            },
+            GetCutscene: function (x, y) {
+                return null;
+            },
+            GetCheckpoint: function (x, y) {
+                return null;
+            },
+            GetWidth: function () {
+                return 100;
+            },
+            GetHeight: function () {
+                return 100;
+            },
+            GetTuxLocation: function (xOffset, yOffset) {
+                return null;
+            },
+            GetEnemies: function (xOffset, yOffset) {
+                return this.removeKonqiEnemy;
+            },
+            PlayMusic: function () {
+                return null;
+            },
+            RenderBackgroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) { },
+            RenderForegroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) { }
         }
     });
 
@@ -28856,13 +30840,15 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             isSpikesArray: null,
             isEndOfLevelArray: null,
             isCutsceneArray: null,
+            checkpointArray: null,
             tileWidth: 0,
             tileHeight: 0,
             tilemapWidth: 0,
             tilemapHeight: 0,
             enemies: null,
             cutsceneName: null,
-            tuxLocation: null
+            tuxLocation: null,
+            gameMusic: 0
         },
         alias: [
             "IsGround", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround",
@@ -28870,6 +30856,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "IsKillZone", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone",
             "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
             "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
+            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
             "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
             "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
@@ -28879,7 +30866,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation"
         ],
         ctors: {
-            ctor: function (backgroundSpritesArray, foregroundSpritesArray, isGroundArray, isKillZoneArray, isSpikesArray, isEndOfLevelArray, isCutsceneArray, tileWidth, tileHeight, enemies, cutsceneName, tuxLocation) {
+            ctor: function (backgroundSpritesArray, foregroundSpritesArray, isGroundArray, isKillZoneArray, isSpikesArray, isEndOfLevelArray, isCutsceneArray, checkpointArray, tileWidth, tileHeight, enemies, cutsceneName, tuxLocation, gameMusic) {
                 this.$initialize();
                 this.backgroundSpritesArray = TuxPlanetSpeedrunAnyPercentLibrary.SpriteUtil.CopySpriteArray(backgroundSpritesArray);
                 this.foregroundSpritesArray = TuxPlanetSpeedrunAnyPercentLibrary.SpriteUtil.CopySpriteArray(foregroundSpritesArray);
@@ -28888,6 +30875,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.isSpikesArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isSpikesArray);
                 this.isEndOfLevelArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isEndOfLevelArray);
                 this.isCutsceneArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isCutsceneArray);
+                this.checkpointArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.ShallowCopyTArray(System.Tuple$2(System.Int32,System.Int32), checkpointArray);
                 this.tileWidth = tileWidth;
                 this.tileHeight = tileHeight;
                 this.tilemapWidth = Bridge.Int.mul(tileWidth, foregroundSpritesArray.length);
@@ -28895,6 +30883,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.EnemySpawnLocation)).$ctor1(enemies);
                 this.cutsceneName = cutsceneName;
                 this.tuxLocation = tuxLocation;
+                this.gameMusic = gameMusic;
             }
         },
         methods: {
@@ -28932,6 +30921,23 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                 if (isCutscene) {
                     return this.cutsceneName;
+                }
+
+                return null;
+            },
+            GetCheckpoint: function (x, y) {
+                var $t;
+                if (x < 0 || y < 0) {
+                    return null;
+                }
+
+                var arrayI = (Bridge.Int.div(x, this.tileWidth)) | 0;
+                var arrayJ = (Bridge.Int.div(y, this.tileHeight)) | 0;
+
+                if (arrayI < this.checkpointArray.length) {
+                    if (arrayJ < this.checkpointArray[System.Array.index(arrayI, this.checkpointArray)].length) {
+                        return ($t = this.checkpointArray[System.Array.index(arrayI, this.checkpointArray)])[System.Array.index(arrayJ, $t)];
+                    }
                 }
 
                 return null;
@@ -29002,6 +31008,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             var konqi = TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiCutscene.GetEnemyKonqiCutscene(xMibi1, yMibi1, enemy.EnemyId);
 
                             list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(konqi, xMibi1, yMibi1, 96, 96));
+                        } else if (enemy.ActorId === 67) {
+                            var xMibi2 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
+                            var yMibi2 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
+
+                            var enemyBlazeborn = TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn.GetEnemyBlazeborn(xMibi2, yMibi2, true, enemy.EnemyId);
+
+                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemyBlazeborn, xMibi2, yMibi2, 48, 48));
                         } else {
                             throw new System.Exception();
                         }
@@ -29015,7 +31028,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 return list;
             },
             PlayMusic: function () {
-                return TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Airship2;
+                return this.gameMusic;
             },
             GetTuxLocation: function (xOffset, yOffset) {
                 if (this.tuxLocation != null) {
@@ -39168,7 +41181,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         } else {
                             musicNames = (musicNames || "") + ",";
                         }
-                        musicNames = (musicNames || "") + (TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.GetMusicFilename(gameMusic) || "");
+                        musicNames = (musicNames || "") + (TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.GetMusicFilename(gameMusic).DefaultFilename || "");
                     }
                 } finally {
                     if (Bridge.is($t, System.IDisposable)) {
@@ -39193,7 +41206,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     finalVolume = 0.0;
                 }
 
-                window.BridgeMusicJavascript.playMusic(TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.GetMusicFilename(music), finalVolume);
+                window.BridgeMusicJavascript.playMusic(TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.GetMusicFilename(music).DefaultFilename, finalVolume);
             },
             StopMusic: function () {
                 window.BridgeMusicJavascript.stopMusic();
@@ -39378,11 +41391,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             selectedTab: 0,
             hoverTab: null,
             clickTab: null,
-            backButton: null
+            backButton: null,
+            isHoverOverGitHubUrl: false
         },
         alias: [
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
             "RenderMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic"
@@ -39405,6 +41420,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.tabButtons.add(new TuxPlanetSpeedrunAnyPercentLibrary.CreditsFrame.TabButton(535, 569, 90, 40, TuxPlanetSpeedrunAnyPercentLibrary.CreditsFrame.Tab.Music, "Music"));
 
                 this.backButton = new TuxPlanetSpeedrunAnyPercentLibrary.Button(780, 20, 200, 80, TuxPlanetSpeedrunAnyPercentLibrary.Button.GetStandardPrimaryBackgroundColor(), TuxPlanetSpeedrunAnyPercentLibrary.Button.GetStandardHoverColor(), TuxPlanetSpeedrunAnyPercentLibrary.Button.GetStandardClickColor(), "Back", 67, 28, TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt);
+
+                this.isHoverOverGitHubUrl = false;
             }
         },
         methods: {
@@ -39412,6 +41429,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 var $t;
                 var mouseX = mouseInput.DTLibrary$IMouse$GetX();
                 var mouseY = mouseInput.DTLibrary$IMouse$GetY();
+
+                this.isHoverOverGitHubUrl = false;
 
                 this.hoverTab = null;
                 $t = Bridge.getEnumerator(this.tabButtons);
@@ -39454,9 +41473,20 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.TitleScreenFrame(this.globalState, this.sessionState);
                 }
 
+                if (this.selectedTab === TuxPlanetSpeedrunAnyPercentLibrary.CreditsFrame.Tab.DesignAndCoding) {
+                    this.isHoverOverGitHubUrl = TuxPlanetSpeedrunAnyPercentLibrary.Credits_DesignAndCoding.IsHoverOverGitHubUrl(new DTLibrary.TranslatedMouse(mouseInput, -20, -120), this.globalState.IsWebBrowserVersion, 960, 450);
+                }
+
                 return this;
             },
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                if (this.isHoverOverGitHubUrl) {
+                    return "https://github.com/dtsudo";
+                }
+
+                return null;
+            },
             ProcessMusic: function () {
                 this.globalState.ProcessMusic();
             },
@@ -39509,7 +41539,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 var translatedDisplay = new (DTLibrary.TranslatedDisplayOutput$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage,TuxPlanetSpeedrunAnyPercentLibrary.GameFont))(displayOutput, 20, 120);
 
                 if (this.selectedTab === TuxPlanetSpeedrunAnyPercentLibrary.CreditsFrame.Tab.DesignAndCoding) {
-                    TuxPlanetSpeedrunAnyPercentLibrary.Credits_DesignAndCoding.Render(translatedDisplay, this.globalState.IsWebBrowserVersion, 960, 450);
+                    TuxPlanetSpeedrunAnyPercentLibrary.Credits_DesignAndCoding.Render(translatedDisplay, this.isHoverOverGitHubUrl, this.globalState.IsWebBrowserVersion, 960, 450);
                 }
                 if (this.selectedTab === TuxPlanetSpeedrunAnyPercentLibrary.CreditsFrame.Tab.Images) {
                     TuxPlanetSpeedrunAnyPercentLibrary.Credits_Images.Render(translatedDisplay, 960, 450);
@@ -39559,6 +41589,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
             "RenderMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic"
@@ -39589,7 +41620,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 }
 
                 if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !this.gameLogic.Tux.IsDead) {
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame(this.globalState, this.sessionState, this, true);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame(this.globalState, this.sessionState, this, true, true);
                 }
 
                 var move = new TuxPlanetSpeedrunAnyPercentLibrary.Move(keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Z), keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.X), keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.LeftArrow), keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.RightArrow), keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.UpArrow), keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.DownArrow), keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc));
@@ -39674,24 +41705,27 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 if (shouldEndLevel && !this.hasStartedLevelTransition) {
                     this.hasStartedLevelTransition = true;
 
-                    if (this.sessionState.CurrentLevel < 5) {
-                        var newLevelNumber = (this.sessionState.CurrentLevel + 1) | 0;
+                    var isLastLevel = TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.IsLastLevel(System.Nullable.getValue(this.sessionState.CurrentLevel));
 
-                        this.sessionState.StartLevel(newLevelNumber, this.globalState.WindowWidth, this.globalState.WindowHeight, this.globalState.MapInfo);
+                    this.sessionState.CompleteLevel(System.Nullable.getValue(this.sessionState.CurrentLevel), this.gameLogic.CanUseSaveStates, this.gameLogic.CanUseTimeSlowdown, this.gameLogic.CanUseTeleport);
 
-                        this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
+                    this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
 
-                        var newFrame = TuxPlanetSpeedrunAnyPercentLibrary.GameFrame.GetGameFrame(this.globalState, this.sessionState, displayProcessing, soundOutput, musicProcessing);
+                    if (!isLastLevel) {
+                        var newFrame = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldFrame(this.globalState, this.sessionState);
 
-                        return new TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame(this.globalState, this.sessionState, this, newFrame, true, true);
+                        return new TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame(this.globalState, this, newFrame);
                     }
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame(this.globalState, this.sessionState, this, new TuxPlanetSpeedrunAnyPercentLibrary.VictoryScreenFrame(this.globalState, this.sessionState), true, false);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame(this.globalState, this, new TuxPlanetSpeedrunAnyPercentLibrary.VictoryScreenFrame(this.globalState, this.sessionState));
                 }
 
                 return this;
             },
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             ProcessMusic: function () {
                 this.globalState.ProcessMusic();
             },
@@ -39711,6 +41745,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -39724,6 +41759,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 var returnValue = this.GetNextFrameHelper(displayProcessing, soundOutput, musicProcessing);
 
@@ -39758,7 +41796,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     return null;
                 }
 
-                var sessionState = new TuxPlanetSpeedrunAnyPercentLibrary.SessionState();
+                var sessionState = new TuxPlanetSpeedrunAnyPercentLibrary.SessionState(this.globalState.WindowWidth, this.globalState.WindowHeight);
 
                 this.globalState.LoadSessionState(sessionState);
 
@@ -39788,6 +41826,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -39804,24 +41843,23 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if ((keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Enter) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Enter) || keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Space) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Space) || keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Z) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Z)) && !this.hasStartedGame) {
                     this.hasStartedGame = true;
 
                     soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$PlaySound(TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Click);
 
-                    this.sessionState.StartLevel(1, this.globalState.WindowWidth, this.globalState.WindowHeight, this.globalState.MapInfo);
-
                     this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
 
-                    var newFrame = TuxPlanetSpeedrunAnyPercentLibrary.GameFrame.GetGameFrame(this.globalState, this.sessionState, displayProcessing, soundOutput, musicProcessing);
-
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame(this.globalState, this.sessionState, this, newFrame, false, true);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldFrame(this.globalState, this.sessionState);
                 }
 
                 if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
                     soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$PlaySound(TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Click);
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame(this.globalState, this.sessionState, this, false);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame(this.globalState, this.sessionState, this, false, false);
                 }
 
                 return this;
@@ -39860,33 +41898,27 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         fields: {
             globalState: null,
-            sessionState: null,
             previousFrame: null,
             newFrame: null,
             elapsedMicros: 0,
-            showRestartLevelOptionInPauseMenuOnFadeOut: false,
-            showRestartLevelOptionInPauseMenuOnFadeIn: false,
             isFadingIn: false,
             hasAdvancedPreviousFrameAtLeastOnce: false
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
             "RenderMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic"
         ],
         ctors: {
-            ctor: function (globalState, sessionState, previousFrame, newFrame, showRestartLevelOptionInPauseMenuOnFadeOut, showRestartLevelOptionInPauseMenuOnFadeIn) {
+            ctor: function (globalState, previousFrame, newFrame) {
                 this.$initialize();
                 this.globalState = globalState;
-                this.sessionState = sessionState;
                 this.previousFrame = previousFrame;
                 this.newFrame = newFrame;
                 this.elapsedMicros = 0;
-
-                this.showRestartLevelOptionInPauseMenuOnFadeOut = showRestartLevelOptionInPauseMenuOnFadeOut;
-                this.showRestartLevelOptionInPauseMenuOnFadeIn = showRestartLevelOptionInPauseMenuOnFadeIn;
 
                 this.isFadingIn = false;
                 this.hasAdvancedPreviousFrameAtLeastOnce = false;
@@ -39894,6 +41926,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                if (this.isFadingIn) {
+                    return this.newFrame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl();
+                }
+
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 this.elapsedMicros = (this.elapsedMicros + this.globalState.ElapsedMicrosPerFrame) | 0;
 
@@ -39913,7 +41952,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 }
 
                 if (this.isFadingIn) {
-                    this.newFrame = this.newFrame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame(new TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame.KeyboardWithoutEsc(keyboardInput), mouseInput, new TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame.KeyboardWithoutEsc(previousKeyboardInput), previousMouseInput, displayProcessing, soundOutput, musicProcessing);
+                    this.newFrame = this.newFrame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame(keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing);
 
                     if (this.newFrame == null) {
                         return null;
@@ -39922,10 +41961,6 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                 if (this.elapsedMicros > 1000000) {
                     return this.newFrame;
-                }
-
-                if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame(this.globalState, this.sessionState, this, !this.isFadingIn ? this.showRestartLevelOptionInPauseMenuOnFadeOut : this.showRestartLevelOptionInPauseMenuOnFadeIn);
                 }
 
                 return this;
@@ -39972,6 +42007,94 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldFrame", {
+        inherits: [DTLibrary.IFrame$4(TuxPlanetSpeedrunAnyPercentLibrary.GameImage,TuxPlanetSpeedrunAnyPercentLibrary.GameFont,TuxPlanetSpeedrunAnyPercentLibrary.GameSound,TuxPlanetSpeedrunAnyPercentLibrary.GameMusic)],
+        fields: {
+            globalState: null,
+            sessionState: null,
+            extraElapsedMicros: 0,
+            overworld: null,
+            hasStartedLevelTransition: false
+        },
+        alias: [
+            "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
+            "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
+            "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
+            "RenderMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic"
+        ],
+        ctors: {
+            ctor: function (globalState, sessionState) {
+                this.$initialize();
+                this.globalState = globalState;
+                this.sessionState = sessionState;
+
+                this.extraElapsedMicros = 0;
+
+                this.overworld = sessionState.Overworld;
+
+                this.hasStartedLevelTransition = false;
+            }
+        },
+        methods: {
+            ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
+            GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
+                this.globalState.MusicPlayer.SetMusic(TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.PeaceAtLast, 100);
+
+                this.sessionState.AddElapsedMillis(((Bridge.Int.div(this.globalState.ElapsedMicrosPerFrame, 1000)) | 0));
+
+                this.extraElapsedMicros = (this.extraElapsedMicros + (this.globalState.ElapsedMicrosPerFrame % 1000)) | 0;
+                if (this.extraElapsedMicros >= 1000) {
+                    this.extraElapsedMicros = (this.extraElapsedMicros - 1000) | 0;
+                    this.sessionState.AddElapsedMillis(1);
+                }
+
+                if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame(this.globalState, this.sessionState, this, false, false);
+                }
+
+                var result = this.overworld.ProcessFrame(keyboardInput, previousKeyboardInput, this.globalState.WindowWidth, this.globalState.WindowHeight, this.globalState.ElapsedMicrosPerFrame);
+
+                this.overworld = result.Overworld;
+                this.sessionState.SetOverworld(this.overworld);
+
+                var level = result.SelectedLevel;
+
+                if (level != null && !this.hasStartedLevelTransition) {
+                    this.hasStartedLevelTransition = true;
+
+                    this.sessionState.StartLevel(System.Nullable.getValue(level), this.globalState.WindowWidth, this.globalState.WindowHeight, this.globalState.MapInfo);
+
+                    this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
+
+                    var newFrame = TuxPlanetSpeedrunAnyPercentLibrary.GameFrame.GetGameFrame(this.globalState, this.sessionState, displayProcessing, soundOutput, musicProcessing);
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.LevelTransitionFrame(this.globalState, this, newFrame);
+                }
+
+                return this;
+            },
+            ProcessMusic: function () {
+                this.globalState.ProcessMusic();
+            },
+            Render: function (displayOutput) {
+                this.overworld.Render(displayOutput);
+
+                var elapsedTimeString = TuxPlanetSpeedrunAnyPercentLibrary.ElapsedTimeUtil.GetElapsedTimeString(this.sessionState.ElapsedMillis);
+                var timerText = "Time: " + (elapsedTimeString || "");
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(((this.globalState.WindowWidth - 120) | 0), ((this.globalState.WindowHeight - 10) | 0), timerText, TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont14Pt, DTLibrary.DTColor.Black());
+            },
+            RenderMusic: function (musicOutput) {
+                this.globalState.RenderMusic(musicOutput);
+            }
+        }
+    });
+
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame", {
         inherits: [DTLibrary.IFrame$4(TuxPlanetSpeedrunAnyPercentLibrary.GameImage,TuxPlanetSpeedrunAnyPercentLibrary.GameFont,TuxPlanetSpeedrunAnyPercentLibrary.GameSound,TuxPlanetSpeedrunAnyPercentLibrary.GameMusic)],
         fields: {
@@ -39985,12 +42108,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
             "RenderMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic"
         ],
         ctors: {
-            ctor: function (globalState, sessionState, underlyingFrame, showRestartLevelOption) {
+            ctor: function (globalState, sessionState, underlyingFrame, showRestartLevelOption, showBackToMapOption) {
                 this.$initialize();
                 this.globalState = globalState;
                 this.sessionState = sessionState;
@@ -40003,6 +42127,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.options.add(TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.Continue);
                 if (showRestartLevelOption) {
                     this.options.add(TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.RestartLevel);
+                }
+                if (showBackToMapOption) {
+                    this.options.add(TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.BackToMapScreen);
                 }
                 this.options.add(TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.BackToTitleScreen);
             }
@@ -40045,9 +42172,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
                             return this.underlyingFrame;
                         case TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.RestartLevel: 
-                            this.sessionState.StartLevel(this.sessionState.CurrentLevel, this.globalState.WindowWidth, this.globalState.WindowHeight, this.globalState.MapInfo);
+                            this.sessionState.StartLevel(System.Nullable.getValue(this.sessionState.CurrentLevel), this.globalState.WindowWidth, this.globalState.WindowHeight, this.globalState.MapInfo);
                             this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
                             return TuxPlanetSpeedrunAnyPercentLibrary.GameFrame.GetGameFrame(this.globalState, this.sessionState, displayProcessing, soundOutput, musicProcessing);
+                        case TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.BackToMapScreen: 
+                            this.sessionState.SetGameLogic(null);
+                            this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldFrame(this.globalState, this.sessionState);
                         case TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.BackToTitleScreen: 
                             this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
                             return new TuxPlanetSpeedrunAnyPercentLibrary.TitleScreenFrame(this.globalState, this.sessionState);
@@ -40059,6 +42190,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 return this;
             },
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             ProcessMusic: function () {
                 this.globalState.ProcessMusic();
             },
@@ -40088,6 +42222,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         case TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.RestartLevel: 
                             text = "Restart level";
                             break;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.BackToMapScreen: 
+                            text = "Quit level and return to map";
+                            break;
                         case TuxPlanetSpeedrunAnyPercentLibrary.PauseMenuFrame.Option.BackToTitleScreen: 
                             text = "Back to title screen";
                             break;
@@ -40112,6 +42249,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -40126,6 +42264,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.TestingFrame(this.globalState, this.sessionState);
@@ -40161,6 +42302,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -40175,6 +42317,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.TitleScreenFrame(this.globalState, this.sessionState);
@@ -40224,6 +42369,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -40241,6 +42387,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.TestingFrame(this.globalState, this.sessionState);
@@ -40300,6 +42449,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -40319,6 +42469,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.TestingFrame(this.globalState, this.sessionState);
@@ -40380,6 +42533,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -40396,6 +42550,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.TestingFrame(this.globalState, this.sessionState);
@@ -40455,6 +42612,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -40473,6 +42631,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc) && !previousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Esc)) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.TestingFrame(this.globalState, this.sessionState);
@@ -40521,7 +42682,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 CanContinueCurrentGame: function (sessionState) {
-                    return sessionState.HasStarted() && !sessionState.HasWon;
+                    return sessionState.HasStarted();
                 }
             }
         },
@@ -40536,6 +42697,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -40569,7 +42731,12 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
+                this.sessionState.AddRandomSeed(17);
+
                 if (this.volumePicker == null) {
                     this.volumePicker = new TuxPlanetSpeedrunAnyPercentLibrary.SoundAndMusicVolumePicker(0, 0, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume(), this.globalState.MusicVolume, this.globalState.ElapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.SoundAndMusicVolumePicker.Color.Black);
                 }
@@ -40606,12 +42773,15 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     switch (this.options.getItem(this.selectedOption)) {
                         case TuxPlanetSpeedrunAnyPercentLibrary.TitleScreenFrame.Option.NewGame: 
-                            this.sessionState.ClearData();
+                            this.sessionState.ClearData(this.globalState.WindowWidth, this.globalState.WindowHeight);
                             this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
                             return new TuxPlanetSpeedrunAnyPercentLibrary.InstructionsFrame(this.globalState, this.sessionState);
                         case TuxPlanetSpeedrunAnyPercentLibrary.TitleScreenFrame.Option.ContinueGame: 
                             this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
-                            return TuxPlanetSpeedrunAnyPercentLibrary.GameFrame.GetGameFrame(this.globalState, this.sessionState, displayProcessing, soundOutput, musicProcessing);
+                            if (this.sessionState.GameLogic != null) {
+                                return TuxPlanetSpeedrunAnyPercentLibrary.GameFrame.GetGameFrame(this.globalState, this.sessionState, displayProcessing, soundOutput, musicProcessing);
+                            }
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldFrame(this.globalState, this.sessionState);
                         case TuxPlanetSpeedrunAnyPercentLibrary.TitleScreenFrame.Option.Quit: 
                             this.globalState.SaveData(this.sessionState, soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$GetSoundVolume());
                             return null;
@@ -40691,6 +42861,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
+            "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -40707,6 +42878,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         methods: {
             ProcessExtraTime: function (milliseconds) { },
+            GetClickUrl: function () {
+                return null;
+            },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if (!this.updatedSession) {
                     this.updatedSession = true;

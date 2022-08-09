@@ -35,6 +35,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private bool[][] isSpikesArray;
 		private bool[][] isEndOfLevelArray;
 		private bool[][] isCutsceneArray;
+		private Tuple<int, int>[][] checkpointArray;
 
 		private int tileWidth;
 		private int tileHeight;
@@ -48,6 +49,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private Tuple<int, int> tuxLocation;
 
+		private GameMusic gameMusic;
+
 		public Tilemap(
 			Sprite[][] backgroundSpritesArray,
 			Sprite[][] foregroundSpritesArray,
@@ -56,11 +59,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool[][] isSpikesArray,
 			bool[][] isEndOfLevelArray,
 			bool[][] isCutsceneArray,
+			Tuple<int, int>[][] checkpointArray, 
 			int tileWidth,
 			int tileHeight,
 			List<EnemySpawnLocation> enemies,
 			string cutsceneName,
-			Tuple<int, int> tuxLocation)
+			Tuple<int, int> tuxLocation,
+			GameMusic gameMusic)
 		{
 			this.backgroundSpritesArray = SpriteUtil.CopySpriteArray(array: backgroundSpritesArray);
 			this.foregroundSpritesArray = SpriteUtil.CopySpriteArray(array: foregroundSpritesArray);
@@ -69,6 +74,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.isSpikesArray = ArrayUtil.CopyBoolArray(array: isSpikesArray);
 			this.isEndOfLevelArray = ArrayUtil.CopyBoolArray(array: isEndOfLevelArray);
 			this.isCutsceneArray = ArrayUtil.CopyBoolArray(array: isCutsceneArray);
+			this.checkpointArray = ArrayUtil.ShallowCopyTArray(array: checkpointArray);
 			this.tileWidth = tileWidth;
 			this.tileHeight = tileHeight;
 			this.tilemapWidth = tileWidth * foregroundSpritesArray.Length;
@@ -76,6 +82,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.enemies = new List<EnemySpawnLocation>(enemies);
 			this.cutsceneName = cutsceneName;
 			this.tuxLocation = tuxLocation;
+			this.gameMusic = gameMusic;
 		}
 
 		private bool GetArrayValue(bool[][] array, int worldX, int worldY)
@@ -121,6 +128,23 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (isCutscene)
 				return this.cutsceneName;
+
+			return null;
+		}
+
+		public Tuple<int, int> GetCheckpoint(int x, int y)
+		{
+			if (x < 0 || y < 0)
+				return null;
+
+			int arrayI = x / this.tileWidth;
+			int arrayJ = y / this.tileHeight;
+
+			if (arrayI < this.checkpointArray.Length)
+			{
+				if (arrayJ < this.checkpointArray[arrayI].Length)
+					return this.checkpointArray[arrayI][arrayJ];
+			}
 
 			return null;
 		}
@@ -245,6 +269,24 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						enemyWidth: 32 * 3,
 						enemyHeight: 32 * 3));
 				}
+				else if (enemy.ActorId == 67)
+				{
+					int xMibi = (enemy.TileI * this.tileWidth + halfTileWidth + xOffset) << 10;
+					int yMibi = (enemy.TileJ * this.tileHeight + halfTileHeight + yOffset) << 10;
+
+					EnemyBlazeborn enemyBlazeborn = EnemyBlazeborn.GetEnemyBlazeborn(
+						xMibi: xMibi,
+						yMibi: yMibi,
+						isFacingRight: true,
+						enemyId: enemy.EnemyId);
+
+					list.Add(new EnemySpawnHelper(
+						enemyToSpawn: enemyBlazeborn,
+						xMibi: xMibi,
+						yMibi: yMibi,
+						enemyWidth: 16 * 3,
+						enemyHeight: 16 * 3));
+				}
 				else
 					throw new Exception();
 			}
@@ -254,7 +296,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public GameMusic? PlayMusic()
 		{
-			return GameMusic.Airship2;
+			return this.gameMusic;
 		}
 
 		public Tuple<int, int> GetTuxLocation(int xOffset, int yOffset)

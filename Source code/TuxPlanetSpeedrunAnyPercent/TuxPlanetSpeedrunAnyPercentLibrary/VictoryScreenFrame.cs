@@ -23,6 +23,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 		}
 
+		public string GetClickUrl()
+		{
+			return null;
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,

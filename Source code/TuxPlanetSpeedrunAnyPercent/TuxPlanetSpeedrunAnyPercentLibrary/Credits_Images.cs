@@ -8,6 +8,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private static string GetText()
 		{
 			return "Image files created by: \n"
+				+ "* Benjamin K. Smith, Lanea Zimmerman (AKA Sharm), Daniel Eddeland, \n"
+				+ "   William.Thompsonj, Nushio, Adrix89 \n"
 				+ "* FrostC \n"
 				+ "* Kelvin Shadewing \n"
 				+ "* Kenney \n"

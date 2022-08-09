@@ -12,7 +12,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			MapDataHelper.Map data,
 			EnemyIdGenerator enemyIdGenerator,
 			string cutsceneName,
-			int scalingFactorScaled)
+			int scalingFactorScaled,
+			GameMusic gameMusic)
 		{
 			IReadOnlyList<MapDataHelper.Tileset> tilesets = data.Tilesets;
 
@@ -123,11 +124,105 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				isSpikesArray: isSpikesArray,
 				isEndOfLevelArray: isEndOfLevelArray,
 				isCutsceneArray: isCutsceneArray,
+				checkpointArray: ComputeCheckpointArray(
+					numberOfTileColumns: numberOfTileColumns,
+					numberOfTileRows: numberOfTileRows,
+					solidLayerData: solidLayerData,
+					solidTileset: solidTileset,
+					actorsTileset: actorsTileset,
+					scalingFactorScaled: scalingFactorScaled),
 				tileWidth: solidTileset.TileWidth * scalingFactorScaled / 128,
 				tileHeight: solidTileset.TileHeight * scalingFactorScaled / 128,
 				enemies: enemies,
 				cutsceneName: cutsceneName,
-				tuxLocation: tuxLocation);
+				tuxLocation: tuxLocation,
+				gameMusic: gameMusic);
+		}
+
+		private static Tuple<int, int>[][] ComputeCheckpointArray(
+			int numberOfTileColumns,
+			int numberOfTileRows,
+			IReadOnlyList<int> solidLayerData,
+			MapDataHelper.Tileset solidTileset,
+			MapDataHelper.Tileset actorsTileset,
+			int scalingFactorScaled)
+		{
+			Tuple<int, int>[][] checkpointArray = new Tuple<int, int>[numberOfTileColumns][];
+			int[][] solidLayerGids = new int[numberOfTileColumns][];
+
+			for (int i = 0; i < numberOfTileColumns; i++)
+			{
+				checkpointArray[i] = new Tuple<int, int>[numberOfTileRows];
+				for (int j = 0; j < numberOfTileRows; j++)
+					checkpointArray[i][j] = null;
+
+				solidLayerGids[i] = new int[numberOfTileRows];
+				for (int j = 0; j < numberOfTileRows; j++)
+					solidLayerGids[i][j] = 0;
+			}
+
+			int dataIndex = 0;
+			for (int j = numberOfTileRows - 1; j >= 0; j--)
+			{
+				for (int i = 0; i < numberOfTileColumns; i++)
+				{
+					int solidGid = solidLayerData[dataIndex];
+					dataIndex++;
+
+					solidLayerGids[i][j] = solidGid;
+				}
+			}
+
+			for (int i = 0; i < solidLayerGids.Length; i++)
+			{
+				for (int j = 0; j < solidLayerGids[i].Length; j++)
+				{
+					if (solidLayerGids[i][j] - actorsTileset.FirstGid == 72)
+					{
+						SetCheckpoint(
+							checkpointArray: checkpointArray,
+							solidLayerGids: solidLayerGids,
+							actorsTileset: actorsTileset,
+							checkpointDestination: new Tuple<int, int>(
+								item1: i * solidTileset.TileWidth * (scalingFactorScaled / 128) + solidTileset.TileWidth * (scalingFactorScaled / 128) / 2,
+								item2: j * solidTileset.TileHeight * (scalingFactorScaled / 128) + 16 * (scalingFactorScaled / 128)),
+							i: i,
+							j: j);
+					}
+				}
+			}
+
+			return checkpointArray;
+		}
+
+		private static void SetCheckpoint(
+			Tuple<int, int>[][] checkpointArray,
+			int[][] solidLayerGids,
+			MapDataHelper.Tileset actorsTileset,
+			Tuple<int, int> checkpointDestination,
+			int i,
+			int j)
+		{
+			if (i < 0 || i >= checkpointArray.Length)
+				return;
+
+			if (j < 0 || j >= checkpointArray[i].Length)
+				return;
+
+			int normalizedGid = solidLayerGids[i][j] - actorsTileset.FirstGid;
+
+			if (normalizedGid != 72 && normalizedGid != 32)
+				return;
+
+			if (checkpointArray[i][j] != null)
+				return;
+
+			checkpointArray[i][j] = checkpointDestination;
+
+			SetCheckpoint(checkpointArray: checkpointArray, solidLayerGids: solidLayerGids, actorsTileset: actorsTileset, checkpointDestination: checkpointDestination, i: i, j: j - 1);
+			SetCheckpoint(checkpointArray: checkpointArray, solidLayerGids: solidLayerGids, actorsTileset: actorsTileset, checkpointDestination: checkpointDestination, i: i, j: j + 1);
+			SetCheckpoint(checkpointArray: checkpointArray, solidLayerGids: solidLayerGids, actorsTileset: actorsTileset, checkpointDestination: checkpointDestination, i: i - 1, j: j);
+			SetCheckpoint(checkpointArray: checkpointArray, solidLayerGids: solidLayerGids, actorsTileset: actorsTileset, checkpointDestination: checkpointDestination, i: i + 1, j: j);
 		}
 
 		private static Sprite GetSprite(

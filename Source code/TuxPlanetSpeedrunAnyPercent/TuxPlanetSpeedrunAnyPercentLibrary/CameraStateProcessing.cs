@@ -9,10 +9,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public static CameraState ComputeCameraState(
 			int tuxXMibi,
 			int tuxYMibi,
+			Tuple<int, int> tuxTeleportStartingLocation,
+			int? tuxTeleportInProgressElapsedMicros,
 			ITilemap tilemap,
 			int windowWidth,
 			int windowHeight)
 		{
+			if (tuxTeleportInProgressElapsedMicros != null)
+			{
+				long deltaX = tuxXMibi - tuxTeleportStartingLocation.Item1;
+				long deltaY = tuxYMibi - tuxTeleportStartingLocation.Item2;
+
+				tuxXMibi = (int) (tuxTeleportStartingLocation.Item1 + deltaX * tuxTeleportInProgressElapsedMicros.Value / TuxState.TELEPORT_DURATION);
+				tuxYMibi = (int) (tuxTeleportStartingLocation.Item2 + deltaY * tuxTeleportInProgressElapsedMicros.Value / TuxState.TELEPORT_DURATION);
+			}
+
 			int x = tuxXMibi >> 10;
 			int y = tuxYMibi >> 10;
 

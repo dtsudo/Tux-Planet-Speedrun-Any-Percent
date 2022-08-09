@@ -2,6 +2,7 @@
 namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
 	using DTLibrary;
+	using System;
 	using System.Collections.Generic;
 
 	public class CollisionProcessing_Enemies
@@ -25,42 +26,45 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<string> killedEnemies = new List<string>();
 
+			int? indexOfRemoveKonqiEnemy = null;
+			int? indexOfKonqiEnemy = null;
+			string konqiEnemyId = null;
+			Tuple<int, int> konqiLocation = null;
+
 			for (int i = 0; i < enemies.Count; i++)
 			{
 				if (enemies[i].IsRemoveKonqi)
-					continue;
+					indexOfRemoveKonqiEnemy = i;
 
 				if (enemies[i].IsKonqi)
 				{
-					bool shouldRemoveKonqi = false;
-
-					for (int j = 0; j < enemies.Count; j++)
-					{
-						if (enemies[j].IsRemoveKonqi)
-						{
-							shouldRemoveKonqi = true;
-							break;
-						}
-					}
-
-					if (shouldRemoveKonqi)
-					{
-						finalEnemies.Add(EnemyKonqiDisappear.GetEnemyKonqiDisappear(
-							xMibi: (enemies[i].GetKonqiLocation().Item1) << 10,
-							yMibi: (enemies[i].GetKonqiLocation().Item2) << 10,
-							enemyId: "konqiDisappear"));
-
-						killedEnemies.Add(enemies[i].EnemyId);
-					}
-					else
-						finalEnemies.Add(enemies[i]);
-
-					continue;
+					indexOfKonqiEnemy = i;
+					konqiLocation = enemies[i].GetKonqiLocation();
+					konqiEnemyId = enemies[i].EnemyId;
 				}
 
 				finalEnemies.Add(enemies[i]);
 			}
 
+			if (indexOfRemoveKonqiEnemy.HasValue && indexOfKonqiEnemy.HasValue)
+			{
+				List<IEnemy> newFinalEnemies = new List<IEnemy>();
+
+				for (int i = 0; i < finalEnemies.Count; i++)
+				{
+					if (!finalEnemies[i].IsRemoveKonqi && !finalEnemies[i].IsKonqi)
+						newFinalEnemies.Add(finalEnemies[i]);
+				}
+
+				newFinalEnemies.Add(EnemyKonqiDisappear.GetEnemyKonqiDisappear(
+					xMibi: konqiLocation.Item1 << 10,
+					yMibi: konqiLocation.Item2 << 10,
+					enemyId: "konqiDisappear"));
+
+				finalEnemies = newFinalEnemies;
+
+				killedEnemies.Add(konqiEnemyId);
+			}
 
 			return new Result(
 				newEnemies: finalEnemies,

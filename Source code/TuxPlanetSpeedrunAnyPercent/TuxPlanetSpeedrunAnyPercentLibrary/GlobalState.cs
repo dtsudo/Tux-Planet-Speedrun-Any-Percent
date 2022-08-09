@@ -18,6 +18,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			ITimer timer,
 			IFileIO fileIO,
 			bool isWebBrowserVersion,
+			bool isWebPortalVersion,
 			bool debugMode,
 			int? initialMusicVolume)
 		{
@@ -29,6 +30,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.Logger = logger;
 			this.Timer = timer;
 			this.IsWebBrowserVersion = isWebBrowserVersion;
+			this.IsWebPortalVersion = isWebPortalVersion;
 			this.DebugMode = debugMode;
 			this.desiredMusicVolume = initialMusicVolume ?? GlobalState.DEFAULT_VOLUME;
 			this.currentMusicVolume = this.desiredMusicVolume;
@@ -53,6 +55,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public IDTLogger Logger { get; private set; }
 		public ITimer Timer { get; private set; }
 		public bool IsWebBrowserVersion { get; private set; }
+		public bool IsWebPortalVersion { get; private set; }
 		public bool DebugMode { get; private set; }
 
 		public bool Debug_ShowHitBoxes { get; set; }

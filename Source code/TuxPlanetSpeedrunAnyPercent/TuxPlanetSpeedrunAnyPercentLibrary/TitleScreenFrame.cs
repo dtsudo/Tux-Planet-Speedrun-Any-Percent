@@ -65,9 +65,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 		}
 
+		public string GetClickUrl()
+		{
+			return null;
+		}
+
 		private static bool CanContinueCurrentGame(SessionState sessionState)
 		{
-			return sessionState.HasStarted() && !sessionState.HasWon;
+			return sessionState.HasStarted();
 		}
 
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
@@ -79,6 +84,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			ISoundOutput<GameSound> soundOutput,
 			IMusicProcessing musicProcessing)
 		{
+			this.sessionState.AddRandomSeed(17);
+
 			if (this.volumePicker == null)
 				this.volumePicker = new SoundAndMusicVolumePicker(
 					xPos: 0,
@@ -126,17 +133,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				switch (this.options[this.selectedOption])
 				{
 					case Option.NewGame:
-						this.sessionState.ClearData();
+						this.sessionState.ClearData(windowWidth: this.globalState.WindowWidth, windowHeight: this.globalState.WindowHeight);
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 						return new InstructionsFrame(globalState: this.globalState, sessionState: this.sessionState);
 					case Option.ContinueGame:
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
-						return GameFrame.GetGameFrame(
-							globalState: this.globalState,
-							sessionState: this.sessionState,
-							displayProcessing: displayProcessing,
-							soundOutput: soundOutput,
-							musicProcessing: musicProcessing);
+						
+						if (this.sessionState.GameLogic != null)
+							return GameFrame.GetGameFrame(
+								globalState: this.globalState,
+								sessionState: this.sessionState,
+								displayProcessing: displayProcessing,
+								soundOutput: soundOutput,
+								musicProcessing: musicProcessing);
+
+						return new OverworldFrame(globalState: this.globalState, sessionState: this.sessionState);
 					case Option.Quit:
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 						return null;

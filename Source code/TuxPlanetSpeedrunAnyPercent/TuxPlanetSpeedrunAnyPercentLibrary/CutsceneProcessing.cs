@@ -9,9 +9,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	{
 		public const string SAVESTATE_CUTSCENE = "savestate_cutscene";
 		public const string TIME_SLOWDOWN_CUTSCENE = "time_slowdown_cutscene";
-
-		public const int LEVEL_THAT_GRANTS_SAVESTATES = 2;
-		public const int LEVEL_THAT_GRANTS_TIME_SLOWDOWN = 4;
+		public const string TELEPORT_CUTSCENE = "teleport_cutscene";
 
 		public static ICutscene GetCutscene(string cutsceneName)
 		{
@@ -19,6 +17,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				return Cutscene_SaveState.GetCutscene();
 			else if (cutsceneName == TIME_SLOWDOWN_CUTSCENE)
 				return Cutscene_TimeSlowdown.GetCutscene();
+			else if (cutsceneName == TELEPORT_CUTSCENE)
+				return Cutscene_Teleport.GetCutscene();
 			else
 				throw new Exception();
 		}
@@ -31,7 +31,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				List<IEnemy> newEnemies,
 				ICutscene cutscene,
 				bool shouldGrantSaveStatePower,
-				bool shouldGrantTimeSlowdownPower)
+				bool shouldGrantTimeSlowdownPower,
+				bool shouldGrantTeleportPower)
 			{
 				this.Move = move;
 				this.CameraState = cameraState;
@@ -39,6 +40,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				this.Cutscene = cutscene;
 				this.ShouldGrantSaveStatePower = shouldGrantSaveStatePower;
 				this.ShouldGrantTimeSlowdownPower = shouldGrantTimeSlowdownPower;
+				this.ShouldGrantTeleportPower = shouldGrantTeleportPower;
 			}
 
 			public Move Move { get; private set; }
@@ -52,6 +54,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			public bool ShouldGrantSaveStatePower { get; private set; }
 
 			public bool ShouldGrantTimeSlowdownPower { get; private set; }
+
+			public bool ShouldGrantTeleportPower { get; private set; }
 		}
 	}
 }

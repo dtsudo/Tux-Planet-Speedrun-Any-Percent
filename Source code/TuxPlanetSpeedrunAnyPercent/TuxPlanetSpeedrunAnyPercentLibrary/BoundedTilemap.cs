@@ -51,6 +51,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return this.tilemap.GetCutscene(x: x, y: y);
 		}
 
+		public Tuple<int, int> GetCheckpoint(int x, int y)
+		{
+			return this.tilemap.GetCheckpoint(x: x, y: y);
+		}
+
 		public int GetWidth()
 		{
 			return this.width;

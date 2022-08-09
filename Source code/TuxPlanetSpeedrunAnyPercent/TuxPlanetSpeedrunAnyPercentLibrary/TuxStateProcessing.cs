@@ -2,6 +2,7 @@
 namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
 	using DTLibrary;
+	using System;
 	using System.Collections.Generic;
 
 	public class TuxStateProcessing
@@ -48,6 +49,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					previousJumps: new List<bool>(),
 					isOnGround: false,
 					lastTimeOnGround: null,
+					teleportStartingLocation: null,
+					teleportInProgressElapsedMicros: null,
+					teleportCooldown: null,
+					hasAlreadyUsedTeleport: true,
 					spriteElapsedMicros: tuxState.SpriteElapsedMicros + elapsedMicrosPerFrame,
 					hasFinishedLevelElapsedMicros: null,
 					isStillHoldingJumpButton: false,
@@ -114,9 +119,51 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				hasJumped: hasJumped);
 		}
 
+		private static Result ProcessFrame_TuxTeleport(
+			TuxState tuxState,
+			int elapsedMicrosPerFrame)
+		{
+			int? newTeleportInProgressElapsedMicros = tuxState.TeleportInProgressElapsedMicros.Value + elapsedMicrosPerFrame;
+			bool hasFinishedTeleporting;
+
+			if (newTeleportInProgressElapsedMicros.Value >= TuxState.TELEPORT_DURATION)
+				hasFinishedTeleporting = true;
+			else
+				hasFinishedTeleporting = false;
+
+			return new Result(
+				tuxState: new TuxState(
+					xMibi: tuxState.XMibi,
+					yMibi: tuxState.YMibi,
+					xSpeedInMibipixelsPerSecond: tuxState.XSpeedInMibipixelsPerSecond,
+					ySpeedInMibipixelsPerSecond: tuxState.YSpeedInMibipixelsPerSecond,
+					previousJumps: tuxState.PreviousJumps,
+					isOnGround: tuxState.IsOnGround,
+					lastTimeOnGround: tuxState.LastTimeOnGround,
+					teleportStartingLocation: hasFinishedTeleporting ? null : tuxState.TeleportStartingLocation,
+					teleportInProgressElapsedMicros: hasFinishedTeleporting ? null : newTeleportInProgressElapsedMicros,
+					teleportCooldown: hasFinishedTeleporting ? TuxState.TELEPORT_COOLDOWN : (int?)null,
+					hasAlreadyUsedTeleport: hasFinishedTeleporting ? true : false,
+					spriteElapsedMicros: tuxState.SpriteElapsedMicros,
+					hasFinishedLevelElapsedMicros: tuxState.HasFinishedLevelElapsedMicros,
+					isStillHoldingJumpButton: tuxState.IsStillHoldingJumpButton,
+					isDeadElapsedMicros: tuxState.IsDeadElapsedMicros,
+					isFacingRight: tuxState.IsFacingRight),
+				endLevel: false,
+				hasDied: false,
+				shouldStopMusic: false);
+		}
+
+		private static bool IsTeleportable(ITilemap tilemap, int x, int y)
+		{
+			return !tilemap.IsGround(x, y) && !tilemap.IsSpikes(x, y) && !tilemap.IsKillZone(x, y);
+		}
+
 		public static Result ProcessFrame(
 			TuxState tuxState,
 			Move move,
+			Move previousMove,
+			bool canUseTeleport,
 			bool debugMode,
 			IKeyboard debugKeyboardInput,
 			IKeyboard debugPreviousKeyboardInput,
@@ -127,6 +174,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			if (tuxState.IsDead)
 				return ProcessFrame_TuxDead(tuxState: tuxState, move: move, elapsedMicrosPerFrame: elapsedMicrosPerFrame, soundOutput: soundOutput);
+
+			if (tuxState.TeleportInProgressElapsedMicros != null)
+				return ProcessFrame_TuxTeleport(tuxState: tuxState, elapsedMicrosPerFrame: elapsedMicrosPerFrame);
 
 			MoveInfo moveInfo = GetMoveInfo(tuxState: tuxState, move: move);
 
@@ -341,6 +391,78 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					|| tilemap.IsSpikes((tuxState.XMibi >> 10) + 4 * 3, (tuxState.YMibi >> 10) + 8 * 3))
 				newIsDeadElapsedMicros = 0;
 
+			int? newTeleportCooldown = tuxState.TeleportCooldown;
+			if (newTeleportCooldown != null)
+			{
+				newTeleportCooldown = newTeleportCooldown.Value - elapsedMicrosPerFrame;
+				if (newTeleportCooldown.Value <= 0)
+					newTeleportCooldown = null;
+			}
+
+			Tuple<int, int> newTeleportStartingLocation = null;
+			int? newTeleportInProgressElapsedMicros = tuxState.TeleportInProgressElapsedMicros;
+			if (newIsDeadElapsedMicros == null && canUseTeleport && newHasFinishedLevelElapsedMicros == null && tuxState.TeleportCooldown == null && !tuxState.HasAlreadyUsedTeleport && move.Teleported && !previousMove.Teleported)
+			{
+				soundOutput.PlaySound(GameSound.Teleport);
+
+				newTeleportStartingLocation = new Tuple<int, int>(tuxState.XMibi, tuxState.YMibi);
+				newTeleportInProgressElapsedMicros = 0;
+
+				int deltaX;
+
+				if (move.ArrowRight && !move.ArrowLeft)
+					deltaX = 1;
+				else if (move.ArrowLeft && !move.ArrowRight)
+					deltaX = -1;
+				else
+					deltaX = 0;
+
+				int deltaY;
+
+				if (move.ArrowUp && !move.ArrowDown)
+					deltaY = 1;
+				else if (move.ArrowDown && !move.ArrowUp)
+					deltaY = -1;
+				else
+					deltaY = 0;
+
+				if (deltaX == 0 && deltaY == 0)
+					deltaX = tuxState.IsFacingRight ? 1 : -1;
+
+				int interval = 100;
+
+				if (deltaX == 0 || deltaY == 0)
+					interval = 141;
+
+				while (true)
+				{
+					if (interval == 0)
+					{
+						newTeleportStartingLocation = null;
+						newTeleportInProgressElapsedMicros = null;
+						newTeleportCooldown = TuxState.TELEPORT_COOLDOWN;
+						break;
+					}
+
+					proposedNewXMibi = newXMibi + deltaX * 1024 * interval * 2;
+					proposedNewYMibi = newYMibi + deltaY * 1024 * interval * 2;
+					interval--;
+
+					if (IsTeleportable(tilemap, proposedNewXMibi / 1024 - 4 * 3, proposedNewYMibi / 1024 - 16 * 3)
+						&& IsTeleportable(tilemap, proposedNewXMibi / 1024 - 4 * 3, proposedNewYMibi / 1024 + 8 * 3)
+						&& IsTeleportable(tilemap, proposedNewXMibi / 1024 + 4 * 3, proposedNewYMibi / 1024 - 16 * 3)
+						&& IsTeleportable(tilemap, proposedNewXMibi / 1024 + 4 * 3, proposedNewYMibi / 1024 + 8 * 3))
+					{
+						newXMibi = proposedNewXMibi;
+						newYMibi = proposedNewYMibi;
+						newXSpeedInMibipixelsPerSecond = deltaX * 1024 * (deltaX == 0 || deltaY == 0 ? 1448 : 1024);
+						newYSpeedInMibipixelsPerSecond = deltaY * 1024 * (deltaX == 0 || deltaY == 0 ? 1448 : 1024);
+						newLastTimeOnGround = null;
+						break;
+					}
+				}
+			}
+
 			return new Result(
 				tuxState: new TuxState(
 					xMibi: newXMibi,
@@ -350,6 +472,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					previousJumps: newPreviousJumps,
 					isOnGround: newIsOnGround,
 					lastTimeOnGround: newLastTimeOnGround,
+					teleportStartingLocation: newTeleportStartingLocation,
+					teleportInProgressElapsedMicros: newTeleportInProgressElapsedMicros,
+					teleportCooldown: newTeleportCooldown,
+					hasAlreadyUsedTeleport: tuxState.HasAlreadyUsedTeleport ? !newIsOnGround : false,
 					spriteElapsedMicros: newSpriteElapsedMicros,
 					hasFinishedLevelElapsedMicros: newHasFinishedLevelElapsedMicros,
 					isStillHoldingJumpButton: newIsStillHoldingJumpButton,
@@ -398,6 +524,28 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					y: tuxState.YMibi / 1024 - 16 * 3 + deadYOffset,
 					degreesScaled: 0,
 					scalingFactorScaled: 3 * 128);
+			}
+			else if (tuxState.TeleportInProgressElapsedMicros != null)
+			{
+				long deltaX = tuxState.XMibi - tuxState.TeleportStartingLocation.Item1;
+				long deltaY = tuxState.YMibi - tuxState.TeleportStartingLocation.Item2;
+
+				for (int i = Math.Max(0, tuxState.TeleportInProgressElapsedMicros.Value - 50 * 1000); i < tuxState.TeleportInProgressElapsedMicros.Value; i += 5 * 1000)
+				{
+					int renderXMibi = (int)(tuxState.TeleportStartingLocation.Item1 + deltaX * i / TuxState.TELEPORT_DURATION);
+					int renderYMibi = (int)(tuxState.TeleportStartingLocation.Item2 + deltaY * i / TuxState.TELEPORT_DURATION);
+
+					int alpha = (i - (tuxState.TeleportInProgressElapsedMicros.Value - 50 * 1000)) * 170 / 50000;
+
+					if (alpha > 0 && alpha <= 255)
+						displayOutput.DrawRectangle(
+							x: (renderXMibi >> 10) - 20,
+							y: (renderYMibi >> 10) - 20,
+							width: 40,
+							height: 40,
+							color: new DTColor(255, 255, 255, alpha),
+							fill: true);
+				}
 			}
 			else
 			{

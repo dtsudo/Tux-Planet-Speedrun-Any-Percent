@@ -53,6 +53,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private Button backButton;
 
+		private bool isHoverOverGitHubUrl;
+
 		public CreditsFrame(GlobalState globalState, SessionState sessionState)
 		{
 			this.globalState = globalState;
@@ -81,6 +83,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				textXOffset: 67,
 				textYOffset: 28,
 				font: GameFont.DTSimpleFont20Pt);
+
+			this.isHoverOverGitHubUrl = false;
 		}
 
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
@@ -94,6 +98,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			int mouseX = mouseInput.GetX();
 			int mouseY = mouseInput.GetY();
+
+			this.isHoverOverGitHubUrl = false;
 
 			this.hoverTab = null;
 			foreach (TabButton tabButton in this.tabButtons)
@@ -132,11 +138,28 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				return new TitleScreenFrame(globalState: this.globalState, sessionState: this.sessionState);
 			}
 
+			if (this.selectedTab == Tab.DesignAndCoding)
+			{
+				this.isHoverOverGitHubUrl = Credits_DesignAndCoding.IsHoverOverGitHubUrl(
+					mouse: new TranslatedMouse(mouse: mouseInput, xOffset: -20, yOffset: -120),
+					isWebBrowserVersion: this.globalState.IsWebBrowserVersion,
+					width: 960,
+					height: 450);
+			}
+
 			return this;
 		}
 
 		public void ProcessExtraTime(int milliseconds)
 		{
+		}
+
+		public string GetClickUrl()
+		{
+			if (this.isHoverOverGitHubUrl)
+				return "https://github.com/dtsudo";
+
+			return null;
 		}
 
 		public void ProcessMusic()
@@ -229,7 +252,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				yOffsetInPixels: 120);
 
 			if (this.selectedTab == Tab.DesignAndCoding)
-				Credits_DesignAndCoding.Render(displayOutput: translatedDisplay, isWebBrowserVersion: this.globalState.IsWebBrowserVersion, width: 960, height: 450);
+				Credits_DesignAndCoding.Render(displayOutput: translatedDisplay, isHoverOverGitHubUrl: this.isHoverOverGitHubUrl, isWebBrowserVersion: this.globalState.IsWebBrowserVersion, width: 960, height: 450);
 			if (this.selectedTab == Tab.Images)
 				Credits_Images.Render(displayOutput: translatedDisplay, width: 960, height: 450);
 			if (this.selectedTab == Tab.Font)

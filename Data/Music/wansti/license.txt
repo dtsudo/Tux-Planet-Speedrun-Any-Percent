@@ -4,8 +4,6 @@ This file was copied from the SuperTux codebase ( https://github.com/SuperTux/su
 
 No changes were made to theme.ogg.
 
-theme.wav was created by converting theme.ogg to a .wav format.
-
 -------------------------------------------------------------------------
 
 License:

@@ -17,6 +17,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		string GetCutscene(int x, int y);
 
+		Tuple<int, int> GetCheckpoint(int x, int y);
+
 		int GetWidth();
 
 		int GetHeight();

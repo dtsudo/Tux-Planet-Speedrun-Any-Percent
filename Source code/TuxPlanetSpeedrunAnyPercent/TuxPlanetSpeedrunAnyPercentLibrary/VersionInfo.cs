@@ -28,6 +28,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			List<VersionInfo> list = new List<VersionInfo>();
 
 			list.Add(new VersionInfo(version: "1.00", alphanumericVersionGuid: "1204514613893229"));
+			list.Add(new VersionInfo(version: "1.01", alphanumericVersionGuid: "3012096945791874"));
 
 			return list;
 		}

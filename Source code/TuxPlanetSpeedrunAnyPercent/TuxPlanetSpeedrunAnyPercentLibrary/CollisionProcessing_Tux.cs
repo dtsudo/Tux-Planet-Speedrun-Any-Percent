@@ -88,7 +88,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					newEnemies.Add(enemy.GetDeadEnemy());
 
 					newTuxState = newTuxState.SetYSpeedInMibipixelsPerSecond(ySpeedInMibipixelsPerSecond: TuxState.JUMP_Y_SPEED)
-						.SetIsStillHoldingJumpButton(true);
+						.SetIsStillHoldingJumpButton(true)
+						.SetLastTimeOnGround(null)
+						.SetHasAlreadyUsedTeleport(false);
 				}
 				else if (hasCollided)
 				{

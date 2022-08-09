@@ -29,6 +29,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			IDTDeterministicRandom random)
 		{
+			GameMusic gameMusic = LevelConfigurationHelper.GetRandomGameMusic(random: random);
+
 			EnemyIdGenerator enemyIdGenerator = new EnemyIdGenerator();
 
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
@@ -38,9 +40,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level5A_Start"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128),
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic),
 				xOffset: 0,
-				yOffset: 0);
+				yOffset: 0,
+				alwaysIncludeTilemap: false);
 
 			list.Add(startTilemap);
 
@@ -60,12 +64,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo[mapInfoName],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 				CompositeTilemap.TilemapWithOffset fragmentTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 					tilemap: fragmentTilemap,
 					xOffset: xOffset,
-					yOffset: yOffset);
+					yOffset: yOffset,
+				alwaysIncludeTilemap: false);
 
 				list.Add(fragmentTilemapWithOffset);
 
@@ -90,9 +96,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level5C_Finish"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128),
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic),
 				xOffset: xOffset,
-				yOffset: 0);
+				yOffset: 0,
+				alwaysIncludeTilemap: false);
 
 			list.Add(finishTilemap);
 

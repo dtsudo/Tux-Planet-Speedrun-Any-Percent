@@ -7,14 +7,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class LevelTransitionFrame : IFrame<GameImage, GameFont, GameSound, GameMusic>
 	{
 		private GlobalState globalState;
-		private SessionState sessionState;
 		private IFrame<GameImage, GameFont, GameSound, GameMusic> previousFrame;
 		private IFrame<GameImage, GameFont, GameSound, GameMusic> newFrame;
 
 		private int elapsedMicros;
-
-		private bool showRestartLevelOptionInPauseMenuOnFadeOut;
-		private bool showRestartLevelOptionInPauseMenuOnFadeIn;
 
 		private bool isFadingIn;
 		private bool hasAdvancedPreviousFrameAtLeastOnce;
@@ -24,45 +20,28 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public LevelTransitionFrame(
 			GlobalState globalState, 
-			SessionState sessionState, 
 			IFrame<GameImage, GameFont, GameSound, GameMusic> previousFrame,
-			IFrame<GameImage, GameFont, GameSound, GameMusic> newFrame,
-			bool showRestartLevelOptionInPauseMenuOnFadeOut,
-			bool showRestartLevelOptionInPauseMenuOnFadeIn)
+			IFrame<GameImage, GameFont, GameSound, GameMusic> newFrame)
 		{
 			this.globalState = globalState;
-			this.sessionState = sessionState;
 			this.previousFrame = previousFrame;
 			this.newFrame = newFrame;
 			this.elapsedMicros = 0;
-
-			this.showRestartLevelOptionInPauseMenuOnFadeOut = showRestartLevelOptionInPauseMenuOnFadeOut;
-			this.showRestartLevelOptionInPauseMenuOnFadeIn = showRestartLevelOptionInPauseMenuOnFadeIn;
 
 			this.isFadingIn = false;
 			this.hasAdvancedPreviousFrameAtLeastOnce = false;
 		}
 
-		private class KeyboardWithoutEsc : IKeyboard
-		{
-			private IKeyboard underlyingKeyboard;
-
-			public KeyboardWithoutEsc(IKeyboard underlyingKeyboard)
-			{
-				this.underlyingKeyboard = underlyingKeyboard;
-			}
-
-			public bool IsPressed(Key key)
-			{
-				if (key == Key.Esc)
-					return false;
-
-				return this.underlyingKeyboard.IsPressed(key);
-			}
-		}
-
 		public void ProcessExtraTime(int milliseconds)
 		{
+		}
+
+		public string GetClickUrl()
+		{
+			if (this.isFadingIn)
+				return this.newFrame.GetClickUrl();
+
+			return null;
 		}
 
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
@@ -101,9 +80,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (this.isFadingIn)
 			{
 				this.newFrame = this.newFrame.GetNextFrame(
-					keyboardInput: new KeyboardWithoutEsc(keyboardInput),
+					keyboardInput: keyboardInput,
 					mouseInput: mouseInput,
-					previousKeyboardInput: new KeyboardWithoutEsc(previousKeyboardInput),
+					previousKeyboardInput: previousKeyboardInput,
 					previousMouseInput: previousMouseInput,
 					displayProcessing: displayProcessing,
 					soundOutput: soundOutput,
@@ -115,15 +94,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (this.elapsedMicros > DURATION_OF_FADE_OUT + DURATION_OF_FADE_IN)
 				return this.newFrame;
-
-			if (keyboardInput.IsPressed(Key.Esc) && !previousKeyboardInput.IsPressed(Key.Esc))
-			{
-				return new PauseMenuFrame(
-					globalState: this.globalState, 
-					sessionState: this.sessionState, 
-					underlyingFrame: this, 
-					showRestartLevelOption: !this.isFadingIn ? this.showRestartLevelOptionInPauseMenuOnFadeOut : this.showRestartLevelOptionInPauseMenuOnFadeIn);
-			}
 
 			return this;
 		}

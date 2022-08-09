@@ -9,13 +9,15 @@ namespace TuxPlanetSpeedrunAnyPercent
 
 	public class BridgeKeyboard : IKeyboard
 	{
-		public BridgeKeyboard()
+		public BridgeKeyboard(bool disableArrowKeyScrolling)
 		{
 			Script.Eval(@"
 				window.BridgeKeyboardJavascript = ((function () {
 					'use strict';
 					
 					var keysBeingPressed = [];
+					
+					var disableArrowKeyScrolling = " + (disableArrowKeyScrolling ? "true" : "false") + @";
 					
 					var mapKeyToCanonicalKey = function (key) {
 						if (key === 'A')
@@ -95,6 +97,11 @@ namespace TuxPlanetSpeedrunAnyPercent
 					};
 					
 					var keyDownHandler = function (e) {
+						
+						if (disableArrowKeyScrolling) {
+							if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === ' ')
+								e.preventDefault();
+						}
 						
 						var key = mapKeyToCanonicalKey(e.key);
 						

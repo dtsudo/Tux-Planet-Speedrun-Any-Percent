@@ -12,19 +12,31 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public LevelConfiguration_Level2(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
+			bool canAlreadyUseSaveStates,
 			IDTDeterministicRandom random)
 		{
 			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(
 				mapInfo: mapInfo,
+				canAlreadyUseSaveStates: canAlreadyUseSaveStates,
 				random: random);
+
+			if (canAlreadyUseSaveStates)
+				unnormalizedTilemaps.Add(new CompositeTilemap.TilemapWithOffset(
+					tilemap: new SpawnRemoveKonqiTilemap(),
+					xOffset: 0,
+					yOffset: 0,
+					alwaysIncludeTilemap: true));
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 		}
 
 		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
-			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
+			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
+			bool canAlreadyUseSaveStates,
 			IDTDeterministicRandom random)
 		{
+			GameMusic gameMusic = LevelConfigurationHelper.GetRandomGameMusic(random: random);
+
 			EnemyIdGenerator enemyIdGenerator = new EnemyIdGenerator();
 
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
@@ -34,9 +46,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2A_Start"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128),
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic),
 				xOffset: 0,
-				yOffset: 0);
+				yOffset: 0,
+				alwaysIncludeTilemap: false);
 
 			list.Add(startTilemapWithOffset);
 
@@ -44,18 +58,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2B_Drop1"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			ITilemap chooseAPath1TilemapB = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level2B_Drop2"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset chooseAPath1TilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: random.NextBool() ? chooseAPath1TilemapA : chooseAPath1TilemapB,
 				xOffset: 0,
-				yOffset: -chooseAPath1TilemapA.GetHeight());
+				yOffset: -chooseAPath1TilemapA.GetHeight(),
+				alwaysIncludeTilemap: false);
 
 			list.Add(chooseAPath1TilemapWithOffset);
 
@@ -63,12 +80,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2B_Platform"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset level2bPlatformTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: level2bPlatformTilemap,
 				xOffset: 0,
-				yOffset: chooseAPath1TilemapWithOffset.YOffset - level2bPlatformTilemap.GetHeight());
+				yOffset: chooseAPath1TilemapWithOffset.YOffset - level2bPlatformTilemap.GetHeight(),
+				alwaysIncludeTilemap: false);
 
 			list.Add(level2bPlatformTilemapWithOffset);
 
@@ -76,18 +95,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2B_Drop1"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			ITilemap chooseAPath2TilemapB = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level2B_Drop2"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset chooseAPath2TilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: random.NextBool() ? chooseAPath2TilemapA : chooseAPath2TilemapB,
 				xOffset: 0,
-				yOffset: level2bPlatformTilemapWithOffset.YOffset - chooseAPath2TilemapA.GetHeight());
+				yOffset: level2bPlatformTilemapWithOffset.YOffset - chooseAPath2TilemapA.GetHeight(),
+				alwaysIncludeTilemap: false);
 
 			list.Add(chooseAPath2TilemapWithOffset);
 
@@ -95,12 +117,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2C_LowerFloor"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset level2cLowerFloorTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: level2cLowerFloorTilemap,
 				xOffset: chooseAPath2TilemapWithOffset.XOffset,
-				yOffset: chooseAPath2TilemapWithOffset.YOffset - level2cLowerFloorTilemap.GetHeight());
+				yOffset: chooseAPath2TilemapWithOffset.YOffset - level2cLowerFloorTilemap.GetHeight(),
+				alwaysIncludeTilemap: false);
 
 			list.Add(level2cLowerFloorTilemapWithOffset);
 
@@ -108,12 +132,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2D_Cutscene"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: CutsceneProcessing.SAVESTATE_CUTSCENE,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset cutsceneTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
-				tilemap: cutsceneTilemap,
+				tilemap: canAlreadyUseSaveStates ? new NoCutsceneWrappedTilemap(tilemap: cutsceneTilemap) : cutsceneTilemap,
 				xOffset: level2cLowerFloorTilemapWithOffset.XOffset + level2cLowerFloorTilemap.GetWidth(),
-				yOffset: level2cLowerFloorTilemapWithOffset.YOffset);
+				yOffset: level2cLowerFloorTilemapWithOffset.YOffset,
+				alwaysIncludeTilemap: false);
 
 			list.Add(cutsceneTilemapWithOffset);
 
@@ -121,12 +147,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2E"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset level2eTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: level2eTilemap,
 				xOffset: cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.GetWidth(),
-				yOffset: cutsceneTilemapWithOffset.YOffset + 20 * 16 * 3);
+				yOffset: cutsceneTilemapWithOffset.YOffset + 20 * 16 * 3,
+				alwaysIncludeTilemap: false);
 
 			list.Add(level2eTilemapWithOffset);
 
@@ -134,27 +162,32 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2F_Drop1"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 			ITilemap level2fTilemapB = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level2F_Drop2"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 			ITilemap level2fTilemapC = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level2F_Drop3"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 			ITilemap level2fTilemapD = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level2F_Drop4"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset level2fTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: random.NextBool() ? (random.NextBool() ? level2fTilemapA : level2fTilemapB) : (random.NextBool() ? level2fTilemapC : level2fTilemapD),
 				xOffset: level2eTilemapWithOffset.XOffset,
-				yOffset: level2eTilemapWithOffset.YOffset - level2fTilemapA.GetHeight());
+				yOffset: level2eTilemapWithOffset.YOffset - level2fTilemapA.GetHeight(),
+				alwaysIncludeTilemap: false);
 
 			list.Add(level2fTilemapWithOffset);
 
@@ -162,12 +195,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2F_Platform"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset level2fPlatformTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: level2fPlatformTilemap,
 				xOffset: level2fTilemapWithOffset.XOffset,
-				yOffset: level2fTilemapWithOffset.YOffset - level2fPlatformTilemap.GetHeight());
+				yOffset: level2fTilemapWithOffset.YOffset - level2fPlatformTilemap.GetHeight(),
+				alwaysIncludeTilemap: false);
 
 			list.Add(level2fPlatformTilemapWithOffset);
 
@@ -175,27 +210,32 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2F_Drop1"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 			ITilemap level2fTilemapB2 = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level2F_Drop2"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 			ITilemap level2fTilemapC2 = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level2F_Drop3"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 			ITilemap level2fTilemapD2 = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level2F_Drop4"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset level2fTilemapWithOffset2 = new CompositeTilemap.TilemapWithOffset(
 				tilemap: random.NextBool() ? (random.NextBool() ? level2fTilemapA2 : level2fTilemapB2) : (random.NextBool() ? level2fTilemapC2 : level2fTilemapD2),
 				xOffset: level2fPlatformTilemapWithOffset.XOffset,
-				yOffset: level2fPlatformTilemapWithOffset.YOffset - level2fTilemapA2.GetHeight());
+				yOffset: level2fPlatformTilemapWithOffset.YOffset - level2fTilemapA2.GetHeight(),
+				alwaysIncludeTilemap: false);
 
 			list.Add(level2fTilemapWithOffset2);
 
@@ -203,12 +243,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					data: mapInfo["Level2G_Finish"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
-					scalingFactorScaled: 3 * 128);
+					scalingFactorScaled: 3 * 128,
+					gameMusic: gameMusic);
 
 			list.Add(new CompositeTilemap.TilemapWithOffset(
 				tilemap: finishTilemap,
 				xOffset: level2fTilemapWithOffset2.XOffset,
-				yOffset: level2fTilemapWithOffset2.YOffset - finishTilemap.GetHeight()));
+				yOffset: level2fTilemapWithOffset2.YOffset - finishTilemap.GetHeight(),
+				alwaysIncludeTilemap: false));
 
 			return list;
 		}
