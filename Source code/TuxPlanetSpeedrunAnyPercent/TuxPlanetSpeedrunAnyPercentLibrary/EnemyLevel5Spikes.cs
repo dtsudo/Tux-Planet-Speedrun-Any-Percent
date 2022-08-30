@@ -52,7 +52,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqi { get { return false; } }
+		public bool IsKonqiCutscene { get { return false; } }
 
 		public bool IsRemoveKonqi { get { return false; } }
 
@@ -63,7 +63,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return null;
 		}
 
-		public Tuple<int, int> GetKonqiLocation()
+		public Tuple<int, int> GetKonqiCutsceneLocation()
 		{
 			return null;
 		}
@@ -90,8 +90,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int cameraY, 
 			int windowWidth, 
 			int windowHeight, 
-			int elapsedMicrosPerFrame, 
-			ITilemap tilemap)
+			int elapsedMicrosPerFrame,
+			TuxState tuxState,
+			IDTDeterministicRandom random,
+			ITilemap tilemap,
+			IReadOnlyList<string> levelFlags,
+			ISoundOutput<GameSound> soundOutput)
 		{
 			int newXMibi = this.xMibi + elapsedMicrosPerFrame * 400 / 1000;
 
@@ -110,7 +114,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						emptyStringList: this.emptyStringList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList);
+				newlyKilledEnemies: this.emptyStringList,
+				newlyAddedLevelFlags: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

@@ -2,6 +2,7 @@
 namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
 	using DTLibrary;
+	using System.Collections.Generic;
 
 	public class TestingSoundFrame : IFrame<GameImage, GameFont, GameSound, GameMusic>
 	{
@@ -27,6 +28,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		public string GetClickUrl()
+		{
+			return null;
+		}
+
+		public HashSet<string> GetCompletedAchievements()
 		{
 			return null;
 		}

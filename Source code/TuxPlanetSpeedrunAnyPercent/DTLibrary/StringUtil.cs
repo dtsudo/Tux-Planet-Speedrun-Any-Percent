@@ -38,6 +38,11 @@ namespace DTLibrary
 			return (int)result.Value;
 		}
 
+		public static int ParseAsIntCultureInvariant(this string str)
+		{
+			return ParseInt(str);
+		}
+
 		public static int ParseInt(string str)
 		{
 			int? val = TryParseInt(str);

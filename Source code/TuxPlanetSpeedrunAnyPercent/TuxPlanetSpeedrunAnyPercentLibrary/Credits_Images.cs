@@ -11,6 +11,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				+ "* Benjamin K. Smith, Lanea Zimmerman (AKA Sharm), Daniel Eddeland, \n"
 				+ "   William.Thompsonj, Nushio, Adrix89 \n"
 				+ "* FrostC \n"
+				+ "* Grumbel \n"
+				+ "* Jetrel \n"
 				+ "* Kelvin Shadewing \n"
 				+ "* Kenney \n"
 				+ "* KnoblePersona \n"

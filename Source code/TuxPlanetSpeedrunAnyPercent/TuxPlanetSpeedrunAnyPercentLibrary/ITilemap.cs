@@ -25,6 +25,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		Tuple<int, int> GetTuxLocation(int xOffset, int yOffset);
 
+		Tuple<int, int> GetMapKeyLocation(MapKey mapKey, int xOffset, int yOffset);
+
 		IReadOnlyList<IEnemy> GetEnemies(int xOffset, int yOffset);
 
 		GameMusic? PlayMusic();

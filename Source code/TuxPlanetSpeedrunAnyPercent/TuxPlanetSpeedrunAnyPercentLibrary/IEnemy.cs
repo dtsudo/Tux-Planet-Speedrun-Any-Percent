@@ -9,13 +9,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	{
 		string EnemyId { get; }
 
-		bool IsKonqi { get; }
+		bool IsKonqiCutscene { get; }
 
 		bool IsRemoveKonqi { get; }
 
 		bool ShouldAlwaysSpawnRegardlessOfCamera { get; }
 
-		Tuple<int, int> GetKonqiLocation();
+		Tuple<int, int> GetKonqiCutsceneLocation();
 
 		EnemyProcessing.Result ProcessFrame(
 			int cameraX,
@@ -23,7 +23,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			int elapsedMicrosPerFrame,
-			ITilemap tilemap);
+			TuxState tuxState,
+			IDTDeterministicRandom random,
+			ITilemap tilemap,
+			IReadOnlyList<string> levelFlags,
+			ISoundOutput<GameSound> soundOutput);
 
 		IReadOnlyList<Hitbox> GetHitboxes();
 

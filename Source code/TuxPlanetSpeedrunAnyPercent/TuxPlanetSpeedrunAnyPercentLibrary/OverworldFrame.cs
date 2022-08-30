@@ -37,6 +37,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return null;
 		}
 
+		public HashSet<string> GetCompletedAchievements()
+		{
+			return Achievements.GetCompletedAchievements(numCompletedLevels: this.sessionState.Overworld.GetNumCompletedLevels());
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,

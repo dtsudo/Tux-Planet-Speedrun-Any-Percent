@@ -7,79 +7,98 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 	public class SpawnRemoveKonqiTilemap : ITilemap
 	{
-		private List<IEnemy> removeKonqiEnemy;
+		private IEnemy removeKonqiEnemy;
+		private ITilemap tilemap;
 
-		public SpawnRemoveKonqiTilemap()
+		public SpawnRemoveKonqiTilemap(ITilemap tilemap)
 		{
-			this.removeKonqiEnemy = new List<IEnemy>()
-			{
-				new EnemyRemoveKonqiCutscene(enemyId: "SpawnRemoveKonqiTilemap_removeKonqi")
-			};
+			this.removeKonqiEnemy = new EnemyRemoveKonqiCutscene(enemyId: "SpawnRemoveKonqiTilemap_removeKonqi");
+			this.tilemap = tilemap;
 		}
 
 		public bool IsGround(int x, int y)
 		{
-			return false;
+			return this.tilemap.IsGround(x: x, y: y);
 		}
 
 		public bool IsKillZone(int x, int y)
 		{
-			return false;
+			return this.tilemap.IsKillZone(x: x, y: y);
 		}
 
 		public bool IsSpikes(int x, int y)
 		{
-			return false;
+			return this.tilemap.IsSpikes(x: x, y: y);
 		}
 
 		public bool IsEndOfLevel(int x, int y)
 		{
-			return false;
+			return this.tilemap.IsEndOfLevel(x: x, y: y);
 		}
 
 		public string GetCutscene(int x, int y)
 		{
-			return null;
+			return this.tilemap.GetCutscene(x: x, y: y);
 		}
 
 		public Tuple<int, int> GetCheckpoint(int x, int y)
 		{
-			return null;
+			return this.tilemap.GetCheckpoint(x: x, y: y);
 		}
 
 		public int GetWidth()
 		{
-			return 100; // arbitrary
+			return this.tilemap.GetWidth();
 		}
 
 		public int GetHeight()
 		{
-			return 100; // arbitrary
+			return this.tilemap.GetHeight();
 		}
 
 		public Tuple<int, int> GetTuxLocation(int xOffset, int yOffset)
 		{
-			return null;
+			return this.tilemap.GetTuxLocation(xOffset: xOffset, yOffset: yOffset);
+		}
+
+		public Tuple<int, int> GetMapKeyLocation(MapKey mapKey, int xOffset, int yOffset)
+		{
+			return this.tilemap.GetMapKeyLocation(mapKey: mapKey, xOffset: xOffset, yOffset: yOffset);
 		}
 
 		public IReadOnlyList<IEnemy> GetEnemies(int xOffset, int yOffset)
 		{
-			// EnemyRemoveKonqiCutscene doesn't have an (x,y) coordinate,
-			// so xOffset and yOffset don't need to be handled.
-			return this.removeKonqiEnemy;
+			IReadOnlyList<IEnemy> enemies = this.tilemap.GetEnemies(xOffset: xOffset, yOffset: yOffset);
+
+			List<IEnemy> returnValue = new List<IEnemy>(enemies);
+			returnValue.Add(this.removeKonqiEnemy);
+
+			return returnValue;
 		}
 
 		public GameMusic? PlayMusic()
 		{
-			return null;
+			return this.tilemap.PlayMusic();
 		}
 
 		public void RenderBackgroundTiles(IDisplayOutput<GameImage, GameFont> displayOutput, int cameraX, int cameraY, int windowWidth, int windowHeight)
 		{
+			this.tilemap.RenderBackgroundTiles(
+				displayOutput: displayOutput,
+				cameraX: cameraX,
+				cameraY: cameraY,
+				windowWidth: windowWidth,
+				windowHeight: windowHeight);
 		}
 
 		public void RenderForegroundTiles(IDisplayOutput<GameImage, GameFont> displayOutput, int cameraX, int cameraY, int windowWidth, int windowHeight)
 		{
+			this.tilemap.RenderForegroundTiles(
+				displayOutput: displayOutput,
+				cameraX: cameraX,
+				cameraY: cameraY,
+				windowWidth: windowWidth,
+				windowHeight: windowHeight);
 		}
 	}
 }

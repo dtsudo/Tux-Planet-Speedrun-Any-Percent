@@ -3,6 +3,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
 	using DTLibrary;
 	using System;
+	using System.Collections.Generic;
 
 	public class LevelTransitionFrame : IFrame<GameImage, GameFont, GameSound, GameMusic>
 	{
@@ -41,6 +42,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (this.isFadingIn)
 				return this.newFrame.GetClickUrl();
 
+			return null;
+		}
+
+		public HashSet<string> GetCompletedAchievements()
+		{
 			return null;
 		}
 

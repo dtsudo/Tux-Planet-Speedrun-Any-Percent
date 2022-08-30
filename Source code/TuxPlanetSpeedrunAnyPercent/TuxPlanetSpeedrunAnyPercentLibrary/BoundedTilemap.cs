@@ -71,6 +71,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return this.tilemap.GetTuxLocation(xOffset: xOffset, yOffset: yOffset);
 		}
 
+		public Tuple<int, int> GetMapKeyLocation(MapKey mapKey, int xOffset, int yOffset)
+		{
+			return this.tilemap.GetMapKeyLocation(mapKey: mapKey, xOffset: xOffset, yOffset: yOffset);
+		}
+
 		public IReadOnlyList<IEnemy> GetEnemies(int xOffset, int yOffset)
 		{
 			return this.tilemap.GetEnemies(xOffset: xOffset, yOffset: yOffset);

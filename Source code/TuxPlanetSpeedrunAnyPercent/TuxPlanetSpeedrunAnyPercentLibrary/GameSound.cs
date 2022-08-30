@@ -10,7 +10,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		Die,
 		Squish,
 		Jump,
-		Teleport
+		Teleport,
+		Explosion02
 	}
 
 	public static class GameSoundUtil
@@ -37,6 +38,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case GameSound.Squish: return new SoundFilenameInfo(defaultFilename: "SuperTux/squish.wav", wavFilename: "SuperTux/squish.wav");
 				case GameSound.Jump: return new SoundFilenameInfo(defaultFilename: "LittleRobotSoundFactory/Jump_03.wav", wavFilename: "LittleRobotSoundFactory/Jump_03.wav");
 				case GameSound.Teleport: return new SoundFilenameInfo(defaultFilename: "Basto/heavy_splash.ogg", wavFilename: "Basto/heavy_splash.wav");
+				case GameSound.Explosion02: return new SoundFilenameInfo(defaultFilename: "LittleRobotSoundFactory/Explosion_02.wav", wavFilename: "LittleRobotSoundFactory/Explosion_02.wav");
 				default: throw new Exception();
 			}
 		}
@@ -52,6 +54,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case GameSound.Squish: return 30;
 				case GameSound.Jump: return 30;
 				case GameSound.Teleport: return 30;
+				case GameSound.Explosion02: return 10;
 				default: throw new Exception();
 			}
 		}

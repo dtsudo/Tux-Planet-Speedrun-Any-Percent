@@ -1,6 +1,7 @@
 ﻿
 namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
+	using DTLibrary;
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
@@ -11,14 +12,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			public Result(
 				IReadOnlyList<IEnemy> enemies,
-				IReadOnlyList<string> newlyKilledEnemies)
+				IReadOnlyList<string> newlyKilledEnemies,
+				IReadOnlyList<string> newlyAddedLevelFlags)
 			{
 				this.Enemies = new List<IEnemy>(enemies);
 				this.NewlyKilledEnemies = new List<string>(newlyKilledEnemies);
+				if (newlyAddedLevelFlags == null)
+					this.NewlyAddedLevelFlags = new List<string>();
+				else
+					this.NewlyAddedLevelFlags = new List<string>(newlyAddedLevelFlags);
 			}
 
 			public IReadOnlyList<IEnemy> Enemies { get; private set; }
 			public IReadOnlyList<string> NewlyKilledEnemies { get; private set; }
+			public IReadOnlyList<string> NewlyAddedLevelFlags { get; private set; }
 		}
 
 		public static Result ProcessFrame(
@@ -27,10 +34,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int cameraY,
 			int windowWidth,
 			int windowHeight,
+			TuxState tuxState,
+			IDTDeterministicRandom random,
 			IReadOnlyList<IEnemy> enemies,
 			IReadOnlyList<string> killedEnemies,
+			IReadOnlyList<string> levelFlags,
+			ISoundOutput<GameSound> soundOutput,
 			int elapsedMicrosPerFrame)
 		{
+			HashSet<string> newlyAddedLevelFlags = new HashSet<string>();
+
 			HashSet<string> existingEnemies = new HashSet<string>();
 			foreach (IEnemy enemy in enemies)
 				existingEnemies.Add(enemy.EnemyId);
@@ -60,7 +73,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					windowWidth: windowWidth,
 					windowHeight: windowHeight,
 					elapsedMicrosPerFrame: elapsedMicrosPerFrame,
-					tilemap: tilemap);
+					tuxState: tuxState,
+					random: random,
+					tilemap: tilemap,
+					levelFlags: levelFlags,
+					soundOutput: soundOutput);
 
 				foreach (IEnemy e in result.Enemies)
 				{
@@ -71,6 +88,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					}
 				}
 				newlyKilledEnemies.AddRange(result.NewlyKilledEnemies);
+
+				foreach (string levelFlag in result.NewlyAddedLevelFlags)
+					newlyAddedLevelFlags.Add(levelFlag);
 			}
 
 			foreach (IEnemy enemy in newEnemies)
@@ -81,7 +101,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					windowWidth: windowWidth,
 					windowHeight: windowHeight,
 					elapsedMicrosPerFrame: elapsedMicrosPerFrame,
-					tilemap: tilemap);
+					tuxState: tuxState,
+					random: random,
+					tilemap: tilemap,
+					levelFlags: levelFlags,
+					soundOutput: soundOutput);
 
 				foreach (IEnemy e in result.Enemies)
 				{
@@ -92,11 +116,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					}
 				}
 				newlyKilledEnemies.AddRange(result.NewlyKilledEnemies);
+
+				foreach (string levelFlag in result.NewlyAddedLevelFlags)
+					newlyAddedLevelFlags.Add(levelFlag);
 			}
 
 			return new Result(
 				enemies: processedEnemies,
-				newlyKilledEnemies: newlyKilledEnemies);
+				newlyKilledEnemies: newlyKilledEnemies,
+				newlyAddedLevelFlags: newlyAddedLevelFlags.ToList());
 		}
 	}
 }

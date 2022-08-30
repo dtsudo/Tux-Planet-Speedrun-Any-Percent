@@ -1,5 +1,7 @@
 The files in this folder were created by Kelvin Shadewing (http://www.kelvinshadewing.net/) and are licensed under AGPL 3.0.
 
+tsCastle.png was modified from Jetrel's castle platformer assets (https://opengameart.org/content/castle-platformer).
+
 ------------------------------------------------------------------------------------------
 
                     GNU AFFERO GENERAL PUBLIC LICENSE

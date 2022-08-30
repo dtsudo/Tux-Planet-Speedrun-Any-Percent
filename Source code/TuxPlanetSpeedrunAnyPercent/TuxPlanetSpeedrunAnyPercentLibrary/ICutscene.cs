@@ -11,11 +11,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			Move move,
 			int tuxXMibi,
 			int tuxYMibi,
-			CameraState cameraState, 
+			CameraState cameraState,
 			int elapsedMicrosPerFrame,
 			int windowWidth,
 			int windowHeight,
-			ITilemap tilemap);
+			ITilemap tilemap,
+			IReadOnlyList<IEnemy> enemies,
+			IReadOnlyList<string> levelFlags);
 
 		string GetCutsceneName();
 

@@ -24,6 +24,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<CompositeTilemap.TilemapWithOffset> normalizedTilemaps,
 			int? tuxX, 
 			int? tuxY, 
+			MapKeyState mapKeyState,
 			int windowWidth, 
 			int windowHeight)
 		{
@@ -44,7 +45,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			if (tuxX == null || tuxY == null)
-				return new BoundedTilemap(tilemap: new CompositeTilemap(normalizedTilemaps: normalizedTilemaps, width: tilemapWidth, height: tilemapHeight));
+				return new BoundedTilemap(tilemap: new CompositeTilemap(
+					normalizedTilemaps: normalizedTilemaps, 
+					width: tilemapWidth, 
+					height: tilemapHeight,
+					tuxX: tuxX,
+					tuxY: tuxY,
+					mapKeyState: mapKeyState));
 
 			if (tuxX.Value > tilemapWidth)
 				tuxX = tilemapWidth;
@@ -91,7 +98,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				tilemapsNearTux.Add(tilemap);
 			}
 
-			return new BoundedTilemap(tilemap: new CompositeTilemap(normalizedTilemaps: tilemapsNearTux, width: tilemapWidth, height: tilemapHeight));
+			return new BoundedTilemap(tilemap: new CompositeTilemap(
+				normalizedTilemaps: tilemapsNearTux, 
+				width: tilemapWidth, 
+				height: tilemapHeight,
+				tuxX: tuxX,
+				tuxY: tuxY,
+				mapKeyState: mapKeyState));
 		}
 	}
 }

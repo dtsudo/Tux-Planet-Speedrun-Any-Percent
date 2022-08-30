@@ -287,7 +287,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (!newIsStillHoldingJumpButton && tuxState.IsStillHoldingJumpButton)
 				newYSpeedInMibipixelsPerSecond = newYSpeedInMibipixelsPerSecond * 2 / 5;
 
-			if (!tuxState.IsOnGround && newYSpeedInMibipixelsPerSecond >= -5000 * 1000)
+			if (!tuxState.IsOnGround && newYSpeedInMibipixelsPerSecond >= -4000 * 1000)
 				newYSpeedInMibipixelsPerSecond -= elapsedMicrosPerFrame * 3;
 
 			int proposedNewYMibi = (int)(((long)newYMibi) + ((long)newYSpeedInMibipixelsPerSecond) * ((long)elapsedMicrosPerFrame) / 1024L / 1024L);

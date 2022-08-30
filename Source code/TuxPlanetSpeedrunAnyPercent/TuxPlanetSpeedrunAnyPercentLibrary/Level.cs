@@ -11,7 +11,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		Level2,
 		Level3,
 		Level4,
-		Level5
+		Level5,
+		Level6
 	}
 
 	public static class LevelUtil
@@ -24,8 +25,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case Level.Level2:
 				case Level.Level3:
 				case Level.Level4:
-					return false;
 				case Level.Level5:
+					return false;
+				case Level.Level6:
 					return true;
 				default:
 					throw new Exception();
@@ -41,6 +43,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case Level.Level3: return "Level 3";
 				case Level.Level4: return "Level 4";
 				case Level.Level5: return "Level 5";
+				case Level.Level6: return "Level 6";
 				default: throw new Exception();
 			}
 		}
@@ -54,6 +57,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case Level.Level3: return 3;
 				case Level.Level4: return 4;
 				case Level.Level5: return 5;
+				case Level.Level6: return 6;
 				default: throw new Exception();
 			}
 		}
@@ -63,7 +67,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			Level? level = TryFromSerializableInt(i);
 
 			if (level == null)
-				throw new Exception();
+				throw new DTDeserializationException();
 
 			return level.Value;
 		}
@@ -77,6 +81,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case 3: return Level.Level3;
 				case 4: return Level.Level4;
 				case 5: return Level.Level5;
+				case 6: return Level.Level6;
 				default: return null;
 			}
 		}

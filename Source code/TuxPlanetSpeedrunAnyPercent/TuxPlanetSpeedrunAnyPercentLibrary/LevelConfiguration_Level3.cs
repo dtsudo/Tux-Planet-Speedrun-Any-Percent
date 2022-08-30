@@ -8,6 +8,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class LevelConfiguration_Level3 : ILevelConfiguration
 	{
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
+		private bool shouldSpawnRemoveKonqi;
+		private IBackground background;
 
 		public LevelConfiguration_Level3(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
@@ -19,14 +21,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				canAlreadyUseTeleport: canAlreadyUseTeleport,
 				random: random);
 
-			if (canAlreadyUseTeleport)
-				unnormalizedTilemaps.Add(new CompositeTilemap.TilemapWithOffset(
-					tilemap: new SpawnRemoveKonqiTilemap(),
-					xOffset: 0,
-					yOffset: 0,
-					alwaysIncludeTilemap: true));
+			this.shouldSpawnRemoveKonqi = canAlreadyUseTeleport;
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
+
+			this.background = BackgroundUtil.GetRandomBackground(random: random);
 		}
 
 		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
@@ -40,7 +39,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
 
-			ITilemap startTilemap = MapDataTilemapGenerator.GetTilemap(
+			Tilemap startTilemap = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level3A_Start"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
@@ -55,7 +54,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			list.Add(startTilemapWithOffset);
 
-			ITilemap dropTilemap = MapDataTilemapGenerator.GetTilemap(
+			Tilemap dropTilemap = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level3B_Drop"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
@@ -70,7 +69,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			list.Add(dropTilemapWithOffset);
 
-			ITilemap cutsceneTilemap = MapDataTilemapGenerator.GetTilemap(
+			Tilemap cutsceneTilemap = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level3C_Cutscene"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: CutsceneProcessing.TELEPORT_CUTSCENE,
@@ -78,14 +77,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset cutsceneTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
-				tilemap: canAlreadyUseTeleport ? new NoCutsceneWrappedTilemap(tilemap: cutsceneTilemap) : cutsceneTilemap,
+				tilemap: canAlreadyUseTeleport ? Tilemap.GetTilemapWithoutCutscene(tilemap: cutsceneTilemap) : cutsceneTilemap,
 				xOffset: dropTilemapWithOffset.XOffset + dropTilemap.GetWidth() + random.NextInt(10) * 16 * 3,
 				yOffset: dropTilemapWithOffset.YOffset - 30 * 16 * 3,
 				alwaysIncludeTilemap: false);
 
 			list.Add(cutsceneTilemapWithOffset);
 
-			ITilemap finishTilemap = MapDataTilemapGenerator.GetTilemap(
+			Tilemap finishTilemap = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level3D_Finish"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
@@ -103,19 +102,43 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return list;
 		}
 
-		public IBackground GetBackground()
+		public IReadOnlyDictionary<string, string> GetCustomLevelInfo()
 		{
-			return new Background_Ocean();
+			return new Dictionary<string, string>();
 		}
 
-		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight)
+		public IBackground GetBackground()
 		{
-			return LevelConfigurationHelper.GetTilemap(
+			return this.background;
+		}
+
+		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight, IReadOnlyList<string> levelFlags, MapKeyState mapKeyState)
+		{
+			ITilemap tilemap = LevelConfigurationHelper.GetTilemap(
 				normalizedTilemaps: this.normalizedTilemaps,
 				tuxX: tuxX,
 				tuxY: tuxY,
+				mapKeyState: mapKeyState,
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
+
+			if (this.shouldSpawnRemoveKonqi)
+				tilemap = new SpawnRemoveKonqiTilemap(tilemap: tilemap);
+
+			return tilemap;
+		}
+
+		public CameraState GetCameraState(
+			int tuxXMibi,
+			int tuxYMibi,
+			Tuple<int, int> tuxTeleportStartingLocation,
+			int? tuxTeleportInProgressElapsedMicros,
+			ITilemap tilemap,
+			int windowWidth,
+			int windowHeight,
+			IReadOnlyList<string> levelFlags)
+		{
+			return null;
 		}
 	}
 }

@@ -43,13 +43,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.EnemyId = enemyId;
 		}
 
-		public bool IsKonqi { get { return false; } }
+		public bool IsKonqiCutscene { get { return false; } }
 
 		public bool IsRemoveKonqi { get { return false; } }
 
 		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
 
-		public Tuple<int, int> GetKonqiLocation()
+		public Tuple<int, int> GetKonqiCutsceneLocation()
 		{
 			return null;
 		}
@@ -87,7 +87,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			int elapsedMicrosPerFrame,
-			ITilemap tilemap)
+			TuxState tuxState,
+			IDTDeterministicRandom random,
+			ITilemap tilemap,
+			IReadOnlyList<string> levelFlags,
+			ISoundOutput<GameSound> soundOutput)
 		{
 			List<IEnemy> list = new List<IEnemy>();
 
@@ -135,7 +139,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			return new EnemyProcessing.Result(
 				enemies: list,
-				newlyKilledEnemies: new List<string>());
+				newlyKilledEnemies: new List<string>(),
+				newlyAddedLevelFlags: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

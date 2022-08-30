@@ -15,14 +15,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		MusicOff_White,
 
 		TilemapSnow,
+		TilemapCastle,
+		BossDoor,
 		Tux,
 		TuxMirrored,
 		Konqi,
 		KonqiMirrored,
+		KonqiFire,
+		KonqiFireMirrored,
 		Blazeborn,
 		BlazebornMirrored,
 		Smartcap,
 		SmartcapMirrored,
+		Bouncecap,
+		BouncecapMirrored,
+		Flyamanita,
+		FlyamanitaMirrored,
+		Snail,
+		SnailMirrored,
+		SnailBlue,
+		SnailBlueMirrored,
+		Orange,
+		OrangeMirrored,
+		Poof,
 		BossHealth,
 		C4,
 		Coin,
@@ -31,15 +46,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		Actors,
 		Solid,
 		Spikes,
+		Flash,
+		ExplodeF,
+		Flame,
+		Lock,
+		KeyCopper,
+		KeySilver,
+		KeyGold,
+		KeyMythril,
 
 		Signpost,
 
 		PathDirt,
+		ForestSnowy,
+		RocksSnow,
 		Snow,
+		WaterCliffSnow,
+		Mountains,
+		Towns,
 		LevelIcons,
 		TuxOverworld,
 
-		OceanBackground
+		OceanBackground,
+		Arctis2
 	}
 
 	public static class GameImageUtil
@@ -58,14 +87,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case GameImage.MusicOff_White: return "Kenney/MusicOff_White.png";
 
 				case GameImage.TilemapSnow: return "KelvinShadewing/tssnow.png";
+				case GameImage.TilemapCastle: return "KelvinShadewing/tsCastle.png";
+				case GameImage.BossDoor: return "KelvinShadewing/boss-door.png";
 				case GameImage.Tux: return "KelvinShadewing/tux.png";
 				case GameImage.TuxMirrored: return "KelvinShadewing/tux_mirrored.png";
 				case GameImage.Konqi: return "KelvinShadewing/konqi.png";
 				case GameImage.KonqiMirrored: return "KelvinShadewing/konqi_mirrored.png";
+				case GameImage.KonqiFire: return "KelvinShadewing/konqifire.png";
+				case GameImage.KonqiFireMirrored: return "KelvinShadewing/konqifire_mirrored.png";
 				case GameImage.Blazeborn: return "FrostC/Blazeborn.png";
 				case GameImage.BlazebornMirrored: return "FrostC/Blazeborn_mirrored.png";
 				case GameImage.Smartcap: return "KelvinShadewing/smartcap.png";
 				case GameImage.SmartcapMirrored: return "KelvinShadewing/smartcap_mirrored.png";
+				case GameImage.Bouncecap: return "KelvinShadewing/bouncecap.png";
+				case GameImage.BouncecapMirrored: return "KelvinShadewing/bouncecap_mirrored.png";
+				case GameImage.Flyamanita: return "KelvinShadewing/flyamanita.png";
+				case GameImage.FlyamanitaMirrored: return "KelvinShadewing/flyamanita_mirrored.png";
+				case GameImage.Snail: return "KelvinShadewing/snail.png";
+				case GameImage.SnailMirrored: return "KelvinShadewing/snail_mirrored.png";
+				case GameImage.SnailBlue: return "KelvinShadewing/snail-blue.png";
+				case GameImage.SnailBlueMirrored: return "KelvinShadewing/snail-blue_mirrored.png";
+				case GameImage.Orange: return "KelvinShadewing/orange.png";
+				case GameImage.OrangeMirrored: return "KelvinShadewing/orange_mirrored.png";
+				case GameImage.Poof: return "KelvinShadewing/poof.png";
 				case GameImage.BossHealth: return "KelvinShadewing/boss-health.png";
 				case GameImage.C4: return "KelvinShadewing/c4.png";
 				case GameImage.Coin: return "KelvinShadewing/coin.png";
@@ -74,15 +118,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case GameImage.Actors: return "KelvinShadewing/actors.png";
 				case GameImage.Solid: return "KelvinShadewing/solid.png";
 				case GameImage.Spikes: return "FrostC/spikes.png";
+				case GameImage.Flash: return "KelvinShadewing/tfFlash.png";
+				case GameImage.ExplodeF: return "KelvinShadewing/explodeF.png";
+				case GameImage.Flame: return "KelvinShadewing/flame.png";
+				case GameImage.Lock: return "KelvinShadewing/lock.png";
+				case GameImage.KeyCopper: return "KelvinShadewing/key-copper.png";
+				case GameImage.KeySilver: return "KelvinShadewing/key-silver.png";
+				case GameImage.KeyGold: return "KelvinShadewing/key-gold.png";
+				case GameImage.KeyMythril: return "KelvinShadewing/key-mythril.png";
 
 				case GameImage.Signpost: return "Nemisys/signpost.png";
 
 				case GameImage.PathDirt: return "BenCreating/PathDirt.png";
+				case GameImage.ForestSnowy: return "BenCreating/Snow/ForestSnowy.png";
+				case GameImage.RocksSnow: return "BenCreating/Snow/RocksSnow.png";
 				case GameImage.Snow: return "BenCreating/Snow/Snow.png";
+				case GameImage.WaterCliffSnow: return "BenCreating/Snow/WaterCliffSnow.png";
+				case GameImage.Mountains: return "BenCreating/Mountains.png";
+				case GameImage.Towns: return "BenCreating/Grass/Towns.png";
 				case GameImage.LevelIcons: return "KelvinShadewing/level-icons.png";
 				case GameImage.TuxOverworld: return "KelvinShadewing/tuxO.png";
 
 				case GameImage.OceanBackground: return "KnoblePersona/ocean.png";
+				case GameImage.Arctis2: return "grumbel/arctis2.png";
 
 				default: throw new Exception();
 			}

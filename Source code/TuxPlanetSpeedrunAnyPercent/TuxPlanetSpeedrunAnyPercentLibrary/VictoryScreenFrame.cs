@@ -3,6 +3,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
 	using DTLibrary;
 	using System;
+	using System.Collections.Generic;
 
 	public class VictoryScreenFrame : IFrame<GameImage, GameFont, GameSound, GameMusic>
 	{
@@ -26,6 +27,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public string GetClickUrl()
 		{
 			return null;
+		}
+
+		public HashSet<string> GetCompletedAchievements()
+		{
+			return Achievements.GetCompletedAchievements(numCompletedLevels: this.sessionState.Overworld.GetNumCompletedLevels());
 		}
 
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(

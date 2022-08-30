@@ -77,6 +77,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.elapsedMicros = elapsedMicros;
 		}
 
+		public int GetNumCompletedLevels()
+		{
+			return this.completedLevels.Count;
+		}
+
 		public Overworld CompleteLevel(Level level)
 		{
 			HashSet<Level> newCompletedLevels = new HashSet<Level>(this.completedLevels);
@@ -133,49 +138,52 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					selectedLevel = this.overworldMap.GetLevel(i: this.tuxXIndex, j: this.tuxYIndex);
 				}
 
-				if (keyboardInput.IsPressed(Key.RightArrow))
+				if (selectedLevel == null)
 				{
-					List<Tuple<int, int>> p = OverworldUtil.GetPath(
-						overworldGameMap: this.overworldMap.OverworldGameMap,
-						reachableTiles: this.reachableTiles.ToList(),
-						currentLocation: new Tuple<int, int>(this.tuxXIndex, this.tuxYIndex),
-						directionOfTravel: new Tuple<int, int>(1, 0));
+					if (keyboardInput.IsPressed(Key.RightArrow))
+					{
+						List<Tuple<int, int>> p = OverworldUtil.GetPath(
+							overworldGameMap: this.overworldMap.OverworldGameMap,
+							reachableTiles: this.reachableTiles.ToList(),
+							currentLocation: new Tuple<int, int>(this.tuxXIndex, this.tuxYIndex),
+							directionOfTravel: new Tuple<int, int>(1, 0));
 
-					if (p.Count > 0)
-						newPath = p;
-				}
-				if (keyboardInput.IsPressed(Key.LeftArrow))
-				{
-					List<Tuple<int, int>> p = OverworldUtil.GetPath(
-						overworldGameMap: this.overworldMap.OverworldGameMap,
-						reachableTiles: this.reachableTiles.ToList(),
-						currentLocation: new Tuple<int, int>(this.tuxXIndex, this.tuxYIndex),
-						directionOfTravel: new Tuple<int, int>(-1, 0));
+						if (p.Count > 0)
+							newPath = p;
+					}
+					if (keyboardInput.IsPressed(Key.LeftArrow))
+					{
+						List<Tuple<int, int>> p = OverworldUtil.GetPath(
+							overworldGameMap: this.overworldMap.OverworldGameMap,
+							reachableTiles: this.reachableTiles.ToList(),
+							currentLocation: new Tuple<int, int>(this.tuxXIndex, this.tuxYIndex),
+							directionOfTravel: new Tuple<int, int>(-1, 0));
 
-					if (p.Count > 0)
-						newPath = p;
-				}
-				if (keyboardInput.IsPressed(Key.UpArrow))
-				{
-					List<Tuple<int, int>> p = OverworldUtil.GetPath(
-						overworldGameMap: this.overworldMap.OverworldGameMap,
-						reachableTiles: this.reachableTiles.ToList(),
-						currentLocation: new Tuple<int, int>(this.tuxXIndex, this.tuxYIndex),
-						directionOfTravel: new Tuple<int, int>(0, 1));
+						if (p.Count > 0)
+							newPath = p;
+					}
+					if (keyboardInput.IsPressed(Key.UpArrow))
+					{
+						List<Tuple<int, int>> p = OverworldUtil.GetPath(
+							overworldGameMap: this.overworldMap.OverworldGameMap,
+							reachableTiles: this.reachableTiles.ToList(),
+							currentLocation: new Tuple<int, int>(this.tuxXIndex, this.tuxYIndex),
+							directionOfTravel: new Tuple<int, int>(0, 1));
 
-					if (p.Count > 0)
-						newPath = p;
-				}
-				if (keyboardInput.IsPressed(Key.DownArrow))
-				{
-					List<Tuple<int, int>> p = OverworldUtil.GetPath(
-						overworldGameMap: this.overworldMap.OverworldGameMap,
-						reachableTiles: this.reachableTiles.ToList(),
-						currentLocation: new Tuple<int, int>(this.tuxXIndex, this.tuxYIndex),
-						directionOfTravel: new Tuple<int, int>(0, -1));
+						if (p.Count > 0)
+							newPath = p;
+					}
+					if (keyboardInput.IsPressed(Key.DownArrow))
+					{
+						List<Tuple<int, int>> p = OverworldUtil.GetPath(
+							overworldGameMap: this.overworldMap.OverworldGameMap,
+							reachableTiles: this.reachableTiles.ToList(),
+							currentLocation: new Tuple<int, int>(this.tuxXIndex, this.tuxYIndex),
+							directionOfTravel: new Tuple<int, int>(0, -1));
 
-					if (p.Count > 0)
-						newPath = p;
+						if (p.Count > 0)
+							newPath = p;
+					}
 				}
 			}
 

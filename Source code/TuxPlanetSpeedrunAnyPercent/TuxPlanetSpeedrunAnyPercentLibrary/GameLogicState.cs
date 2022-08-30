@@ -19,9 +19,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public CameraState Camera { get; private set; }
 		public LevelNameDisplay LevelNameDisplay { get; private set; }
 
+		public IReadOnlyList<string> LevelFlags { get; private set; }
+
 		public IReadOnlyList<IEnemy> Enemies { get; private set; }
 
 		public IReadOnlyList<string> KilledEnemies { get; private set; }
+
+		public MapKeyState MapKeyState { get; private set; }
 
 		public Move PreviousMove { get; private set; }
 
@@ -31,6 +35,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public int WindowHeight { get; private set; }
 
 		public Level Level { get; private set; }
+
+		public string RngSeed { get; private set; }
 
 		public bool CanUseSaveStates { get; private set; }
 		public bool CanUseTimeSlowdown { get; private set; }
@@ -43,6 +49,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public Tuple<int, int> CheckpointLocation { get; private set; }
 		public IReadOnlyList<string> CompletedCutscenesAtCheckpoint { get; private set; }
 		public IReadOnlyList<string> KilledEnemiesAtCheckpoint { get; private set; }
+		public IReadOnlyList<string> LevelFlagsAtCheckpoint { get; private set; }
+		public string RngSeedAtCheckpoint { get; private set; }
+		public MapKeyState MapKeyStateAtCheckpoint { get; private set; }
 
 		public IReadOnlyList<string> CompletedCutscenes { get; private set; }
 		public ICutscene Cutscene { get; private set; }
@@ -54,13 +63,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			TuxState tux,
 			CameraState camera,
 			LevelNameDisplay levelNameDisplay,
+			IReadOnlyList<string> levelFlags,
 			IReadOnlyList<IEnemy> enemies,
 			IReadOnlyList<string> killedEnemies,
+			MapKeyState mapKeyState,
 			Move previousMove,
 			int frameCounter,
 			int windowWidth,
 			int windowHeight,
 			Level level,
+			string rngSeed,
 			bool canUseSaveStates,
 			bool canUseTimeSlowdown,
 			bool canUseTeleport,
@@ -70,6 +82,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			Tuple<int, int> checkpointLocation,
 			IReadOnlyList<string> completedCutscenesAtCheckpoint,
 			IReadOnlyList<string> killedEnemiesAtCheckpoint,
+			IReadOnlyList<string> levelFlagsAtCheckpoint,
+			string rngSeedAtCheckpoint,
+			MapKeyState mapKeyStateAtCheckpoint,
 			IReadOnlyList<string> completedCutscenes,
 			ICutscene cutscene)
 		{
@@ -79,13 +94,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.Tux = tux;
 			this.Camera = camera;
 			this.LevelNameDisplay = levelNameDisplay;
+			this.LevelFlags = new List<string>(levelFlags);
 			this.Enemies = new List<IEnemy>(enemies);
 			this.KilledEnemies = new List<string>(killedEnemies);
+			this.MapKeyState = mapKeyState;
 			this.PreviousMove = previousMove;
 			this.FrameCounter = frameCounter;
 			this.WindowWidth = windowWidth;
 			this.WindowHeight = windowHeight;
 			this.Level = level;
+			this.RngSeed = rngSeed;
 			this.CanUseSaveStates = canUseSaveStates;
 			this.CanUseTimeSlowdown = canUseTimeSlowdown;
 			this.CanUseTeleport = canUseTeleport;
@@ -95,6 +113,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.CheckpointLocation = checkpointLocation;
 			this.CompletedCutscenesAtCheckpoint = new List<string>(completedCutscenesAtCheckpoint);
 			this.KilledEnemiesAtCheckpoint = new List<string>(killedEnemiesAtCheckpoint);
+			this.LevelFlagsAtCheckpoint = new List<string>(levelFlagsAtCheckpoint);
+			this.RngSeedAtCheckpoint = rngSeedAtCheckpoint;
+			this.MapKeyStateAtCheckpoint = mapKeyStateAtCheckpoint;
 			this.CompletedCutscenes = new List<string>(completedCutscenes);
 			this.Cutscene = cutscene;
 		}
@@ -121,12 +142,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				levelConfig = new LevelConfiguration_Level4(mapInfo: mapInfo, canAlreadyUseTimeSlowdown: canUseTimeSlowdown, random: random);
 			else if (level == Level.Level5)
 				levelConfig = new LevelConfiguration_Level5(mapInfo: mapInfo, random: random);
+			else if (level == Level.Level6)
+				levelConfig = new LevelConfiguration_Level6(mapInfo: mapInfo, random: random);
 			else
 				throw new Exception();
 
+			string rngSeed = random.SerializeToString();
+
 			this.LevelConfiguration = levelConfig;
 			this.Background = this.LevelConfiguration.GetBackground();
-			this.Tilemap = this.LevelConfiguration.GetTilemap(tuxX: null, tuxY: null, windowWidth: windowWidth, windowHeight: windowHeight);
+			this.Tilemap = this.LevelConfiguration.GetTilemap(tuxX: null, tuxY: null, windowWidth: windowWidth, windowHeight: windowHeight, levelFlags: new List<string>(), mapKeyState: MapKeyState.EmptyMapKeyState());
 			this.Tux = TuxState.GetDefaultTuxState(x: this.Tilemap.GetTuxLocation(xOffset: 0, yOffset: 0).Item1, y: this.Tilemap.GetTuxLocation(xOffset: 0, yOffset: 0).Item2);
 			this.Camera = CameraStateProcessing.ComputeCameraState(
 				tuxXMibi: this.Tux.XMibi,
@@ -137,13 +162,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
 			this.LevelNameDisplay = LevelNameDisplay.GetLevelNameDisplay(levelName: level.GetLevelName());
+			this.LevelFlags = new List<string>();
 			this.Enemies = new List<IEnemy>();
 			this.KilledEnemies = new List<string>();
+			this.MapKeyState = MapKeyState.EmptyMapKeyState();
 			this.PreviousMove = Move.EmptyMove();
 			this.FrameCounter = 0;
 			this.WindowWidth = windowWidth;
 			this.WindowHeight = windowHeight;
 			this.Level = level;
+			this.RngSeed = rngSeed;
 			this.CanUseSaveStates = canUseSaveStates;
 			this.CanUseTimeSlowdown = canUseTimeSlowdown;
 			this.CanUseTeleport = canUseTeleport;
@@ -153,6 +181,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.CheckpointLocation = null;
 			this.CompletedCutscenesAtCheckpoint = new List<string>();
 			this.KilledEnemiesAtCheckpoint = new List<string>();
+			this.LevelFlagsAtCheckpoint = new List<string>();
+			this.RngSeedAtCheckpoint = rngSeed;
+			this.MapKeyStateAtCheckpoint = MapKeyState.EmptyMapKeyState();
 			this.CompletedCutscenes = new List<string>();
 			this.Cutscene = null;
 		}

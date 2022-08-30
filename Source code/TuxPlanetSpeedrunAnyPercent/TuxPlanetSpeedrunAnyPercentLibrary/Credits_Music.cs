@@ -11,6 +11,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				+ "* cynicmusic \n"
 				+ "* Jason Lavallee \n"
 				+ "* Lukas Nystrand \n"
+				+ "* migfus20 \n"
 				+ "* Cal McEachern \n"
 				+ "* wansti \n"
 				+ "\n"

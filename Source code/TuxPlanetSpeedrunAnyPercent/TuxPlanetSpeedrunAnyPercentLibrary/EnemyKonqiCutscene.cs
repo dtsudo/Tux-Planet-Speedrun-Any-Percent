@@ -4,6 +4,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	using DTLibrary;
 	using System;
 	using System.Collections.Generic;
+	using System.Linq;
 
 	public class EnemyKonqiCutscene : IEnemy
 	{
@@ -46,13 +47,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.EnemyId = enemyId;
 		}
 
-		public bool IsKonqi { get { return true; } }
+		public bool IsKonqiCutscene { get { return true; } }
 
 		public bool IsRemoveKonqi { get { return false; } }
 
 		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
 
-		public Tuple<int, int> GetKonqiLocation()
+		public Tuple<int, int> GetKonqiCutsceneLocation()
 		{
 			return new Tuple<int, int>(this.x, this.y);
 		}
@@ -73,12 +74,30 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			int elapsedMicrosPerFrame,
-			ITilemap tilemap)
+			TuxState tuxState,
+			IDTDeterministicRandom random,
+			ITilemap tilemap,
+			IReadOnlyList<string> levelFlags,
+			ISoundOutput<GameSound> soundOutput)
 		{
 			int newElapsedMicros = this.elapsedMicros + elapsedMicrosPerFrame;
 
 			if (newElapsedMicros > 2 * 1000 * 1000 * 1000)
 				newElapsedMicros = 1;
+
+			if (levelFlags.Contains(LevelConfiguration_Level6.BEGIN_BOSS_BATTLE))
+			{
+				return new EnemyProcessing.Result(
+					enemies: new List<IEnemy>()
+					{
+						EnemyKonqiDisappear.GetEnemyKonqiDisappear(
+							xMibi: this.x << 10,
+							yMibi: this.y << 10,
+							enemyId: this.EnemyId + "_konqiDisappear")
+					},
+					newlyKilledEnemies: this.emptyStringList,
+					newlyAddedLevelFlags: null);
+			}
 
 			return new EnemyProcessing.Result(
 				enemies: new List<IEnemy>()
@@ -91,7 +110,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList);
+				newlyKilledEnemies: this.emptyStringList,
+				newlyAddedLevelFlags: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

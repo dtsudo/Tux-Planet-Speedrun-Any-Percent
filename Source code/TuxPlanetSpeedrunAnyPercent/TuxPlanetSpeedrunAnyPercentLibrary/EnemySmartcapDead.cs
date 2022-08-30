@@ -18,7 +18,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public string EnemyId { get; private set; }
 
-		public bool IsKonqi { get { return false; } }
+		public bool IsKonqiCutscene { get { return false; } }
 
 		public bool IsRemoveKonqi { get { return false; } }
 
@@ -60,7 +60,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.EnemyId = enemyId;
 		}
 
-		public Tuple<int, int> GetKonqiLocation()
+		public Tuple<int, int> GetKonqiCutsceneLocation()
 		{
 			return null;
 		}
@@ -81,12 +81,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			int elapsedMicrosPerFrame,
-			ITilemap tilemap)
+			TuxState tuxState,
+			IDTDeterministicRandom random,
+			ITilemap tilemap,
+			IReadOnlyList<string> levelFlags,
+			ISoundOutput<GameSound> soundOutput)
 		{
 			if (this.elapsedMicros > DEAD_ANIMATION_DURATION)
 				return new EnemyProcessing.Result(
 					enemies: new List<IEnemy>(),
-					newlyKilledEnemies: this.emptyStringList);
+					newlyKilledEnemies: this.emptyStringList,
+					newlyAddedLevelFlags: null);
 
 			return new EnemyProcessing.Result(
 				enemies: new List<IEnemy>()
@@ -100,7 +105,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						emptyStringList: this.emptyStringList,
 						emptyHitboxList: this.emptyHitboxList)
 				},
-				newlyKilledEnemies: this.emptyStringList);
+				newlyKilledEnemies: this.emptyStringList,
+				newlyAddedLevelFlags: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

@@ -12,8 +12,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public OverworldGameMap OverworldGameMap { get; private set; }
 
-		private Sprite[][] pathTilemap;
+		private Sprite[][] foregroundTilemap;
 		private Sprite[][] backgroundTilemap;
+		private HashSet<Level> levelsWithCustomSprite;
 
 		public string RngSeed { get; private set; }
 
@@ -48,10 +49,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			OverworldMapGenerator.Result result = OverworldMapGenerator.GenerateSpriteTilemap(
 				map: this.OverworldGameMap,
+				waterLevels: OverworldGameMap.GetWaterLevels(),
+				mountainLevels: OverworldGameMap.GetMountainLevels(),
+				fortressLevels: OverworldGameMap.GetFortressLevels(),
 				random: random);
 
-			this.pathTilemap = ArrayUtil.ShallowCopyTArray(result.PathTiles);
+			this.foregroundTilemap = ArrayUtil.ShallowCopyTArray(result.ForegroundTiles);
 			this.backgroundTilemap = ArrayUtil.ShallowCopyTArray(result.BackgroundTiles);
+			this.levelsWithCustomSprite = new HashSet<Level>(result.LevelsWithCustomSprite);
 
 			this.RngSeed = rngSeed;
 		}
@@ -80,12 +85,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public int GetMapWidthInPixels()
 		{
-			return this.pathTilemap.Length * TILE_WIDTH_IN_PIXELS;
+			return this.foregroundTilemap.Length * TILE_WIDTH_IN_PIXELS;
 		}
 
 		public int GetMapHeightInPixels()
 		{
-			return this.pathTilemap[0].Length * TILE_HEIGHT_IN_PIXELS;
+			return this.foregroundTilemap[0].Length * TILE_HEIGHT_IN_PIXELS;
 		}
 
 		public void Render(
@@ -94,11 +99,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			int renderX = 0;
 
-			for (int i = 0; i < this.pathTilemap.Length; i++)
+			for (int i = 0; i < this.foregroundTilemap.Length; i++)
 			{
 				int renderY = 0;
 
-				for (int j = 0; j < this.pathTilemap[i].Length; j++)
+				for (int j = 0; j < this.foregroundTilemap[i].Length; j++)
 				{
 					Sprite background = this.backgroundTilemap[i][j];
 
@@ -114,21 +119,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							degreesScaled: 0,
 							scalingFactorScaled: background.ScalingFactorScaled);
 
-					Sprite path = this.pathTilemap[i][j];
+					Sprite foreground = this.foregroundTilemap[i][j];
 
-					if (path != null)
+					if (foreground != null)
 						displayOutput.DrawImageRotatedClockwise(
-							image: path.Image,
-							imageX: path.X,
-							imageY: path.Y,
-							imageWidth: path.Width,
-							imageHeight: path.Height,
+							image: foreground.Image,
+							imageX: foreground.X,
+							imageY: foreground.Y,
+							imageWidth: foreground.Width,
+							imageHeight: foreground.Height,
 							x: renderX,
 							y: renderY,
 							degreesScaled: 0,
-							scalingFactorScaled: path.ScalingFactorScaled);
+							scalingFactorScaled: foreground.ScalingFactorScaled);
 
-					if (this.OverworldGameMap.Tilemap[i][j].Type == OverworldGameMap.TileType.Level)
+					if (this.OverworldGameMap.Tilemap[i][j].Type == OverworldGameMap.TileType.Level && !this.levelsWithCustomSprite.Contains(this.OverworldGameMap.Tilemap[i][j].Level.Value))
 					{
 						bool hasCompletedLevel = completedLevels.Contains(this.OverworldGameMap.Tilemap[i][j].Level.Value);
 

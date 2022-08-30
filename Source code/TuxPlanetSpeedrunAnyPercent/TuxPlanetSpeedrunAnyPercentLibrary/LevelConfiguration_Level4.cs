@@ -8,6 +8,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class LevelConfiguration_Level4 : ILevelConfiguration
 	{
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
+		private bool shouldSpawnRemoveKonqi;
+		private IBackground background;
 
 		public LevelConfiguration_Level4(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
@@ -19,14 +21,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				canAlreadyUseTimeSlowdown: canAlreadyUseTimeSlowdown,
 				random: random);
 
-			if (canAlreadyUseTimeSlowdown)
-				unnormalizedTilemaps.Add(new CompositeTilemap.TilemapWithOffset(
-					tilemap: new SpawnRemoveKonqiTilemap(),
-					xOffset: 0,
-					yOffset: 0,
-					alwaysIncludeTilemap: true));
+			this.shouldSpawnRemoveKonqi = canAlreadyUseTimeSlowdown;
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
+
+			this.background = BackgroundUtil.GetRandomBackground(random: random);
 		}
 
 		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
@@ -40,7 +39,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
 
-			ITilemap startTilemap = MapDataTilemapGenerator.GetTilemap(
+			Tilemap startTilemap = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level4A_Start"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
@@ -55,14 +54,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			list.Add(startTilemapWithOffset);
 
-			ITilemap level4bTilemap1 = MapDataTilemapGenerator.GetTilemap(
+			Tilemap level4bTilemap1 = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level4B_Segment1"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 128 * 3,
 					gameMusic: gameMusic);
 
-			ITilemap level4bTilemap2 = MapDataTilemapGenerator.GetTilemap(
+			Tilemap level4bTilemap2 = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level4B_Segment2"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
@@ -77,7 +76,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			list.Add(level4bTilemapWithOffset);
 
-			ITilemap cutsceneTilemap = MapDataTilemapGenerator.GetTilemap(
+			Tilemap cutsceneTilemap = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level4C_Cutscene"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: CutsceneProcessing.TIME_SLOWDOWN_CUTSCENE,
@@ -85,21 +84,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					gameMusic: gameMusic);
 
 			CompositeTilemap.TilemapWithOffset cutsceneTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
-				tilemap: canAlreadyUseTimeSlowdown ? new NoCutsceneWrappedTilemap(tilemap: cutsceneTilemap) : cutsceneTilemap,
+				tilemap: canAlreadyUseTimeSlowdown ? Tilemap.GetTilemapWithoutCutscene(tilemap: cutsceneTilemap) : cutsceneTilemap,
 				xOffset: 0,
 				yOffset: level4bTilemapWithOffset.YOffset + level4bTilemap1.GetHeight(),
 				alwaysIncludeTilemap: false);
 
 			list.Add(cutsceneTilemapWithOffset);
 
-			ITilemap level4dTilemap1 = MapDataTilemapGenerator.GetTilemap(
+			Tilemap level4dTilemap1 = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level4D_Segment1"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 128 * 3,
 					gameMusic: gameMusic);
 
-			ITilemap level4dTilemap2 = MapDataTilemapGenerator.GetTilemap(
+			Tilemap level4dTilemap2 = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level4D_Segment2"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
@@ -114,7 +113,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			list.Add(level4dTilemapWithOffset);
 
-			ITilemap finishTilemap = MapDataTilemapGenerator.GetTilemap(
+			Tilemap finishTilemap = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo["Level4E_Finish"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
@@ -132,19 +131,43 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return list;
 		}
 
-		public IBackground GetBackground()
+		public IReadOnlyDictionary<string, string> GetCustomLevelInfo()
 		{
-			return new Background_Ocean();
+			return new Dictionary<string, string>();
 		}
 
-		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight)
+		public IBackground GetBackground()
 		{
-			return LevelConfigurationHelper.GetTilemap(
+			return this.background;
+		}
+
+		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight, IReadOnlyList<string> levelFlags, MapKeyState mapKeyState)
+		{
+			ITilemap tilemap = LevelConfigurationHelper.GetTilemap(
 				normalizedTilemaps: this.normalizedTilemaps,
 				tuxX: tuxX,
 				tuxY: tuxY,
+				mapKeyState: mapKeyState,
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
+
+			if (this.shouldSpawnRemoveKonqi)
+				tilemap = new SpawnRemoveKonqiTilemap(tilemap: tilemap);
+
+			return tilemap;
+		}
+
+		public CameraState GetCameraState(
+			int tuxXMibi,
+			int tuxYMibi,
+			Tuple<int, int> tuxTeleportStartingLocation,
+			int? tuxTeleportInProgressElapsedMicros,
+			ITilemap tilemap,
+			int windowWidth,
+			int windowHeight,
+			IReadOnlyList<string> levelFlags)
+		{
+			return null;
 		}
 	}
 }

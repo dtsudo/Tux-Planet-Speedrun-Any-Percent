@@ -16,6 +16,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public string EnemyId { get; private set; }
 
+		private const int ANIMATION_DURATION = 600 * 1000;
+
 		public static EnemyKonqiDisappear GetEnemyKonqiDisappear(
 			int xMibi,
 			int yMibi,
@@ -46,13 +48,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.EnemyId = enemyId;
 		}
 
-		public bool IsKonqi { get { return false; } }
+		public bool IsKonqiCutscene { get { return false; } }
 
 		public bool IsRemoveKonqi { get { return false; } }
 
 		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
 
-		public Tuple<int, int> GetKonqiLocation()
+		public Tuple<int, int> GetKonqiCutsceneLocation()
 		{
 			return null;
 		}
@@ -78,12 +80,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			int elapsedMicrosPerFrame,
-			ITilemap tilemap)
+			TuxState tuxState,
+			IDTDeterministicRandom random,
+			ITilemap tilemap,
+			IReadOnlyList<string> levelFlags,
+			ISoundOutput<GameSound> soundOutput)
 		{
-			if (this.elapsedMicros > 200 * 1000)
+			if (this.elapsedMicros > ANIMATION_DURATION)
 				return new EnemyProcessing.Result(
 					enemies: new List<IEnemy>(),
-					newlyKilledEnemies: this.emptyStringList);
+					newlyKilledEnemies: this.emptyStringList,
+					newlyAddedLevelFlags: null);
 
 			return new EnemyProcessing.Result(
 				enemies: new List<IEnemy>()
@@ -96,31 +103,27 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList);
+				newlyKilledEnemies: this.emptyStringList,
+				newlyAddedLevelFlags: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)
 		{
-			int distance = this.elapsedMicros / (1000 * 2);
+			int spriteNum = this.elapsedMicros / (ANIMATION_DURATION / 4);
 
-			DTColor color = new DTColor(50, 168, 64);
+			if (spriteNum > 3)
+				spriteNum = 3;
 
-			for (int i = 0; i < 360 * 128; i = i + 128 * 3)
-			{
-				int deltaX = DTMath.CosineScaled(degreesScaled: i) * distance;
-				int deltaY = DTMath.SineScaled(degreesScaled: i) * distance;
-
-				int x = (this.xMibi + deltaX) >> 10;
-				int y = (this.yMibi + deltaY) >> 10;
-
-				displayOutput.DrawRectangle(
-					x: x - 2,
-					y: y - 2,
-					width: 5,
-					height: 5,
-					color: color,
-					fill: true);
-			}
+			displayOutput.DrawImageRotatedClockwise(
+				image: GameImage.Flash,
+				imageX: 32 * spriteNum,
+				imageY: 0,
+				imageWidth: 32,
+				imageHeight: 40,
+				x: (this.xMibi >> 10) - 16 * 3,
+				y: (this.yMibi >> 10) - 20 * 3,
+				degreesScaled: 0,
+				scalingFactorScaled: 3 * 128);
 		}
 	}
 }

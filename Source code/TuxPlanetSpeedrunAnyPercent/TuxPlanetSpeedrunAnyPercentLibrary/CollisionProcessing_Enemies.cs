@@ -36,10 +36,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				if (enemies[i].IsRemoveKonqi)
 					indexOfRemoveKonqiEnemy = i;
 
-				if (enemies[i].IsKonqi)
+				if (enemies[i].IsKonqiCutscene)
 				{
 					indexOfKonqiEnemy = i;
-					konqiLocation = enemies[i].GetKonqiLocation();
+					konqiLocation = enemies[i].GetKonqiCutsceneLocation();
 					konqiEnemyId = enemies[i].EnemyId;
 				}
 
@@ -52,7 +52,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				for (int i = 0; i < finalEnemies.Count; i++)
 				{
-					if (!finalEnemies[i].IsRemoveKonqi && !finalEnemies[i].IsKonqi)
+					if (!finalEnemies[i].IsRemoveKonqi && !finalEnemies[i].IsKonqiCutscene)
 						newFinalEnemies.Add(finalEnemies[i]);
 				}
 

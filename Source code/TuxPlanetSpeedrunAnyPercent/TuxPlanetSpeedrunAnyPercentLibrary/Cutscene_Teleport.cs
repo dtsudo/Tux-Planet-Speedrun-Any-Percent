@@ -88,13 +88,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int elapsedMicrosPerFrame,
 			int windowWidth,
 			int windowHeight,
-			ITilemap tilemap)
+			ITilemap tilemap,
+			IReadOnlyList<IEnemy> enemies,
+			IReadOnlyList<string> levelFlags)
 		{
 			CameraState newCameraState;
 			DialogueList newDialogueList;
 			Status newStatus;
 			int newKonqiDisappearElapsedMicros = this.konqiDisappearElapsedMicros;
-			List<IEnemy> newEnemies = new List<IEnemy>();
+			List<IEnemy> newEnemies = new List<IEnemy>(enemies);
 
 			switch (this.status)
 			{
@@ -175,7 +177,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							return new CutsceneProcessing.Result(
 								move: Move.EmptyMove(),
 								cameraState: cameraState,
-								newEnemies: newEnemies,
+								enemies: newEnemies,
+								newlyAddedLevelFlags: null,
 								cutscene: null,
 								shouldGrantSaveStatePower: false,
 								shouldGrantTimeSlowdownPower: false,
@@ -201,7 +204,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					? new Move(jumped: false, teleported: false, arrowLeft: false, arrowRight: true, arrowUp: false, arrowDown: false, respawn: false)
 					: Move.EmptyMove(),
 				cameraState: newCameraState,
-				newEnemies: newEnemies,
+				enemies: newEnemies,
+				newlyAddedLevelFlags: null,
 				cutscene: new Cutscene_Teleport(isFirstFrame: false, status: newStatus, konqiDisappearElapsedMicros: newKonqiDisappearElapsedMicros, dialogueList: newDialogueList),
 				shouldGrantSaveStatePower: false,
 				shouldGrantTimeSlowdownPower: false,

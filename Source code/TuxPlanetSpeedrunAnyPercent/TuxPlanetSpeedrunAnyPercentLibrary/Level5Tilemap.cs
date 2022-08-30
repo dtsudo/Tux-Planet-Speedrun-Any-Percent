@@ -63,6 +63,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return this.mapTilemap.GetTuxLocation(xOffset: xOffset, yOffset: yOffset);
 		}
 
+		public Tuple<int, int> GetMapKeyLocation(MapKey mapKey, int xOffset, int yOffset)
+		{
+			return this.mapTilemap.GetMapKeyLocation(mapKey: mapKey, xOffset: xOffset, yOffset: yOffset);
+		}
+
 		public IReadOnlyList<IEnemy> GetEnemies(int xOffset, int yOffset)
 		{
 			List<IEnemy> enemies = new List<IEnemy>()

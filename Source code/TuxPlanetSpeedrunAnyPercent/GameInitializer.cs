@@ -3,6 +3,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 {
 	using Bridge;
 	using DTLibrary;
+	using System.Collections.Generic;
 	using TuxPlanetSpeedrunAnyPercentLibrary;
 
 	public class GameInitializer
@@ -18,6 +19,8 @@ namespace TuxPlanetSpeedrunAnyPercent
 		
 		private static DisplayLogger displayLogger;
 		private static bool shouldRenderDisplayLogger;
+		
+		private static HashSet<string> completedAchievements;
 		
 		private static IFrame<GameImage, GameFont, GameSound, GameMusic> frame;
 		
@@ -116,6 +119,8 @@ namespace TuxPlanetSpeedrunAnyPercent
 			
 			clickUrl = null;
 			
+			completedAchievements = new HashSet<string>();
+			
 			ClearClickUrl();
 			
 			AddClickUrlListener();
@@ -178,6 +183,12 @@ namespace TuxPlanetSpeedrunAnyPercent
 			frame.ProcessExtraTime(milliseconds: milliseconds);
 		}
 		
+		private static void AddAchievementToJavascriptArray(string achievement)
+		{
+			Script.Eval("if (!window.BridgeCompletedAchievements) window.BridgeCompletedAchievements = [];");
+			Script.Eval("window.BridgeCompletedAchievements.push('" + achievement + "');");
+		}
+
 		public static void ComputeAndRenderNextFrame()
 		{
 			IKeyboard currentKeyboard = new CopiedKeyboard(bridgeKeyboard);
@@ -189,7 +200,20 @@ namespace TuxPlanetSpeedrunAnyPercent
 			ClearCanvas();
 			frame.Render(display);
 			frame.RenderMusic(music);
-			
+
+			HashSet<string> newCompletedAchievements = frame.GetCompletedAchievements();
+
+			if (newCompletedAchievements != null)
+			{
+				foreach (string completedAchievement in newCompletedAchievements)
+				{
+					bool wasAdded = completedAchievements.Add(completedAchievement);
+
+					if (wasAdded)
+						AddAchievementToJavascriptArray(completedAchievement);
+				}
+			}
+
 			string newClickUrl = frame.GetClickUrl();
 			
 			if (clickUrl != newClickUrl)

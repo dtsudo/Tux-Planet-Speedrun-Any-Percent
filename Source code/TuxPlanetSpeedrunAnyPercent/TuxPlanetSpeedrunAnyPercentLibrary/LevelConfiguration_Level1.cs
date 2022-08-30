@@ -8,6 +8,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class LevelConfiguration_Level1 : ILevelConfiguration
 	{
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
+		private IBackground background;
 
 		public LevelConfiguration_Level1(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
@@ -16,6 +17,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(mapInfo: mapInfo, random: random);
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
+
+			this.background = BackgroundUtil.GetRandomBackground(random: random);
 		}
 
 		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, IDTDeterministicRandom random)
@@ -42,19 +45,38 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return list;
 		}
 
-		public IBackground GetBackground()
+		public IReadOnlyDictionary<string, string> GetCustomLevelInfo()
 		{
-			return new Background_Ocean();
+			return new Dictionary<string, string>();
 		}
 
-		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight)
+		public IBackground GetBackground()
+		{
+			return this.background;
+		}
+
+		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight, IReadOnlyList<string> levelFlags, MapKeyState mapKeyState)
 		{
 			return LevelConfigurationHelper.GetTilemap(
 				normalizedTilemaps: this.normalizedTilemaps,
 				tuxX: tuxX,
 				tuxY: tuxY,
+				mapKeyState: mapKeyState,
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
+		}
+
+		public CameraState GetCameraState(
+			int tuxXMibi,
+			int tuxYMibi,
+			Tuple<int, int> tuxTeleportStartingLocation,
+			int? tuxTeleportInProgressElapsedMicros,
+			ITilemap tilemap,
+			int windowWidth,
+			int windowHeight,
+			IReadOnlyList<string> levelFlags)
+		{
+			return null;
 		}
 	}
 }

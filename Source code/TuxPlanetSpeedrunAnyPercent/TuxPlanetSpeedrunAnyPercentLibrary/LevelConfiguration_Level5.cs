@@ -9,6 +9,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	{
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
 		private int endingXMibi;
+		private IBackground background;
 
 		public LevelConfiguration_Level5(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
@@ -23,6 +24,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 
 			this.endingXMibi = result.Item2;
+
+			this.background = BackgroundUtil.GetRandomBackground(random: random);
 		}
 
 		private static Tuple<List<CompositeTilemap.TilemapWithOffset>, int> ConstructUnnormalizedTilemaps(
@@ -60,7 +63,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				int numberOfFragmentTilemaps = 12;
 				string mapInfoName = "Level5B_Fragment" + (random.NextInt(numberOfFragmentTilemaps) + 1).ToStringCultureInvariant();
 
-				ITilemap fragmentTilemap = MapDataTilemapGenerator.GetTilemap(
+				Tilemap fragmentTilemap = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo[mapInfoName],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
@@ -109,23 +112,42 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return new Tuple<List<CompositeTilemap.TilemapWithOffset>, int>(list, endingXMibi);
 		}
 
-		public IBackground GetBackground()
+		public IReadOnlyDictionary<string, string> GetCustomLevelInfo()
 		{
-			return new Background_Ocean();
+			return new Dictionary<string, string>();
 		}
 
-		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight)
+		public IBackground GetBackground()
+		{
+			return this.background;
+		}
+
+		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight, IReadOnlyList<string> levelFlags, MapKeyState mapKeyState)
 		{
 			ITilemap tilemap = LevelConfigurationHelper.GetTilemap(
 				normalizedTilemaps: this.normalizedTilemaps,
 				tuxX: tuxX,
 				tuxY: tuxY,
+				mapKeyState: mapKeyState,
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
 
 			return new Level5Tilemap(
 				mapTilemap: tilemap,
 				endingXMibi: this.endingXMibi);
+		}
+
+		public CameraState GetCameraState(
+			int tuxXMibi,
+			int tuxYMibi,
+			Tuple<int, int> tuxTeleportStartingLocation,
+			int? tuxTeleportInProgressElapsedMicros,
+			ITilemap tilemap,
+			int windowWidth,
+			int windowHeight,
+			IReadOnlyList<string> levelFlags)
+		{
+			return null;
 		}
 	}
 }

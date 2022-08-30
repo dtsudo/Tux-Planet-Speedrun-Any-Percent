@@ -11,7 +11,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public class TilemapWithOffset
 		{
 			public TilemapWithOffset(
-				ITilemap tilemap,
+				Tilemap tilemap,
 				int xOffset,
 				int yOffset,
 				bool alwaysIncludeTilemap)
@@ -22,7 +22,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				this.AlwaysIncludeTilemap = alwaysIncludeTilemap;
 			}
 
-			public ITilemap Tilemap { get; private set; }
+			public Tilemap Tilemap { get; private set; }
 			public int XOffset { get; private set; }
 			public int YOffset { get; private set; }
 			public bool AlwaysIncludeTilemap { get; private set; }
@@ -32,6 +32,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private int width;
 		private int height;
+		private int? tuxX;
+		private int? tuxY;
+		private MapKeyState mapKeyState;
+		private IReadOnlyList<MapKey> listOfAllMapKeys;
 
 		public static List<TilemapWithOffset> NormalizeTilemaps(List<TilemapWithOffset> tilemaps)
 		{
@@ -58,12 +62,22 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				alwaysIncludeTilemap: t.AlwaysIncludeTilemap)).ToList();
 		}
 
-		public CompositeTilemap(IReadOnlyList<TilemapWithOffset> normalizedTilemaps, int width, int height)
+		public CompositeTilemap(
+			IReadOnlyList<TilemapWithOffset> normalizedTilemaps,
+			int width,
+			int height,
+			int? tuxX,
+			int? tuxY,
+			MapKeyState mapKeyState)
 		{
 			this.tilemaps = new List<TilemapWithOffset>(normalizedTilemaps);
 
 			this.width = width;
 			this.height = height;
+			this.tuxX = tuxX;
+			this.tuxY = tuxY;
+			this.mapKeyState = mapKeyState;
+			this.listOfAllMapKeys = new List<MapKey>(MapKeyUtil.GetOrderedListOfMapKeys());
 		}
 
 		public GameMusic? PlayMusic()
@@ -84,8 +98,26 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			for (int i = 0; i < this.tilemaps.Count; i++)
 			{
 				TilemapWithOffset tilemap = this.tilemaps[i];
-				if (tilemap.Tilemap.IsGround(x - tilemap.XOffset, y - tilemap.YOffset))
+				if (tilemap.Tilemap.IsGroundNotIncludingKeyTiles(x - tilemap.XOffset, y - tilemap.YOffset))
 					return true;
+
+				foreach (MapKey mapKey in this.listOfAllMapKeys)
+				{
+					if (tilemap.Tilemap.IsKeyTile(key: mapKey, x: x - tilemap.XOffset, y: y - tilemap.YOffset))
+					{
+						if (!this.mapKeyState.CollectedKeys.Contains(mapKey))
+							return true;
+
+						if (this.tuxX == null || this.tuxY == null)
+							return true;
+
+						int deltaX = Math.Abs(this.tuxX.Value - x);
+						int deltaY = Math.Abs(this.tuxY.Value - y);
+
+						if (deltaX * deltaX + deltaY * deltaY > MapKeyState.MAP_KEY_ACTIVATION_RADIUS_IN_PIXELS * MapKeyState.MAP_KEY_ACTIVATION_RADIUS_IN_PIXELS)
+							return true;
+					}
+				}
 			}
 
 			return false;
@@ -166,6 +198,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				tilemap.Tilemap.RenderBackgroundTiles(
 					displayOutput: translatedDisplayOutput,
+					tuxX: this.tuxX - tilemap.XOffset,
+					tuxY: this.tuxY - tilemap.YOffset,
+					collectedKeys: this.mapKeyState.CollectedKeys,
 					cameraX: cameraX - tilemap.XOffset,
 					cameraY: cameraY - tilemap.YOffset,
 					windowWidth: windowWidth,
@@ -184,6 +219,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				tilemap.Tilemap.RenderForegroundTiles(
 					displayOutput: translatedDisplayOutput,
+					tuxX: this.tuxX - tilemap.XOffset,
+					tuxY: this.tuxY - tilemap.YOffset,
+					collectedKeys: this.mapKeyState.CollectedKeys,
 					cameraX: cameraX - tilemap.XOffset,
 					cameraY: cameraY - tilemap.YOffset,
 					windowWidth: windowWidth,
@@ -223,6 +261,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				if (tuxLocation != null)
 					return tuxLocation;
+			}
+
+			return null;
+		}
+
+		public Tuple<int, int> GetMapKeyLocation(MapKey mapKey, int xOffset, int yOffset)
+		{
+			for (int i = 0; i < this.tilemaps.Count; i++)
+			{
+				TilemapWithOffset tilemap = this.tilemaps[i];
+				Tuple<int, int> keyLocation = tilemap.Tilemap.GetMapKeyLocation(mapKey: mapKey, xOffset: xOffset + tilemap.XOffset, yOffset: yOffset + tilemap.YOffset);
+
+				if (keyLocation != null)
+					return keyLocation;
 			}
 
 			return null;

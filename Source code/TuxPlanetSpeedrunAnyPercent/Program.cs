@@ -78,7 +78,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 					var debugMode = urlParams.get('debugmode') !== null
 						? (urlParams.get('debugmode') === 'true')
 						: false;
-										
+					
 					window.TuxPlanetSpeedrunAnyPercent.GameInitializer.Start(fps, isWebPortalVersion, debugMode);
 					
 					var computeAndRenderNextFrame;

@@ -28,7 +28,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<IEnemy> enemies,
 			ISoundOutput<GameSound> soundOutput)
 		{
-			if (tuxState.IsDead || tuxState.HasFinishedLevel)
+			if (tuxState.IsDead || tuxState.TeleportInProgressElapsedMicros != null || tuxState.HasFinishedLevel)
 			{
 				return new Result(newTuxState: tuxState, newEnemies: enemies, newlyKilledEnemies: new List<string>());
 			}

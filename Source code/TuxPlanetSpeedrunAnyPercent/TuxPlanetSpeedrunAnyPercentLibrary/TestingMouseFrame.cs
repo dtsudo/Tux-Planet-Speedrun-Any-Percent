@@ -3,6 +3,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 {
 	using DTLibrary;
 	using System;
+	using System.Collections.Generic;
 
 	public class TestingMouseFrame : IFrame<GameImage, GameFont, GameSound, GameMusic>
 	{
@@ -30,6 +31,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		public string GetClickUrl()
+		{
+			return null;
+		}
+
+		public HashSet<string> GetCompletedAchievements()
 		{
 			return null;
 		}

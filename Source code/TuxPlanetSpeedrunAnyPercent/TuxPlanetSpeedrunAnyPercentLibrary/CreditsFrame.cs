@@ -162,6 +162,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return null;
 		}
 
+		public HashSet<string> GetCompletedAchievements()
+		{
+			return null;
+		}
+
 		public void ProcessMusic()
 		{
 			this.globalState.ProcessMusic();

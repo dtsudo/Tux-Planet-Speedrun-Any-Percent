@@ -19763,6 +19763,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     return System.Int64.clip32(System.Nullable.getValue(result));
                 },
+                ParseAsIntCultureInvariant: function (str) {
+                    return DTLibrary.StringUtil.ParseInt(str);
+                },
                 ParseInt: function (str) {
                     var val = DTLibrary.StringUtil.TryParseInt(str);
 
@@ -20251,6 +20254,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 music: null,
                 displayLogger: null,
                 shouldRenderDisplayLogger: false,
+                completedAchievements: null,
                 frame: null,
                 hasInitializedClearCanvasJavascript: false,
                 clickUrl: null
@@ -20283,6 +20287,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.hasInitializedClearCanvasJavascript = false;
 
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.clickUrl = null;
+
+                    TuxPlanetSpeedrunAnyPercent.GameInitializer.completedAchievements = new (System.Collections.Generic.HashSet$1(System.String)).ctor();
 
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.ClearClickUrl();
 
@@ -20330,7 +20336,12 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 ProcessExtraTime: function (milliseconds) {
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.frame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime(milliseconds);
                 },
+                AddAchievementToJavascriptArray: function (achievement) {
+                    eval("if (!window.BridgeCompletedAchievements) window.BridgeCompletedAchievements = [];");
+                    eval("window.BridgeCompletedAchievements.push('" + (achievement || "") + "');");
+                },
                 ComputeAndRenderNextFrame: function () {
+                    var $t;
                     var currentKeyboard = new DTLibrary.CopiedKeyboard(TuxPlanetSpeedrunAnyPercent.GameInitializer.bridgeKeyboard);
                     var currentMouse = new DTLibrary.CopiedMouse(TuxPlanetSpeedrunAnyPercent.GameInitializer.bridgeMouse);
 
@@ -20340,6 +20351,26 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.ClearCanvas();
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.frame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render(TuxPlanetSpeedrunAnyPercent.GameInitializer.display);
                     TuxPlanetSpeedrunAnyPercent.GameInitializer.frame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic(TuxPlanetSpeedrunAnyPercent.GameInitializer.music);
+
+                    var newCompletedAchievements = TuxPlanetSpeedrunAnyPercent.GameInitializer.frame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements();
+
+                    if (newCompletedAchievements != null) {
+                        $t = Bridge.getEnumerator(newCompletedAchievements);
+                        try {
+                            while ($t.moveNext()) {
+                                var completedAchievement = $t.Current;
+                                var wasAdded = TuxPlanetSpeedrunAnyPercent.GameInitializer.completedAchievements.add(completedAchievement);
+
+                                if (wasAdded) {
+                                    TuxPlanetSpeedrunAnyPercent.GameInitializer.AddAchievementToJavascriptArray(completedAchievement);
+                                }
+                            }
+                        } finally {
+                            if (Bridge.is($t, System.IDisposable)) {
+                                $t.System$IDisposable$Dispose();
+                            }
+                        }
+                    }
 
                     var newClickUrl = TuxPlanetSpeedrunAnyPercent.GameInitializer.frame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl();
 
@@ -20378,7 +20409,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     eval("\n\t\t\t\twindow.FpsDisplayJavascript = ((function () {\n\t\t\t\t\t'use strict';\n\t\t\t\t\t\n\t\t\t\t\tvar numberOfFrames = 0;\n\t\t\t\t\tvar hasAddedFpsLabel = false;\n\t\t\t\t\tvar startTimeMillis = Date.now();\n\t\t\t\t\tvar fpsNode = null;\n\t\t\t\t\t\n\t\t\t\t\tvar frameComputedAndRendered = function () {\n\t\t\t\t\t\tnumberOfFrames++;\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tvar displayFps = function () {\n\t\t\t\t\t\tif (!hasAddedFpsLabel) {\n\t\t\t\t\t\t\tvar fpsLabelNode = document.getElementById('fpsLabel');\n\t\t\t\t\t\t\tif (fpsLabelNode !== null) {\n\t\t\t\t\t\t\t\tfpsLabelNode.textContent = 'FPS: ';\n\t\t\t\t\t\t\t\thasAddedFpsLabel = true;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\t\tvar currentTimeMillis = Date.now();\n\t\t\t\t\t\tif (currentTimeMillis - startTimeMillis > 2000) {\n\t\t\t\t\t\t\tvar actualFps = numberOfFrames / 2;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tif (fpsNode === null)\n\t\t\t\t\t\t\t\tfpsNode = document.getElementById('fps');\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tif (fpsNode !== null)\n\t\t\t\t\t\t\t\tfpsNode.textContent = actualFps.toString();\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tnumberOfFrames = 0;\n\t\t\t\t\t\t\tstartTimeMillis = currentTimeMillis;\n\t\t\t\t\t\t}\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\treturn {\n\t\t\t\t\t\tframeComputedAndRendered: frameComputedAndRendered,\n\t\t\t\t\t\tdisplayFps: displayFps\n\t\t\t\t\t};\n\t\t\t\t})());\n\t\t\t");
                 },
                 Initialize: function () {
-                    eval("\n\t\t\t\t((function () {\n\t\t\t\t\t'use strict';\n\t\t\t\t\t\n\t\t\t\t\tvar isWebPortalVersion = false;\n\t\t\t\t\t\n\t\t\t\t\tvar urlParams = (new URL(document.location)).searchParams;\n\t\t\t\t\t\n\t\t\t\t\tvar showFps = urlParams.get('showfps') !== null\n\t\t\t\t\t\t? (urlParams.get('showfps') === 'true')\n\t\t\t\t\t\t: false;\n\t\t\t\t\tvar fps = urlParams.get('fps') !== null\n\t\t\t\t\t\t? parseInt(urlParams.get('fps'), 10)\n\t\t\t\t\t\t: 60;\n\t\t\t\t\tvar debugMode = urlParams.get('debugmode') !== null\n\t\t\t\t\t\t? (urlParams.get('debugmode') === 'true')\n\t\t\t\t\t\t: false;\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.Start(fps, isWebPortalVersion, debugMode);\n\t\t\t\t\t\n\t\t\t\t\tvar computeAndRenderNextFrame;\n\t\t\t\t\t\n\t\t\t\t\tvar nextTimeToAct = Date.now() + (1000.0 / fps);\n\t\t\t\t\t\n\t\t\t\t\tvar hasProcessedExtraTime = false;\n\t\t\t\t\t\n\t\t\t\t\tcomputeAndRenderNextFrame = function () {\n\t\t\t\t\t\tvar now = Date.now();\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (nextTimeToAct > now) {\n\t\t\t\t\t\t\tif (!hasProcessedExtraTime) {\n\t\t\t\t\t\t\t\tvar extraTime = Math.round(nextTimeToAct - now);\n\t\t\t\t\t\t\t\tif (extraTime > 0)\n\t\t\t\t\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.ProcessExtraTime(extraTime);\n\t\t\t\t\t\t\t\thasProcessedExtraTime = true;\n\t\t\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 5);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\t\thasProcessedExtraTime = false;\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (nextTimeToAct < now - 5.0*(1000.0 / fps))\n\t\t\t\t\t\t\tnextTimeToAct = now - 5.0*(1000.0 / fps);\n\t\t\t\t\t\t\n\t\t\t\t\t\tnextTimeToAct = nextTimeToAct + (1000.0 / fps);\n\t\t\t\t\t\t\n\t\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.ComputeAndRenderNextFrame();\n\t\t\t\t\t\twindow.FpsDisplayJavascript.frameComputedAndRendered();\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (showFps)\n\t\t\t\t\t\t\twindow.FpsDisplayJavascript.displayFps();\n\t\t\t\t\t\t\n\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t})());\n\t\t\t");
+                    eval("\n\t\t\t\t((function () {\n\t\t\t\t\t'use strict';\n\t\t\t\t\t\n\t\t\t\t\tvar isWebPortalVersion = false;\n\t\t\t\t\t\n\t\t\t\t\tvar urlParams = (new URL(document.location)).searchParams;\n\t\t\t\t\t\n\t\t\t\t\tvar showFps = urlParams.get('showfps') !== null\n\t\t\t\t\t\t? (urlParams.get('showfps') === 'true')\n\t\t\t\t\t\t: false;\n\t\t\t\t\tvar fps = urlParams.get('fps') !== null\n\t\t\t\t\t\t? parseInt(urlParams.get('fps'), 10)\n\t\t\t\t\t\t: 60;\n\t\t\t\t\tvar debugMode = urlParams.get('debugmode') !== null\n\t\t\t\t\t\t? (urlParams.get('debugmode') === 'true')\n\t\t\t\t\t\t: false;\n\t\t\t\t\t\n\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.Start(fps, isWebPortalVersion, debugMode);\n\t\t\t\t\t\n\t\t\t\t\tvar computeAndRenderNextFrame;\n\t\t\t\t\t\n\t\t\t\t\tvar nextTimeToAct = Date.now() + (1000.0 / fps);\n\t\t\t\t\t\n\t\t\t\t\tvar hasProcessedExtraTime = false;\n\t\t\t\t\t\n\t\t\t\t\tcomputeAndRenderNextFrame = function () {\n\t\t\t\t\t\tvar now = Date.now();\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (nextTimeToAct > now) {\n\t\t\t\t\t\t\tif (!hasProcessedExtraTime) {\n\t\t\t\t\t\t\t\tvar extraTime = Math.round(nextTimeToAct - now);\n\t\t\t\t\t\t\t\tif (extraTime > 0)\n\t\t\t\t\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.ProcessExtraTime(extraTime);\n\t\t\t\t\t\t\t\thasProcessedExtraTime = true;\n\t\t\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 5);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\t\thasProcessedExtraTime = false;\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (nextTimeToAct < now - 5.0*(1000.0 / fps))\n\t\t\t\t\t\t\tnextTimeToAct = now - 5.0*(1000.0 / fps);\n\t\t\t\t\t\t\n\t\t\t\t\t\tnextTimeToAct = nextTimeToAct + (1000.0 / fps);\n\t\t\t\t\t\t\n\t\t\t\t\t\twindow.TuxPlanetSpeedrunAnyPercent.GameInitializer.ComputeAndRenderNextFrame();\n\t\t\t\t\t\twindow.FpsDisplayJavascript.frameComputedAndRendered();\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (showFps)\n\t\t\t\t\t\t\twindow.FpsDisplayJavascript.displayFps();\n\t\t\t\t\t\t\n\t\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tsetTimeout(computeAndRenderNextFrame, 0);\n\t\t\t\t})());\n\t\t\t");
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Achievements", {
+        statics: {
+            methods: {
+                GetCompletedAchievements: function (numCompletedLevels) {
+                    var completedAchievements = new (System.Collections.Generic.HashSet$1(System.String)).ctor();
+
+                    if (numCompletedLevels >= 1) {
+                        completedAchievements.add("completed_1_level");
+                    }
+
+                    for (var i = 2; i <= numCompletedLevels; i = (i + 1) | 0) {
+                        var completedLevelsString = "completed_" + (DTLibrary.StringUtil.ToStringCultureInvariant(i) || "") + "_levels";
+                        completedAchievements.add(completedLevelsString);
+                    }
+
+                    return completedAchievements;
                 }
             }
         }
@@ -20434,6 +20486,23 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.IBackground", {
         $kind: "interface"
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.BackgroundUtil", {
+        statics: {
+            methods: {
+                GetRandomBackground: function (random) {
+                    switch (random.DTLibrary$IDTRandom$NextInt(2)) {
+                        case 0: 
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.Background_Ocean();
+                        case 1: 
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.Background_Arctis();
+                        default: 
+                            throw new System.Exception();
+                    }
+                }
+            }
+        }
     });
 
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.ITilemap", {
@@ -20667,9 +20736,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             indexOfRemoveKonqiEnemy = i;
                         }
 
-                        if (System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi) {
+                        if (System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene) {
                             indexOfKonqiEnemy = i;
-                            konqiLocation = System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation();
+                            konqiLocation = System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation();
                             konqiEnemyId = System.Array.getItem(enemies, i, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId;
                         }
 
@@ -20680,7 +20749,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         var newFinalEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
 
                         for (var i1 = 0; i1 < finalEnemies.Count; i1 = (i1 + 1) | 0) {
-                            if (!finalEnemies.getItem(i1).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi && !finalEnemies.getItem(i1).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi) {
+                            if (!finalEnemies.getItem(i1).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi && !finalEnemies.getItem(i1).TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene) {
                                 newFinalEnemies.add(finalEnemies.getItem(i1));
                             }
                         }
@@ -20718,7 +20787,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             methods: {
                 ProcessFrame: function (tuxState, enemies, soundOutput) {
                     var $t, $t1, $t2, $t3, $t4;
-                    if (tuxState.IsDead || tuxState.HasFinishedLevel) {
+                    if (tuxState.IsDead || tuxState.TeleportInProgressElapsedMicros != null || tuxState.HasFinishedLevel) {
                         return new TuxPlanetSpeedrunAnyPercentLibrary.CollisionProcessing_Tux.Result(tuxState, enemies, new (System.Collections.Generic.List$1(System.String)).ctor());
                     }
 
@@ -20887,7 +20956,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 GetWebBrowserVersionText: function () {
-                    return "Design and coding by dtsudo: \n\nThis game is a fangame of SuperTux and SuperTux Advance. \n\nThis game is open source, licensed under the AGPL 3.0. \n(Code dependencies and images/font/sound/music licensed under \nAGPL-compatible licenses.) \n\nThe source code is written in C# and transpiled to javascript using \nBridge.NET. \n\nSee the source code for more information (including licensing \ndetails).";
+                    return "Design and coding by dtsudo: \n\nThis game is a fangame of SuperTux and SuperTux Advance. \n\nThis game is open source, licensed under GPL 3.0. \n(Code dependencies and images/font/sound/music licensed under \nother open source licenses.) \n\nThe source code is written in C# and transpiled to javascript using \nBridge.NET. \n\nSee the source code for more information (including licensing \ndetails).";
                 },
                 GetDesktopVersionText: function () {
                     return "";
@@ -20935,7 +21004,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 GetText: function () {
-                    return "Image files created by: \n* Benjamin K. Smith, Lanea Zimmerman (AKA Sharm), Daniel Eddeland, \n   William.Thompsonj, Nushio, Adrix89 \n* FrostC \n* Kelvin Shadewing \n* Kenney \n* KnoblePersona \n* Nemisys \n\nSee the source code for more information (including licensing \ndetails).";
+                    return "Image files created by: \n* Benjamin K. Smith, Lanea Zimmerman (AKA Sharm), Daniel Eddeland, \n   William.Thompsonj, Nushio, Adrix89 \n* FrostC \n* Grumbel \n* Jetrel \n* Kelvin Shadewing \n* Kenney \n* KnoblePersona \n* Nemisys \n\nSee the source code for more information (including licensing \ndetails).";
                 },
                 Render: function (displayOutput, width, height) {
                     displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(10, ((height - 10) | 0), TuxPlanetSpeedrunAnyPercentLibrary.Credits_Images.GetText(), TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt, DTLibrary.DTColor.Black());
@@ -20948,7 +21017,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 GetText: function () {
-                    return "Music track authors: \n* cynicmusic \n* Jason Lavallee \n* Lukas Nystrand \n* Cal McEachern \n* wansti \n\nSee the source code for more information (including licensing \ndetails).";
+                    return "Music track authors: \n* cynicmusic \n* Jason Lavallee \n* Lukas Nystrand \n* migfus20 \n* Cal McEachern \n* wansti \n\nSee the source code for more information (including licensing \ndetails).";
                 },
                 Render: function (displayOutput, width, height) {
                     displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawText(10, ((height - 10) | 0), TuxPlanetSpeedrunAnyPercentLibrary.Credits_Music.GetText(), TuxPlanetSpeedrunAnyPercentLibrary.GameFont.DTSimpleFont20Pt, DTLibrary.DTColor.Black());
@@ -21010,6 +21079,29 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         $kind: "interface"
     });
 
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status", {
+        $kind: "nested enum",
+        statics: {
+            fields: {
+                A_Dialogue: 0,
+                B_KonqiDisappear: 1,
+                C_Camera: 2
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status", {
+        $kind: "nested enum",
+        statics: {
+            fields: {
+                A_SpawnKonqi: 0,
+                B_Camera: 1,
+                C_Dialogue: 2,
+                D_Delay: 3
+            }
+        }
+    });
+
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status", {
         $kind: "nested enum",
         statics: {
@@ -21051,17 +21143,21 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             fields: {
                 SAVESTATE_CUTSCENE: null,
                 TIME_SLOWDOWN_CUTSCENE: null,
-                TELEPORT_CUTSCENE: null
+                TELEPORT_CUTSCENE: null,
+                BOSS_CUTSCENE: null,
+                BOSS_DEFEATED_CUTSCENE: null
             },
             ctors: {
                 init: function () {
                     this.SAVESTATE_CUTSCENE = "savestate_cutscene";
                     this.TIME_SLOWDOWN_CUTSCENE = "time_slowdown_cutscene";
                     this.TELEPORT_CUTSCENE = "teleport_cutscene";
+                    this.BOSS_CUTSCENE = "boss_cutscene";
+                    this.BOSS_DEFEATED_CUTSCENE = "boss_defeated_cutscene";
                 }
             },
             methods: {
-                GetCutscene: function (cutsceneName) {
+                GetCutscene: function (cutsceneName, customLevelInfo) {
                     if (Bridge.referenceEquals(cutsceneName, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.SAVESTATE_CUTSCENE)) {
                         return TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.GetCutscene();
                     } else {
@@ -21071,7 +21167,15 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             if (Bridge.referenceEquals(cutsceneName, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TELEPORT_CUTSCENE)) {
                                 return TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.GetCutscene();
                             } else {
-                                throw new System.Exception();
+                                if (Bridge.referenceEquals(cutsceneName, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.BOSS_CUTSCENE)) {
+                                    return TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.GetCutscene(customLevelInfo);
+                                } else {
+                                    if (Bridge.referenceEquals(cutsceneName, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.BOSS_DEFEATED_CUTSCENE)) {
+                                        return TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.GetCutscene(customLevelInfo);
+                                    } else {
+                                        throw new System.Exception();
+                                    }
+                                }
                             }
                         }
                     }
@@ -21085,18 +21189,24 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         fields: {
             Move: null,
             CameraState: null,
-            NewEnemies: null,
+            Enemies: null,
+            NewlyAddedLevelFlags: null,
             Cutscene: null,
             ShouldGrantSaveStatePower: false,
             ShouldGrantTimeSlowdownPower: false,
             ShouldGrantTeleportPower: false
         },
         ctors: {
-            ctor: function (move, cameraState, newEnemies, cutscene, shouldGrantSaveStatePower, shouldGrantTimeSlowdownPower, shouldGrantTeleportPower) {
+            ctor: function (move, cameraState, enemies, newlyAddedLevelFlags, cutscene, shouldGrantSaveStatePower, shouldGrantTimeSlowdownPower, shouldGrantTeleportPower) {
                 this.$initialize();
                 this.Move = move;
                 this.CameraState = cameraState;
-                this.NewEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(newEnemies);
+                this.Enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
+                if (newlyAddedLevelFlags == null) {
+                    this.NewlyAddedLevelFlags = new (System.Collections.Generic.List$1(System.String)).ctor();
+                } else {
+                    this.NewlyAddedLevelFlags = new (System.Collections.Generic.List$1(System.String)).$ctor1(newlyAddedLevelFlags);
+                }
                 this.Cutscene = cutscene;
                 this.ShouldGrantSaveStatePower = shouldGrantSaveStatePower;
                 this.ShouldGrantTimeSlowdownPower = shouldGrantTimeSlowdownPower;
@@ -21315,8 +21425,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing", {
         statics: {
             methods: {
-                ProcessFrame: function (tilemap, cameraX, cameraY, windowWidth, windowHeight, enemies, killedEnemies, elapsedMicrosPerFrame) {
-                    var $t, $t1, $t2, $t3, $t4, $t5, $t6;
+                ProcessFrame: function (tilemap, cameraX, cameraY, windowWidth, windowHeight, tuxState, random, enemies, killedEnemies, levelFlags, soundOutput, elapsedMicrosPerFrame) {
+                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
+                    var newlyAddedLevelFlags = new (System.Collections.Generic.HashSet$1(System.String)).ctor();
+
                     var existingEnemies = new (System.Collections.Generic.HashSet$1(System.String)).ctor();
                     $t = Bridge.getEnumerator(enemies, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy);
                     try {
@@ -21368,7 +21480,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     try {
                         while ($t3.moveNext()) {
                             var enemy1 = $t3.Current;
-                            var result = enemy1.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame(cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap);
+                            var result = enemy1.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame(cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput);
 
                             $t4 = Bridge.getEnumerator(result.Enemies, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy);
                             try {
@@ -21385,6 +21497,18 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                                 }
                             }
                             newlyKilledEnemies.AddRange(result.NewlyKilledEnemies);
+
+                            $t5 = Bridge.getEnumerator(result.NewlyAddedLevelFlags, System.String);
+                            try {
+                                while ($t5.moveNext()) {
+                                    var levelFlag = $t5.Current;
+                                    newlyAddedLevelFlags.add(levelFlag);
+                                }
+                            } finally {
+                                if (Bridge.is($t5, System.IDisposable)) {
+                                    $t5.System$IDisposable$Dispose();
+                                }
+                            }
                         }
                     } finally {
                         if (Bridge.is($t3, System.IDisposable)) {
@@ -21392,35 +21516,47 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         }
                     }
 
-                    $t5 = Bridge.getEnumerator(newEnemies);
+                    $t6 = Bridge.getEnumerator(newEnemies);
                     try {
-                        while ($t5.moveNext()) {
-                            var enemy2 = $t5.Current;
-                            var result1 = enemy2.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame(cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap);
+                        while ($t6.moveNext()) {
+                            var enemy2 = $t6.Current;
+                            var result1 = enemy2.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame(cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput);
 
-                            $t6 = Bridge.getEnumerator(result1.Enemies, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy);
+                            $t7 = Bridge.getEnumerator(result1.Enemies, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy);
                             try {
-                                while ($t6.moveNext()) {
-                                    var e1 = $t6.Current;
+                                while ($t7.moveNext()) {
+                                    var e1 = $t7.Current;
                                     if (!processedEnemiesSet.contains(e1.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId) && !killedEnemiesSet.contains(e1.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId)) {
                                         processedEnemies.add(e1);
                                         processedEnemiesSet.add(e1.TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId);
                                     }
                                 }
                             } finally {
-                                if (Bridge.is($t6, System.IDisposable)) {
-                                    $t6.System$IDisposable$Dispose();
+                                if (Bridge.is($t7, System.IDisposable)) {
+                                    $t7.System$IDisposable$Dispose();
                                 }
                             }
                             newlyKilledEnemies.AddRange(result1.NewlyKilledEnemies);
+
+                            $t8 = Bridge.getEnumerator(result1.NewlyAddedLevelFlags, System.String);
+                            try {
+                                while ($t8.moveNext()) {
+                                    var levelFlag1 = $t8.Current;
+                                    newlyAddedLevelFlags.add(levelFlag1);
+                                }
+                            } finally {
+                                if (Bridge.is($t8, System.IDisposable)) {
+                                    $t8.System$IDisposable$Dispose();
+                                }
+                            }
                         }
                     } finally {
-                        if (Bridge.is($t5, System.IDisposable)) {
-                            $t5.System$IDisposable$Dispose();
+                        if (Bridge.is($t6, System.IDisposable)) {
+                            $t6.System$IDisposable$Dispose();
                         }
                     }
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(processedEnemies, newlyKilledEnemies);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(processedEnemies, newlyKilledEnemies, System.Linq.Enumerable.from(newlyAddedLevelFlags).toList(System.String));
                 }
             }
         }
@@ -21430,13 +21566,19 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         $kind: "nested class",
         fields: {
             Enemies: null,
-            NewlyKilledEnemies: null
+            NewlyKilledEnemies: null,
+            NewlyAddedLevelFlags: null
         },
         ctors: {
-            ctor: function (enemies, newlyKilledEnemies) {
+            ctor: function (enemies, newlyKilledEnemies, newlyAddedLevelFlags) {
                 this.$initialize();
                 this.Enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
                 this.NewlyKilledEnemies = new (System.Collections.Generic.List$1(System.String)).$ctor1(newlyKilledEnemies);
+                if (newlyAddedLevelFlags == null) {
+                    this.NewlyAddedLevelFlags = new (System.Collections.Generic.List$1(System.String)).ctor();
+                } else {
+                    this.NewlyAddedLevelFlags = new (System.Collections.Generic.List$1(System.String)).$ctor1(newlyAddedLevelFlags);
+                }
             }
         }
     });
@@ -21512,6 +21654,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return "Kenney/MusicOff_White.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TilemapSnow: 
                             return "KelvinShadewing/tssnow.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TilemapCastle: 
+                            return "KelvinShadewing/tsCastle.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BossDoor: 
+                            return "KelvinShadewing/boss-door.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Tux: 
                             return "KelvinShadewing/tux.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TuxMirrored: 
@@ -21520,6 +21666,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return "KelvinShadewing/konqi.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KonqiMirrored: 
                             return "KelvinShadewing/konqi_mirrored.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KonqiFire: 
+                            return "KelvinShadewing/konqifire.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KonqiFireMirrored: 
+                            return "KelvinShadewing/konqifire_mirrored.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Blazeborn: 
                             return "FrostC/Blazeborn.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BlazebornMirrored: 
@@ -21528,6 +21678,28 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return "KelvinShadewing/smartcap.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SmartcapMirrored: 
                             return "KelvinShadewing/smartcap_mirrored.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Bouncecap: 
+                            return "KelvinShadewing/bouncecap.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BouncecapMirrored: 
+                            return "KelvinShadewing/bouncecap_mirrored.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Flyamanita: 
+                            return "KelvinShadewing/flyamanita.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.FlyamanitaMirrored: 
+                            return "KelvinShadewing/flyamanita_mirrored.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Snail: 
+                            return "KelvinShadewing/snail.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SnailMirrored: 
+                            return "KelvinShadewing/snail_mirrored.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SnailBlue: 
+                            return "KelvinShadewing/snail-blue.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SnailBlueMirrored: 
+                            return "KelvinShadewing/snail-blue_mirrored.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Orange: 
+                            return "KelvinShadewing/orange.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.OrangeMirrored: 
+                            return "KelvinShadewing/orange_mirrored.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Poof: 
+                            return "KelvinShadewing/poof.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BossHealth: 
                             return "KelvinShadewing/boss-health.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.C4: 
@@ -21544,18 +21716,46 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return "KelvinShadewing/solid.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Spikes: 
                             return "FrostC/spikes.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Flash: 
+                            return "KelvinShadewing/tfFlash.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.ExplodeF: 
+                            return "KelvinShadewing/explodeF.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Flame: 
+                            return "KelvinShadewing/flame.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Lock: 
+                            return "KelvinShadewing/lock.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KeyCopper: 
+                            return "KelvinShadewing/key-copper.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KeySilver: 
+                            return "KelvinShadewing/key-silver.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KeyGold: 
+                            return "KelvinShadewing/key-gold.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KeyMythril: 
+                            return "KelvinShadewing/key-mythril.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Signpost: 
                             return "Nemisys/signpost.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt: 
                             return "BenCreating/PathDirt.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.ForestSnowy: 
+                            return "BenCreating/Snow/ForestSnowy.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.RocksSnow: 
+                            return "BenCreating/Snow/RocksSnow.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Snow: 
                             return "BenCreating/Snow/Snow.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.WaterCliffSnow: 
+                            return "BenCreating/Snow/WaterCliffSnow.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Mountains: 
+                            return "BenCreating/Mountains.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Towns: 
+                            return "BenCreating/Grass/Towns.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.LevelIcons: 
                             return "KelvinShadewing/level-icons.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TuxOverworld: 
                             return "KelvinShadewing/tuxO.png";
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.OceanBackground: 
                             return "KnoblePersona/ocean.png";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Arctis2: 
+                            return "grumbel/arctis2.png";
                         default: 
                             throw new System.Exception();
                     }
@@ -21584,13 +21784,16 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             Tux: null,
             Camera: null,
             LevelNameDisplay: null,
+            LevelFlags: null,
             Enemies: null,
             KilledEnemies: null,
+            MapKeyState: null,
             PreviousMove: null,
             FrameCounter: 0,
             WindowWidth: 0,
             WindowHeight: 0,
             Level: 0,
+            RngSeed: null,
             CanUseSaveStates: false,
             CanUseTimeSlowdown: false,
             CanUseTeleport: false,
@@ -21600,11 +21803,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             CheckpointLocation: null,
             CompletedCutscenesAtCheckpoint: null,
             KilledEnemiesAtCheckpoint: null,
+            LevelFlagsAtCheckpoint: null,
+            RngSeedAtCheckpoint: null,
+            MapKeyStateAtCheckpoint: null,
             CompletedCutscenes: null,
             Cutscene: null
         },
         ctors: {
-            ctor: function (levelConfiguration, background, tilemap, tux, camera, levelNameDisplay, enemies, killedEnemies, previousMove, frameCounter, windowWidth, windowHeight, level, canUseSaveStates, canUseTimeSlowdown, canUseTeleport, startedLevelOrCheckpointWithSaveStates, startedLevelOrCheckpointWithTimeSlowdown, startedLevelOrCheckpointWithTeleport, checkpointLocation, completedCutscenesAtCheckpoint, killedEnemiesAtCheckpoint, completedCutscenes, cutscene) {
+            ctor: function (levelConfiguration, background, tilemap, tux, camera, levelNameDisplay, levelFlags, enemies, killedEnemies, mapKeyState, previousMove, frameCounter, windowWidth, windowHeight, level, rngSeed, canUseSaveStates, canUseTimeSlowdown, canUseTeleport, startedLevelOrCheckpointWithSaveStates, startedLevelOrCheckpointWithTimeSlowdown, startedLevelOrCheckpointWithTeleport, checkpointLocation, completedCutscenesAtCheckpoint, killedEnemiesAtCheckpoint, levelFlagsAtCheckpoint, rngSeedAtCheckpoint, mapKeyStateAtCheckpoint, completedCutscenes, cutscene) {
                 this.$initialize();
                 this.LevelConfiguration = levelConfiguration;
                 this.Background = background;
@@ -21612,13 +21818,16 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.Tux = tux;
                 this.Camera = camera;
                 this.LevelNameDisplay = levelNameDisplay;
+                this.LevelFlags = new (System.Collections.Generic.List$1(System.String)).$ctor1(levelFlags);
                 this.Enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
                 this.KilledEnemies = new (System.Collections.Generic.List$1(System.String)).$ctor1(killedEnemies);
+                this.MapKeyState = mapKeyState;
                 this.PreviousMove = previousMove;
                 this.FrameCounter = frameCounter;
                 this.WindowWidth = windowWidth;
                 this.WindowHeight = windowHeight;
                 this.Level = level;
+                this.RngSeed = rngSeed;
                 this.CanUseSaveStates = canUseSaveStates;
                 this.CanUseTimeSlowdown = canUseTimeSlowdown;
                 this.CanUseTeleport = canUseTeleport;
@@ -21628,6 +21837,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.CheckpointLocation = checkpointLocation;
                 this.CompletedCutscenesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(completedCutscenesAtCheckpoint);
                 this.KilledEnemiesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(killedEnemiesAtCheckpoint);
+                this.LevelFlagsAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(levelFlagsAtCheckpoint);
+                this.RngSeedAtCheckpoint = rngSeedAtCheckpoint;
+                this.MapKeyStateAtCheckpoint = mapKeyStateAtCheckpoint;
                 this.CompletedCutscenes = new (System.Collections.Generic.List$1(System.String)).$ctor1(completedCutscenes);
                 this.Cutscene = cutscene;
             },
@@ -21650,26 +21862,35 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                                 if (level === TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5) {
                                     levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level5(mapInfo, random);
                                 } else {
-                                    throw new System.Exception();
+                                    if (level === TuxPlanetSpeedrunAnyPercentLibrary.Level.Level6) {
+                                        levelConfig = new TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6(mapInfo, random);
+                                    } else {
+                                        throw new System.Exception();
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
+                var rngSeed = random.DTLibrary$IDTDeterministicRandom$SerializeToString();
+
                 this.LevelConfiguration = levelConfig;
                 this.Background = this.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground();
-                this.Tilemap = this.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(null, null, windowWidth, windowHeight);
+                this.Tilemap = this.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(null, null, windowWidth, windowHeight, new (System.Collections.Generic.List$1(System.String)).ctor(), TuxPlanetSpeedrunAnyPercentLibrary.MapKeyState.EmptyMapKeyState());
                 this.Tux = TuxPlanetSpeedrunAnyPercentLibrary.TuxState.GetDefaultTuxState(this.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(0, 0).Item1, this.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(0, 0).Item2);
                 this.Camera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(this.Tux.XMibi, this.Tux.YMibi, this.Tux.TeleportStartingLocation, this.Tux.TeleportInProgressElapsedMicros, this.Tilemap, windowWidth, windowHeight);
                 this.LevelNameDisplay = TuxPlanetSpeedrunAnyPercentLibrary.LevelNameDisplay.GetLevelNameDisplay(TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.GetLevelName(level));
+                this.LevelFlags = new (System.Collections.Generic.List$1(System.String)).ctor();
                 this.Enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
                 this.KilledEnemies = new (System.Collections.Generic.List$1(System.String)).ctor();
+                this.MapKeyState = TuxPlanetSpeedrunAnyPercentLibrary.MapKeyState.EmptyMapKeyState();
                 this.PreviousMove = TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove();
                 this.FrameCounter = 0;
                 this.WindowWidth = windowWidth;
                 this.WindowHeight = windowHeight;
                 this.Level = level;
+                this.RngSeed = rngSeed;
                 this.CanUseSaveStates = canUseSaveStates;
                 this.CanUseTimeSlowdown = canUseTimeSlowdown;
                 this.CanUseTeleport = canUseTeleport;
@@ -21679,6 +21900,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.CheckpointLocation = null;
                 this.CompletedCutscenesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).ctor();
                 this.KilledEnemiesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).ctor();
+                this.LevelFlagsAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).ctor();
+                this.RngSeedAtCheckpoint = rngSeed;
+                this.MapKeyStateAtCheckpoint = TuxPlanetSpeedrunAnyPercentLibrary.MapKeyState.EmptyMapKeyState();
                 this.CompletedCutscenes = new (System.Collections.Generic.List$1(System.String)).ctor();
                 this.Cutscene = null;
             }
@@ -21689,9 +21913,16 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 ProcessFrame: function (gameLogicState, move, debugMode, debugKeyboardInput, debugPreviousKeyboardInput, displayProcessing, soundOutput, elapsedMicrosPerFrame) {
-                    var newTilemap = gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(gameLogicState.Tux.XMibi >> 10, gameLogicState.Tux.YMibi >> 10, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+                    var $t, $t1;
+                    var newLevelFlags = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.LevelFlags);
+
+                    var newTilemap = gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(gameLogicState.Tux.XMibi >> 10, gameLogicState.Tux.YMibi >> 10, gameLogicState.WindowWidth, gameLogicState.WindowHeight, newLevelFlags, gameLogicState.MapKeyState);
 
                     var newLevelNameDisplay = gameLogicState.LevelNameDisplay.ProcessFrame(elapsedMicrosPerFrame);
+
+                    var newMapKeyState = gameLogicState.MapKeyState;
+
+                    newMapKeyState = newMapKeyState.ProcessFrame(gameLogicState.Tux.XMibi >> 10, gameLogicState.Tux.YMibi >> 10, System.Nullable.hasValue(gameLogicState.Tux.TeleportInProgressElapsedMicros), newTilemap, elapsedMicrosPerFrame);
 
                     var newCutscene = gameLogicState.Cutscene;
                     var newCompletedCutscenes = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.CompletedCutscenes);
@@ -21700,6 +21931,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var newCanUseTimeSlowdown = gameLogicState.CanUseTimeSlowdown;
                     var newCanUseTeleport = gameLogicState.CanUseTeleport;
 
+                    var newRngSeed = gameLogicState.RngSeed;
+
                     var newCamera = gameLogicState.Camera;
 
                     var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(gameLogicState.Enemies);
@@ -21707,13 +21940,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     if (newCutscene == null) {
                         var cutsceneName = newTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene(gameLogicState.Tux.XMibi >> 10, gameLogicState.Tux.YMibi >> 10);
                         if (cutsceneName != null && !newCompletedCutscenes.contains(cutsceneName)) {
-                            newCutscene = TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.GetCutscene(cutsceneName);
+                            newCutscene = TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.GetCutscene(cutsceneName, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCustomLevelInfo());
                         }
                     }
 
                     if (newCutscene != null) {
                         var cutsceneName1 = newCutscene.TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$GetCutsceneName();
-                        var cutsceneResult = newCutscene.TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$ProcessFrame(move, gameLogicState.Tux.XMibi, gameLogicState.Tux.YMibi, newCamera, elapsedMicrosPerFrame, gameLogicState.WindowWidth, gameLogicState.WindowHeight, newTilemap);
+                        var cutsceneResult = newCutscene.TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$ProcessFrame(move, gameLogicState.Tux.XMibi, gameLogicState.Tux.YMibi, newCamera, elapsedMicrosPerFrame, gameLogicState.WindowWidth, gameLogicState.WindowHeight, newTilemap, newEnemies, newLevelFlags);
 
                         if (cutsceneResult.Move != null) {
                             move = cutsceneResult.Move;
@@ -21721,9 +21954,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                         newCutscene = cutsceneResult.Cutscene;
 
-                        if (System.Array.getCount(cutsceneResult.NewEnemies, TuxPlanetSpeedrunAnyPercentLibrary.IEnemy) > 0) {
-                            newEnemies.AddRange(cutsceneResult.NewEnemies);
-                        }
+                        newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(cutsceneResult.Enemies);
 
                         newCamera = cutsceneResult.CameraState;
 
@@ -21742,6 +21973,21 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         if (newCutscene == null) {
                             newCompletedCutscenes.add(cutsceneName1);
                         }
+
+                        var existingLevelFlags = new (System.Collections.Generic.HashSet$1(System.String)).$ctor1(newLevelFlags);
+                        $t = Bridge.getEnumerator(cutsceneResult.NewlyAddedLevelFlags, System.String);
+                        try {
+                            while ($t.moveNext()) {
+                                var levelFlag = $t.Current;
+                                if (!existingLevelFlags.contains(levelFlag)) {
+                                    newLevelFlags.add(levelFlag);
+                                }
+                            }
+                        } finally {
+                            if (Bridge.is($t, System.IDisposable)) {
+                                $t.System$IDisposable$Dispose();
+                            }
+                        }
                     }
 
                     if (debugMode && debugKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Two) && !debugPreviousKeyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.Two)) {
@@ -21759,15 +22005,37 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var newTuxState = result.TuxState;
 
                     if (newCutscene == null) {
-                        newCamera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(newTuxState.XMibi, newTuxState.YMibi, newTuxState.TeleportStartingLocation, newTuxState.TeleportInProgressElapsedMicros, gameLogicState.Tilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+                        newCamera = gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCameraState(newTuxState.XMibi, newTuxState.YMibi, newTuxState.TeleportStartingLocation, newTuxState.TeleportInProgressElapsedMicros, gameLogicState.Tilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight, newLevelFlags);
+
+                        if (newCamera == null) {
+                            newCamera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(newTuxState.XMibi, newTuxState.YMibi, newTuxState.TeleportStartingLocation, newTuxState.TeleportInProgressElapsedMicros, gameLogicState.Tilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+                        }
                     }
 
-                    var enemyProcessingResult = TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.ProcessFrame(newTilemap, newCamera.X, newCamera.Y, gameLogicState.WindowWidth, gameLogicState.WindowHeight, newEnemies, gameLogicState.KilledEnemies, elapsedMicrosPerFrame);
+                    var enemyProcessingRandom = new DTLibrary.DTDeterministicRandom.ctor();
+                    enemyProcessingRandom.DeserializeFromString(newRngSeed);
+                    var enemyProcessingResult = TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.ProcessFrame(newTilemap, newCamera.X, newCamera.Y, gameLogicState.WindowWidth, gameLogicState.WindowHeight, newTuxState, enemyProcessingRandom, newEnemies, gameLogicState.KilledEnemies, newLevelFlags, soundOutput, elapsedMicrosPerFrame);
+                    newRngSeed = enemyProcessingRandom.SerializeToString();
 
                     newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemyProcessingResult.Enemies);
 
                     var newKilledEnemies = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.KilledEnemies);
                     newKilledEnemies.AddRange(enemyProcessingResult.NewlyKilledEnemies);
+
+                    var levelFlagsHashSet = new (System.Collections.Generic.HashSet$1(System.String)).$ctor1(newLevelFlags);
+                    $t1 = Bridge.getEnumerator(enemyProcessingResult.NewlyAddedLevelFlags, System.String);
+                    try {
+                        while ($t1.moveNext()) {
+                            var newlyAddedLevelFlag = $t1.Current;
+                            if (!levelFlagsHashSet.contains(newlyAddedLevelFlag)) {
+                                newLevelFlags.add(newlyAddedLevelFlag);
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t1, System.IDisposable)) {
+                            $t1.System$IDisposable$Dispose();
+                        }
+                    }
 
                     var collisionResultTux = TuxPlanetSpeedrunAnyPercentLibrary.CollisionProcessing_Tux.ProcessFrame(newTuxState, newEnemies, soundOutput);
 
@@ -21788,6 +22056,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var newCompletedCutscenesAtCheckpoint = gameLogicState.CompletedCutscenesAtCheckpoint;
                     var newKilledEnemiesAtCheckpoint = gameLogicState.KilledEnemiesAtCheckpoint;
+                    var newLevelFlagsAtCheckpoint = gameLogicState.LevelFlagsAtCheckpoint;
+                    var newRngSeedAtCheckpoint = gameLogicState.RngSeedAtCheckpoint;
+                    var newMapKeyStateAtCheckpoint = gameLogicState.MapKeyStateAtCheckpoint;
 
                     var newCheckpointLocation = gameLogicState.CheckpointLocation;
 
@@ -21799,10 +22070,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         newStartedLevelOrCheckpointWithTeleport = gameLogicState.CanUseTeleport;
                         newCompletedCutscenesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.CompletedCutscenes);
                         newKilledEnemiesAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.KilledEnemies);
+                        newLevelFlagsAtCheckpoint = new (System.Collections.Generic.List$1(System.String)).$ctor1(gameLogicState.LevelFlags);
+                        newRngSeedAtCheckpoint = gameLogicState.RngSeed;
+                        newMapKeyStateAtCheckpoint = gameLogicState.MapKeyState;
                     }
 
                     if (result.HasDied) {
-                        var restartedTilemap = gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(null, null, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+                        var restartedTilemap = gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap(null, null, gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.LevelFlagsAtCheckpoint, gameLogicState.MapKeyStateAtCheckpoint);
 
                         var originalTuxState;
 
@@ -21814,9 +22088,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                         newCamera = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(originalTuxState.XMibi, originalTuxState.YMibi, originalTuxState.TeleportStartingLocation, originalTuxState.TeleportInProgressElapsedMicros, restartedTilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
 
-                        return new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.ctor(gameLogicState.LevelConfiguration, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground(), restartedTilemap, originalTuxState, newCamera, newLevelNameDisplay, new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), gameLogicState.KilledEnemiesAtCheckpoint, move, ((gameLogicState.FrameCounter + 1) | 0), gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.Level, gameLogicState.StartedLevelOrCheckpointWithSaveStates, gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown, gameLogicState.StartedLevelOrCheckpointWithTeleport, gameLogicState.StartedLevelOrCheckpointWithSaveStates, gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown, gameLogicState.StartedLevelOrCheckpointWithTeleport, gameLogicState.CheckpointLocation, gameLogicState.CompletedCutscenesAtCheckpoint, gameLogicState.KilledEnemiesAtCheckpoint, gameLogicState.CompletedCutscenesAtCheckpoint, null), result.EndLevel, restartedTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic(), result.ShouldStopMusic);
+                        return new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.ctor(gameLogicState.LevelConfiguration, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground(), restartedTilemap, originalTuxState, newCamera, newLevelNameDisplay, gameLogicState.LevelFlagsAtCheckpoint, new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), gameLogicState.KilledEnemiesAtCheckpoint, gameLogicState.MapKeyStateAtCheckpoint, move, ((gameLogicState.FrameCounter + 1) | 0), gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.Level, gameLogicState.RngSeedAtCheckpoint, gameLogicState.StartedLevelOrCheckpointWithSaveStates, gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown, gameLogicState.StartedLevelOrCheckpointWithTeleport, gameLogicState.StartedLevelOrCheckpointWithSaveStates, gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown, gameLogicState.StartedLevelOrCheckpointWithTeleport, gameLogicState.CheckpointLocation, gameLogicState.CompletedCutscenesAtCheckpoint, gameLogicState.KilledEnemiesAtCheckpoint, gameLogicState.LevelFlagsAtCheckpoint, gameLogicState.RngSeedAtCheckpoint, gameLogicState.MapKeyStateAtCheckpoint, gameLogicState.CompletedCutscenesAtCheckpoint, null), result.EndLevel, restartedTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic(), result.ShouldStopMusic);
                     } else {
-                        return new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.ctor(gameLogicState.LevelConfiguration, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground(), newTilemap, newTuxState, newCamera, newLevelNameDisplay, newEnemies, newKilledEnemies, move, ((gameLogicState.FrameCounter + 1) | 0), gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.Level, newCanUseSaveStates, newCanUseTimeSlowdown, newCanUseTeleport, newStartedLevelOrCheckpointWithSaveStates, newStartedLevelOrCheckpointWithTimeSlowdown, newStartedLevelOrCheckpointWithTeleport, newCheckpointLocation, newCompletedCutscenesAtCheckpoint, newKilledEnemiesAtCheckpoint, newCompletedCutscenes, newCutscene), result.EndLevel, newTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic(), result.ShouldStopMusic);
+                        return new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicStateProcessing.Result(new TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.ctor(gameLogicState.LevelConfiguration, gameLogicState.LevelConfiguration.TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground(), newTilemap, newTuxState, newCamera, newLevelNameDisplay, newLevelFlags, newEnemies, newKilledEnemies, newMapKeyState, move, ((gameLogicState.FrameCounter + 1) | 0), gameLogicState.WindowWidth, gameLogicState.WindowHeight, gameLogicState.Level, newRngSeed, newCanUseSaveStates, newCanUseTimeSlowdown, newCanUseTeleport, newStartedLevelOrCheckpointWithSaveStates, newStartedLevelOrCheckpointWithTimeSlowdown, newStartedLevelOrCheckpointWithTeleport, newCheckpointLocation, newCompletedCutscenesAtCheckpoint, newKilledEnemiesAtCheckpoint, newLevelFlagsAtCheckpoint, newRngSeedAtCheckpoint, newMapKeyStateAtCheckpoint, newCompletedCutscenes, newCutscene), result.EndLevel, newTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic(), result.ShouldStopMusic);
                     }
                 },
                 Render: function (gameLogicState, displayOutput, elapsedMillis, debug_showHitboxes) {
@@ -21874,6 +22148,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         }
                     }
 
+                    gameLogicState.MapKeyState.Render(displayOutput, translatedDisplayOutput, gameLogicState.Tilemap, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
+
                     gameLogicState.LevelNameDisplay.Render(displayOutput, gameLogicState.WindowWidth, gameLogicState.WindowHeight);
 
                     var elapsedTimeString = TuxPlanetSpeedrunAnyPercentLibrary.ElapsedTimeUtil.GetElapsedTimeString(elapsedMillis);
@@ -21923,6 +22199,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return new TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo("LukasNystrand/chipdisko.ogg", "LukasNystrand/chipdisko.wav");
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Jewels: 
                             return new TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo("cynicmusic/music_jewels.ogg", "cynicmusic/music_jewels.wav");
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.BossTheme: 
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameMusicUtil.MusicFilenameInfo("migfus20/boss.ogg", "migfus20/boss.wav");
                         default: 
                             throw new System.Exception();
                     }
@@ -21938,6 +22216,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Chipdisko: 
                             return 70;
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.Jewels: 
+                            return 30;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.BossTheme: 
                             return 30;
                         default: 
                             throw new System.Exception();
@@ -21979,6 +22259,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("LittleRobotSoundFactory/Jump_03.wav", "LittleRobotSoundFactory/Jump_03.wav");
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Teleport: 
                             return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("Basto/heavy_splash.ogg", "Basto/heavy_splash.wav");
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Explosion02: 
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.GameSoundUtil.SoundFilenameInfo("LittleRobotSoundFactory/Explosion_02.wav", "LittleRobotSoundFactory/Explosion_02.wav");
                         default: 
                             throw new System.Exception();
                     }
@@ -21997,6 +22279,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return 30;
                         case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Teleport: 
                             return 30;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Explosion02: 
+                            return 10;
                         default: 
                             throw new System.Exception();
                     }
@@ -22147,7 +22431,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 Level2: 1,
                 Level3: 2,
                 Level4: 3,
-                Level5: 4
+                Level5: 4,
+                Level6: 5
             }
         }
     });
@@ -22169,7 +22454,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             throw new System.Exception();
                     }
                 },
-                GetTilemap: function (normalizedTilemaps, tuxX, tuxY, windowWidth, windowHeight) {
+                GetTilemap: function (normalizedTilemaps, tuxX, tuxY, mapKeyState, windowWidth, windowHeight) {
                     var $t, $t1;
                     var tilemapWidth = 0;
                     var tilemapHeight = 0;
@@ -22178,13 +22463,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     try {
                         while ($t.moveNext()) {
                             var tilemap = $t.Current;
-                            var width = (tilemap.XOffset + tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0;
+                            var width = (tilemap.XOffset + tilemap.Tilemap.GetWidth()) | 0;
 
                             if (tilemapWidth < width) {
                                 tilemapWidth = width;
                             }
 
-                            var height = (tilemap.YOffset + tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0;
+                            var height = (tilemap.YOffset + tilemap.Tilemap.GetHeight()) | 0;
 
                             if (tilemapHeight < height) {
                                 tilemapHeight = height;
@@ -22197,7 +22482,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     }
 
                     if (tuxX == null || tuxY == null) {
-                        return new TuxPlanetSpeedrunAnyPercentLibrary.BoundedTilemap(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap(normalizedTilemaps, tilemapWidth, tilemapHeight));
+                        return new TuxPlanetSpeedrunAnyPercentLibrary.BoundedTilemap(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap(normalizedTilemaps, tilemapWidth, tilemapHeight, tuxX, tuxY, mapKeyState));
                     }
 
                     if (System.Nullable.getValue(tuxX) > tilemapWidth) {
@@ -22231,7 +22516,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             var tilemap1 = $t1.Current;
                             if (!tilemap1.AlwaysIncludeTilemap) {
                                 var tilemapLeft = tilemap1.XOffset;
-                                var tilemapRight = (tilemap1.XOffset + tilemap1.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0;
+                                var tilemapRight = (tilemap1.XOffset + tilemap1.Tilemap.GetWidth()) | 0;
 
                                 if (tilemapRight < ((cameraLeft - margin) | 0)) {
                                     continue;
@@ -22241,7 +22526,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                                 }
 
                                 var tilemapBottom = tilemap1.YOffset;
-                                var tilemapTop = (tilemap1.YOffset + tilemap1.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0;
+                                var tilemapTop = (tilemap1.YOffset + tilemap1.Tilemap.GetHeight()) | 0;
 
                                 if (tilemapTop < ((cameraBottom - margin) | 0)) {
                                     continue;
@@ -22259,7 +22544,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         }
                     }
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.BoundedTilemap(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap(tilemapsNearTux, tilemapWidth, tilemapHeight));
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.BoundedTilemap(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap(tilemapsNearTux, tilemapWidth, tilemapHeight, tuxX, tuxY, mapKeyState));
                 }
             }
         }
@@ -22342,8 +22627,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2: 
                         case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3: 
                         case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4: 
-                            return false;
                         case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5: 
+                            return false;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level6: 
                             return true;
                         default: 
                             throw new System.Exception();
@@ -22361,6 +22647,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return "Level 4";
                         case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5: 
                             return "Level 5";
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level6: 
+                            return "Level 6";
                         default: 
                             throw new System.Exception();
                     }
@@ -22377,6 +22665,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return 4;
                         case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5: 
                             return 5;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.Level.Level6: 
+                            return 6;
                         default: 
                             throw new System.Exception();
                     }
@@ -22385,7 +22675,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var level = TuxPlanetSpeedrunAnyPercentLibrary.LevelUtil.TryFromSerializableInt(i);
 
                     if (level == null) {
-                        throw new System.Exception();
+                        throw new DTLibrary.DTDeserializationException();
                     }
 
                     return System.Nullable.getValue(level);
@@ -22402,6 +22692,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             return TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4;
                         case 5: 
                             return TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5;
+                        case 6: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.Level.Level6;
                         default: 
                             return null;
                     }
@@ -22470,7 +22762,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary0_0.set("name", "Background");
                     mapDictionary0.get("layers").add(layersDictionary0_0);
                     var layersDictionary0_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary0_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,447,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,447,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,393,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,31,32,32,32,32,33,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,465,465,465,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,393,0,393,0,393,0,393,0,393,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,464,0,0,0,0,0,0,0,0,393,0,0,393,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,0,0,31,32,32,32,32,32,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,89,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary0_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,447,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,447,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,393,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,426,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,393,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,426,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,31,32,32,32,32,33,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,453,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,465,465,465,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,393,0,393,0,393,0,393,0,393,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,464,0,0,0,0,0,0,0,0,393,0,0,393,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,406,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,0,0,31,32,32,32,32,32,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,89,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465,465,465,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
                     layersDictionary0_1.set("width", "140");
                     layersDictionary0_1.set("height", "29");
                     layersDictionary0_1.set("name", "Foreground");
@@ -22805,7 +23097,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary5_0.set("name", "Background");
                     mapDictionary5.get("layers").add(layersDictionary5_0);
                     var layersDictionary5_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary5_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,90,90,90,91,0,0,89,90,90,90,90,91,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,91,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary5_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,90,90,90,91,0,0,89,90,90,90,90,91,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,91,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,453,0,0,0,453,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
                     layersDictionary5_1.set("width", "60");
                     layersDictionary5_1.set("height", "35");
                     layersDictionary5_1.set("name", "Foreground");
@@ -22939,7 +23231,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary7_0.set("name", "Background");
                     mapDictionary7.get("layers").add(layersDictionary7_0);
                     var layersDictionary7_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary7_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,0,0,0,447,0,0,393,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,31,33,0,0,31,33,0,0,31,33,0,0,31,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
+                    layersDictionary7_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,426,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,393,0,0,0,0,447,0,0,393,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,0,0,31,33,0,0,31,33,0,0,31,33,0,0,31,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
                     layersDictionary7_1.set("width", "55");
                     layersDictionary7_1.set("height", "35");
                     layersDictionary7_1.set("name", "Foreground");
@@ -23274,7 +23566,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary12_0.set("name", "Background");
                     mapDictionary12.get("layers").add(layersDictionary12_0);
                     var layersDictionary12_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary12_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,90,90,90,91,0,0,89,91,0,0,89,91,0,0,89,91,0,0,89,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,393,0,393,0,0,393,0,0,393,0,0,0,393,0,393,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,393,0,0,0,0,0,393,0,0,0,393,0,0,393,0,0,0,0,0,0,393,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,33,0,0,31,33,0,0,31,33,0,0,31,33,0,0,31,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
+                    layersDictionary12_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,90,90,90,91,0,0,89,91,0,0,89,91,0,0,89,91,0,0,89,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,393,0,393,0,0,393,0,0,393,0,0,0,393,0,393,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,393,0,0,0,0,406,0,0,0,0,406,0,0,406,0,0,0,0,0,0,393,0,0,60,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,33,0,0,31,33,0,0,31,33,0,0,31,33,0,0,31,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,62,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62");
                     layersDictionary12_1.set("width", "55");
                     layersDictionary12_1.set("height", "15");
                     layersDictionary12_1.set("name", "Foreground");
@@ -23341,7 +23633,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary13_0.set("name", "Background");
                     mapDictionary13.get("layers").add(layersDictionary13_0);
                     var layersDictionary13_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary13_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,91,0,0,89,91,0,0,89,91,0,0,89,91,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary13_1.set("data", "61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,62,0,0,60,62,0,0,60,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,67,90,90,91,0,0,89,91,0,0,89,91,0,0,89,91,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,407,0,407,0,407,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,491,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,515,516,517,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
                     layersDictionary13_1.set("width", "85");
                     layersDictionary13_1.set("height", "15");
                     layersDictionary13_1.set("name", "Foreground");
@@ -23491,7 +23783,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary15_0.set("name", "Background");
                     mapDictionary15.get("layers").add(layersDictionary15_0);
                     var layersDictionary15_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary15_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,66,64,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,0,0,464,464,464,464,464,464,0,0,464,464,464,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,393,0,0,0,0,464,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,59,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,59,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,59,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,59,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,59,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,59,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,1,0,0,0,393,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,59,0,0,0,0,0,0,464,0,0,0,0,464,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,35,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,393,0,0,0,0,0,393,0,0,0,0,447,0,0,0,0,393,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,464,0,0,0,0,464,0,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary15_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,66,64,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65,91,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,0,0,464,464,464,464,464,464,0,0,464,464,464,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,59,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,0,393,0,0,0,0,464,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,59,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,59,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,59,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,426,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,59,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,426,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,59,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,59,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,426,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,59,0,0,1,0,0,0,393,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,59,0,0,0,0,0,0,464,0,0,0,0,464,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,35,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,393,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,393,0,0,0,0,0,393,0,0,0,0,447,0,0,0,0,393,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,464,0,0,0,0,464,0,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary15_1.set("width", "70");
                     layersDictionary15_1.set("height", "50");
                     layersDictionary15_1.set("name", "Foreground");
@@ -23566,7 +23858,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary16_0.set("name", "Background");
                     mapDictionary16.get("layers").add(layersDictionary16_0);
                     var layersDictionary16_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary16_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,1,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,68,67,90,90,90,90,90,68,67,90,90,90,90,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,464,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,403,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,96,32,32,32,32,32,97,96,32,32,32,32,0,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary16_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,1,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,453,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,68,67,90,90,90,90,90,68,67,90,90,90,90,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,464,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,403,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,62,0,0,0,0,0,60,62,0,0,0,0,0,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,97,96,32,32,32,32,32,97,96,32,32,32,32,0,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary16_1.set("width", "70");
                     layersDictionary16_1.set("height", "30");
                     layersDictionary16_1.set("name", "Foreground");
@@ -23635,19 +23927,19 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     mapDictionary17.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
                     var layersDictionary17_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary17_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,541,553,543,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,541,553,543,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary17_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,495,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,541,553,543,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,507,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,536,537,538,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,541,545,543,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,546,547,548,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                     layersDictionary17_0.set("width", "45");
                     layersDictionary17_0.set("height", "50");
                     layersDictionary17_0.set("name", "Background");
                     mapDictionary17.get("layers").add(layersDictionary17_0);
                     var layersDictionary17_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary17_1.set("data", "464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,32,32,32,33,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,90,68,61,62,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,96,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,89,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,96,32,32,32,32,32,32,33,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,96,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,89,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,33,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,89,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,492,492,493,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,516,516,517,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
+                    layersDictionary17_1.set("data", "464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,0,477,478,479,479,480,481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,488,489,490,491,492,492,493,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,500,501,502,503,504,492,505,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,433,433,433,433,433,433,433,433,0,0,0,0,0,0,0,0,0,0,0,0,500,513,514,515,516,516,517,0,0,0,0,0,0,0,0,0,0,0,0,32,32,32,33,0,0,31,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,90,68,61,62,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,96,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,89,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,62,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,96,32,32,32,32,32,32,33,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,96,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,89,90,90,90,90,90,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,33,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,464,464,464,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,3,3,3,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,89,90,90,68,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,0,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,0,0,0,0,429,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,96,32,32,32,32,32,32,97,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,0,60,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61");
                     layersDictionary17_1.set("width", "45");
                     layersDictionary17_1.set("height", "50");
                     layersDictionary17_1.set("name", "Foreground");
                     mapDictionary17.get("layers").add(layersDictionary17_1);
                     var layersDictionary17_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary17_2.set("data", "363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary17_2.set("data", "363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,320,320,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,363,363,363,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
                     layersDictionary17_2.set("width", "45");
                     layersDictionary17_2.set("height", "50");
                     layersDictionary17_2.set("name", "Solid");
@@ -24391,7 +24683,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     layersDictionary27_0.set("name", "Background");
                     mapDictionary27.get("layers").add(layersDictionary27_0);
                     var layersDictionary27_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
-                    layersDictionary27_1.set("data", "0,0,0,0,31,32,32,33,89,90,90,91");
+                    layersDictionary27_1.set("data", "0,0,0,407,31,32,32,33,89,90,90,91");
                     layersDictionary27_1.set("width", "4");
                     layersDictionary27_1.set("height", "3");
                     layersDictionary27_1.set("name", "Foreground");
@@ -25230,6 +25522,255 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
 
 
+                    var mapDictionary39 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
+                    dictionary.set("Level6A_Start", mapDictionary39);
+
+                    mapDictionary39.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
+                    var tilesetDictionary39_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary39_0.set("firstgid", "1");
+                    tilesetDictionary39_0.set("imagewidth", "464");
+                    tilesetDictionary39_0.set("imageheight", "176");
+                    tilesetDictionary39_0.set("name", "TsSnow");
+                    tilesetDictionary39_0.set("tilewidth", "16");
+                    tilesetDictionary39_0.set("tileheight", "16");
+                    mapDictionary39.get("tilesets").add(tilesetDictionary39_0);
+                    var tilesetDictionary39_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary39_1.set("firstgid", "320");
+                    tilesetDictionary39_1.set("imagewidth", "80");
+                    tilesetDictionary39_1.set("imageheight", "192");
+                    tilesetDictionary39_1.set("name", "Solid");
+                    tilesetDictionary39_1.set("tilewidth", "16");
+                    tilesetDictionary39_1.set("tileheight", "16");
+                    mapDictionary39.get("tilesets").add(tilesetDictionary39_1);
+                    var tilesetDictionary39_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary39_2.set("firstgid", "380");
+                    tilesetDictionary39_2.set("imagewidth", "128");
+                    tilesetDictionary39_2.set("imageheight", "160");
+                    tilesetDictionary39_2.set("name", "Actors");
+                    tilesetDictionary39_2.set("tilewidth", "16");
+                    tilesetDictionary39_2.set("tileheight", "16");
+                    mapDictionary39.get("tilesets").add(tilesetDictionary39_2);
+                    var tilesetDictionary39_3 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary39_3.set("firstgid", "460");
+                    tilesetDictionary39_3.set("imagewidth", "128");
+                    tilesetDictionary39_3.set("imageheight", "32");
+                    tilesetDictionary39_3.set("name", "Spikes");
+                    tilesetDictionary39_3.set("tilewidth", "16");
+                    tilesetDictionary39_3.set("tileheight", "16");
+                    mapDictionary39.get("tilesets").add(tilesetDictionary39_3);
+                    var tilesetDictionary39_4 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary39_4.set("firstgid", "476");
+                    tilesetDictionary39_4.set("imagewidth", "192");
+                    tilesetDictionary39_4.set("imageheight", "80");
+                    tilesetDictionary39_4.set("name", "Igloo");
+                    tilesetDictionary39_4.set("tilewidth", "16");
+                    tilesetDictionary39_4.set("tileheight", "16");
+                    mapDictionary39.get("tilesets").add(tilesetDictionary39_4);
+                    var tilesetDictionary39_5 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary39_5.set("firstgid", "536");
+                    tilesetDictionary39_5.set("imagewidth", "80");
+                    tilesetDictionary39_5.set("imageheight", "80");
+                    tilesetDictionary39_5.set("name", "Signpost");
+                    tilesetDictionary39_5.set("tilewidth", "16");
+                    tilesetDictionary39_5.set("tileheight", "16");
+                    mapDictionary39.get("tilesets").add(tilesetDictionary39_5);
+                    var tilesetDictionary39_6 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary39_6.set("firstgid", "561");
+                    tilesetDictionary39_6.set("imagewidth", "224");
+                    tilesetDictionary39_6.set("imageheight", "240");
+                    tilesetDictionary39_6.set("name", "TsCastle");
+                    tilesetDictionary39_6.set("tilewidth", "16");
+                    tilesetDictionary39_6.set("tileheight", "16");
+                    mapDictionary39.get("tilesets").add(tilesetDictionary39_6);
+
+                    mapDictionary39.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
+                    var layersDictionary39_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary39_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,566,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,568,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,584,567,567,567,567,567,567,568,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,584,567,567,567,567,567,567,567,567,568,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,584,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,0,0,0,0,0,0,0,0,0,0,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,0,0,0,0,0,0,0,0,0,0,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,0,0,0,0,0,0,0,0,0,0,594,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary39_0.set("width", "67");
+                    layersDictionary39_0.set("height", "34");
+                    layersDictionary39_0.set("name", "Background");
+                    mapDictionary39.get("layers").add(layersDictionary39_0);
+                    var layersDictionary39_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary39_1.set("data", "0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,678,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,599,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,678,679,679,679,679,679,679,599,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,678,679,679,679,679,679,679,679,679,599,665,665,665,665,665,665,665,665,665,665,665,665,665,665,666,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,678,679,679,679,679,679,679,679,679,679,679,679,679,679,679,680,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,380,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,32,32,32,32,32,32,32,32,32,33,650,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,61,61,61,61,61,61,61,61,61,62,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,61,61,61,61,61,61,61,61,61,62,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665");
+                    layersDictionary39_1.set("width", "67");
+                    layersDictionary39_1.set("height", "34");
+                    layersDictionary39_1.set("name", "Foreground");
+                    mapDictionary39.get("layers").add(layersDictionary39_1);
+                    var layersDictionary39_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary39_2.set("data", "0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,349,349,349,349,349,349,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary39_2.set("width", "67");
+                    layersDictionary39_2.set("height", "34");
+                    layersDictionary39_2.set("name", "Solid");
+                    mapDictionary39.get("layers").add(layersDictionary39_2);
+
+
+
+                    var mapDictionary40 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
+                    dictionary.set("Level6B_Boss", mapDictionary40);
+
+                    mapDictionary40.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
+                    var tilesetDictionary40_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary40_0.set("firstgid", "1");
+                    tilesetDictionary40_0.set("imagewidth", "464");
+                    tilesetDictionary40_0.set("imageheight", "176");
+                    tilesetDictionary40_0.set("name", "TsSnow");
+                    tilesetDictionary40_0.set("tilewidth", "16");
+                    tilesetDictionary40_0.set("tileheight", "16");
+                    mapDictionary40.get("tilesets").add(tilesetDictionary40_0);
+                    var tilesetDictionary40_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary40_1.set("firstgid", "320");
+                    tilesetDictionary40_1.set("imagewidth", "80");
+                    tilesetDictionary40_1.set("imageheight", "192");
+                    tilesetDictionary40_1.set("name", "Solid");
+                    tilesetDictionary40_1.set("tilewidth", "16");
+                    tilesetDictionary40_1.set("tileheight", "16");
+                    mapDictionary40.get("tilesets").add(tilesetDictionary40_1);
+                    var tilesetDictionary40_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary40_2.set("firstgid", "380");
+                    tilesetDictionary40_2.set("imagewidth", "128");
+                    tilesetDictionary40_2.set("imageheight", "160");
+                    tilesetDictionary40_2.set("name", "Actors");
+                    tilesetDictionary40_2.set("tilewidth", "16");
+                    tilesetDictionary40_2.set("tileheight", "16");
+                    mapDictionary40.get("tilesets").add(tilesetDictionary40_2);
+                    var tilesetDictionary40_3 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary40_3.set("firstgid", "460");
+                    tilesetDictionary40_3.set("imagewidth", "128");
+                    tilesetDictionary40_3.set("imageheight", "32");
+                    tilesetDictionary40_3.set("name", "Spikes");
+                    tilesetDictionary40_3.set("tilewidth", "16");
+                    tilesetDictionary40_3.set("tileheight", "16");
+                    mapDictionary40.get("tilesets").add(tilesetDictionary40_3);
+                    var tilesetDictionary40_4 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary40_4.set("firstgid", "476");
+                    tilesetDictionary40_4.set("imagewidth", "192");
+                    tilesetDictionary40_4.set("imageheight", "80");
+                    tilesetDictionary40_4.set("name", "Igloo");
+                    tilesetDictionary40_4.set("tilewidth", "16");
+                    tilesetDictionary40_4.set("tileheight", "16");
+                    mapDictionary40.get("tilesets").add(tilesetDictionary40_4);
+                    var tilesetDictionary40_5 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary40_5.set("firstgid", "536");
+                    tilesetDictionary40_5.set("imagewidth", "80");
+                    tilesetDictionary40_5.set("imageheight", "80");
+                    tilesetDictionary40_5.set("name", "Signpost");
+                    tilesetDictionary40_5.set("tilewidth", "16");
+                    tilesetDictionary40_5.set("tileheight", "16");
+                    mapDictionary40.get("tilesets").add(tilesetDictionary40_5);
+                    var tilesetDictionary40_6 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary40_6.set("firstgid", "561");
+                    tilesetDictionary40_6.set("imagewidth", "224");
+                    tilesetDictionary40_6.set("imageheight", "240");
+                    tilesetDictionary40_6.set("name", "TsCastle");
+                    tilesetDictionary40_6.set("tilewidth", "16");
+                    tilesetDictionary40_6.set("tileheight", "16");
+                    mapDictionary40.get("tilesets").add(tilesetDictionary40_6);
+
+                    mapDictionary40.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
+                    var layersDictionary40_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary40_0.set("data", "580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,580,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,582,585,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,584,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary40_0.set("width", "19");
+                    layersDictionary40_0.set("height", "34");
+                    layersDictionary40_0.set("name", "Background");
+                    mapDictionary40.get("layers").add(layersDictionary40_0);
+                    var layersDictionary40_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary40_1.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665");
+                    layersDictionary40_1.set("width", "19");
+                    layersDictionary40_1.set("height", "34");
+                    layersDictionary40_1.set("name", "Foreground");
+                    mapDictionary40.get("layers").add(layersDictionary40_1);
+                    var layersDictionary40_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary40_2.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary40_2.set("width", "19");
+                    layersDictionary40_2.set("height", "34");
+                    layersDictionary40_2.set("name", "Solid");
+                    mapDictionary40.get("layers").add(layersDictionary40_2);
+
+
+
+                    var mapDictionary41 = new (System.Collections.Generic.Dictionary$2(System.String,System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))))();
+                    dictionary.set("Level6C_Finish", mapDictionary41);
+
+                    mapDictionary41.set("tilesets", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
+                    var tilesetDictionary41_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary41_0.set("firstgid", "1");
+                    tilesetDictionary41_0.set("imagewidth", "464");
+                    tilesetDictionary41_0.set("imageheight", "176");
+                    tilesetDictionary41_0.set("name", "TsSnow");
+                    tilesetDictionary41_0.set("tilewidth", "16");
+                    tilesetDictionary41_0.set("tileheight", "16");
+                    mapDictionary41.get("tilesets").add(tilesetDictionary41_0);
+                    var tilesetDictionary41_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary41_1.set("firstgid", "320");
+                    tilesetDictionary41_1.set("imagewidth", "80");
+                    tilesetDictionary41_1.set("imageheight", "192");
+                    tilesetDictionary41_1.set("name", "Solid");
+                    tilesetDictionary41_1.set("tilewidth", "16");
+                    tilesetDictionary41_1.set("tileheight", "16");
+                    mapDictionary41.get("tilesets").add(tilesetDictionary41_1);
+                    var tilesetDictionary41_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary41_2.set("firstgid", "380");
+                    tilesetDictionary41_2.set("imagewidth", "128");
+                    tilesetDictionary41_2.set("imageheight", "160");
+                    tilesetDictionary41_2.set("name", "Actors");
+                    tilesetDictionary41_2.set("tilewidth", "16");
+                    tilesetDictionary41_2.set("tileheight", "16");
+                    mapDictionary41.get("tilesets").add(tilesetDictionary41_2);
+                    var tilesetDictionary41_3 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary41_3.set("firstgid", "460");
+                    tilesetDictionary41_3.set("imagewidth", "128");
+                    tilesetDictionary41_3.set("imageheight", "32");
+                    tilesetDictionary41_3.set("name", "Spikes");
+                    tilesetDictionary41_3.set("tilewidth", "16");
+                    tilesetDictionary41_3.set("tileheight", "16");
+                    mapDictionary41.get("tilesets").add(tilesetDictionary41_3);
+                    var tilesetDictionary41_4 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary41_4.set("firstgid", "476");
+                    tilesetDictionary41_4.set("imagewidth", "192");
+                    tilesetDictionary41_4.set("imageheight", "80");
+                    tilesetDictionary41_4.set("name", "Igloo");
+                    tilesetDictionary41_4.set("tilewidth", "16");
+                    tilesetDictionary41_4.set("tileheight", "16");
+                    mapDictionary41.get("tilesets").add(tilesetDictionary41_4);
+                    var tilesetDictionary41_5 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary41_5.set("firstgid", "536");
+                    tilesetDictionary41_5.set("imagewidth", "80");
+                    tilesetDictionary41_5.set("imageheight", "80");
+                    tilesetDictionary41_5.set("name", "Signpost");
+                    tilesetDictionary41_5.set("tilewidth", "16");
+                    tilesetDictionary41_5.set("tileheight", "16");
+                    mapDictionary41.get("tilesets").add(tilesetDictionary41_5);
+                    var tilesetDictionary41_6 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    tilesetDictionary41_6.set("firstgid", "561");
+                    tilesetDictionary41_6.set("imagewidth", "224");
+                    tilesetDictionary41_6.set("imageheight", "240");
+                    tilesetDictionary41_6.set("name", "TsCastle");
+                    tilesetDictionary41_6.set("tilewidth", "16");
+                    tilesetDictionary41_6.set("tileheight", "16");
+                    mapDictionary41.get("tilesets").add(tilesetDictionary41_6);
+
+                    mapDictionary41.set("layers", new (System.Collections.Generic.List$1(System.Collections.Generic.Dictionary$2(System.String,System.String))).ctor());
+                    var layersDictionary41_0 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary41_0.set("data", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,567,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,581,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,595,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+                    layersDictionary41_0.set("width", "23");
+                    layersDictionary41_0.set("height", "34");
+                    layersDictionary41_0.set("name", "Background");
+                    mapDictionary41.get("layers").add(layersDictionary41_0);
+                    var layersDictionary41_1 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary41_1.set("data", "664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,664,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,678,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,679,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,651,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665,665");
+                    layersDictionary41_1.set("width", "23");
+                    layersDictionary41_1.set("height", "34");
+                    layersDictionary41_1.set("name", "Foreground");
+                    mapDictionary41.get("layers").add(layersDictionary41_1);
+                    var layersDictionary41_2 = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+                    layersDictionary41_2.set("data", "320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,357,357,357,357,357,357,357,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320,320");
+                    layersDictionary41_2.set("width", "23");
+                    layersDictionary41_2.set("height", "34");
+                    layersDictionary41_2.set("name", "Solid");
+                    mapDictionary41.get("layers").add(layersDictionary41_2);
+
+
+
                     return dictionary;
                 }
             }
@@ -25343,7 +25884,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         statics: {
             methods: {
                 GetTilemap: function (data, enemyIdGenerator, cutsceneName, scalingFactorScaled, gameMusic) {
-                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
+                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
                     var tilesets = data.Tilesets;
 
                     var solidTileset = System.Linq.Enumerable.from(tilesets).single(function (x) {
@@ -25369,6 +25910,18 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var numberOfTileRows = solidLayer.Height;
 
                     var tuxLocation = null;
+                    var keyLocations = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.MapKey,System.Tuple$2(System.Int32,System.Int32)))();
+                    $t = Bridge.getEnumerator(System.Enum.getValues(TuxPlanetSpeedrunAnyPercentLibrary.MapKey));
+                    try {
+                        while ($t.moveNext()) {
+                            var mapKey = Bridge.cast($t.Current, TuxPlanetSpeedrunAnyPercentLibrary.MapKey);
+                            keyLocations.set(mapKey, null);
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
+                    }
 
                     var backgroundSpritesArray = TuxPlanetSpeedrunAnyPercentLibrary.SpriteUtil.EmptySpriteArray(numberOfTileColumns, numberOfTileRows);
                     var foregroundSpritesArray = TuxPlanetSpeedrunAnyPercentLibrary.SpriteUtil.EmptySpriteArray(numberOfTileColumns, numberOfTileRows);
@@ -25377,6 +25930,18 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var isSpikesArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.EmptyBoolArray(numberOfTileColumns, numberOfTileRows);
                     var isEndOfLevelArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.EmptyBoolArray(numberOfTileColumns, numberOfTileRows);
                     var isCutsceneArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.EmptyBoolArray(numberOfTileColumns, numberOfTileRows);
+                    var isKeyTileArrays = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.MapKey,System.Array.type(System.Array.type(System.Boolean))))();
+                    $t1 = Bridge.getEnumerator(System.Enum.getValues(TuxPlanetSpeedrunAnyPercentLibrary.MapKey));
+                    try {
+                        while ($t1.moveNext()) {
+                            var mapKey1 = Bridge.cast($t1.Current, TuxPlanetSpeedrunAnyPercentLibrary.MapKey);
+                            isKeyTileArrays.set(mapKey1, TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.EmptyBoolArray(numberOfTileColumns, numberOfTileRows));
+                        }
+                    } finally {
+                        if (Bridge.is($t1, System.IDisposable)) {
+                            $t1.System$IDisposable$Dispose();
+                        }
+                    }
 
                     var solidLayerData = solidLayer.Data;
                     var foregroundLayerData = foregroundLayer.Data;
@@ -25408,10 +25973,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                             if (backgroundGid !== 0) {
                                 if (gidToSpriteCache.containsKey(backgroundGid)) {
-                                    ($t = backgroundSpritesArray[System.Array.index(i, backgroundSpritesArray)])[System.Array.index(j, $t)] = gidToSpriteCache.get(backgroundGid);
+                                    ($t2 = backgroundSpritesArray[System.Array.index(i, backgroundSpritesArray)])[System.Array.index(j, $t2)] = gidToSpriteCache.get(backgroundGid);
                                 } else {
                                     gidToSpriteCache.set(backgroundGid, TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetSprite(tilesets, backgroundGid, scalingFactorScaled));
-                                    ($t1 = backgroundSpritesArray[System.Array.index(i, backgroundSpritesArray)])[System.Array.index(j, $t1)] = gidToSpriteCache.get(backgroundGid);
+                                    ($t3 = backgroundSpritesArray[System.Array.index(i, backgroundSpritesArray)])[System.Array.index(j, $t3)] = gidToSpriteCache.get(backgroundGid);
                                 }
                             }
 
@@ -25421,14 +25986,38 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                                     if (actorGidNormalized === 0) {
                                         tuxLocation = { Item1: Bridge.Int.mul(Bridge.Int.mul(i, solidTileset.TileWidth), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))), Item2: ((Bridge.Int.mul(Bridge.Int.mul(j, solidTileset.TileHeight), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(16, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0) };
                                     } else {
-                                        enemies.add(new TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.EnemySpawnLocation(actorGidNormalized, i, j, enemyIdGenerator.GetNewId()));
+                                        if (actorGidNormalized === 48) {
+                                            keyLocations.set(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Copper, { Item1: ((Bridge.Int.mul(Bridge.Int.mul(i, solidTileset.TileWidth), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(8, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0), Item2: ((Bridge.Int.mul(Bridge.Int.mul(j, solidTileset.TileHeight), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(8, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0) });
+                                        } else if (actorGidNormalized === 49) {
+                                            keyLocations.set(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Silver, { Item1: ((Bridge.Int.mul(Bridge.Int.mul(i, solidTileset.TileWidth), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(8, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0), Item2: ((Bridge.Int.mul(Bridge.Int.mul(j, solidTileset.TileHeight), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(8, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0) });
+                                        } else if (actorGidNormalized === 50) {
+                                            keyLocations.set(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Gold, { Item1: ((Bridge.Int.mul(Bridge.Int.mul(i, solidTileset.TileWidth), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(8, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0), Item2: ((Bridge.Int.mul(Bridge.Int.mul(j, solidTileset.TileHeight), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(8, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0) });
+                                        } else if (actorGidNormalized === 51) {
+                                            keyLocations.set(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Mythril, { Item1: ((Bridge.Int.mul(Bridge.Int.mul(i, solidTileset.TileWidth), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(8, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0), Item2: ((Bridge.Int.mul(Bridge.Int.mul(j, solidTileset.TileHeight), (((Bridge.Int.div(scalingFactorScaled, 128)) | 0))) + Bridge.Int.mul(8, (((Bridge.Int.div(scalingFactorScaled, 128)) | 0)))) | 0) });
+                                        } else if (actorGidNormalized === 52) {
+                                            ($t4 = ($t5 = isKeyTileArrays.get(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Copper))[System.Array.index(i, $t5)])[System.Array.index(j, $t4)] = true;
+                                        } else {
+                                            if (actorGidNormalized === 53) {
+                                                ($t6 = ($t7 = isKeyTileArrays.get(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Silver))[System.Array.index(i, $t7)])[System.Array.index(j, $t6)] = true;
+                                            } else {
+                                                if (actorGidNormalized === 54) {
+                                                    ($t8 = ($t9 = isKeyTileArrays.get(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Gold))[System.Array.index(i, $t9)])[System.Array.index(j, $t8)] = true;
+                                                } else {
+                                                    if (actorGidNormalized === 55) {
+                                                        ($t10 = ($t11 = isKeyTileArrays.get(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Mythril))[System.Array.index(i, $t11)])[System.Array.index(j, $t10)] = true;
+                                                    } else {
+                                                        enemies.add(new TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.EnemySpawnLocation(actorGidNormalized, i, j, enemyIdGenerator.GetNewId()));
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 } else {
                                     if (gidToSpriteCache.containsKey(foregroundGid)) {
-                                        ($t2 = foregroundSpritesArray[System.Array.index(i, foregroundSpritesArray)])[System.Array.index(j, $t2)] = gidToSpriteCache.get(foregroundGid);
+                                        ($t12 = foregroundSpritesArray[System.Array.index(i, foregroundSpritesArray)])[System.Array.index(j, $t12)] = gidToSpriteCache.get(foregroundGid);
                                     } else {
                                         gidToSpriteCache.set(foregroundGid, TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetSprite(tilesets, foregroundGid, scalingFactorScaled));
-                                        ($t3 = foregroundSpritesArray[System.Array.index(i, foregroundSpritesArray)])[System.Array.index(j, $t3)] = gidToSpriteCache.get(foregroundGid);
+                                        ($t13 = foregroundSpritesArray[System.Array.index(i, foregroundSpritesArray)])[System.Array.index(j, $t13)] = gidToSpriteCache.get(foregroundGid);
                                     }
                                 }
                             }
@@ -25436,16 +26025,16 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             if (solidGid !== 0) {
                                 var solidGidNormalized = (solidGid - solidTileset.FirstGid) | 0;
 
-                                ($t4 = isGroundArray[System.Array.index(i, isGroundArray)])[System.Array.index(j, $t4)] = solidGidNormalized === 0;
-                                ($t5 = isKillZoneArray[System.Array.index(i, isKillZoneArray)])[System.Array.index(j, $t5)] = solidGidNormalized === 41;
-                                ($t6 = isSpikesArray[System.Array.index(i, isSpikesArray)])[System.Array.index(j, $t6)] = solidGidNormalized === 43;
-                                ($t7 = isEndOfLevelArray[System.Array.index(i, isEndOfLevelArray)])[System.Array.index(j, $t7)] = solidGidNormalized === 37;
-                                ($t8 = isCutsceneArray[System.Array.index(i, isCutsceneArray)])[System.Array.index(j, $t8)] = solidGidNormalized === 29;
+                                ($t14 = isGroundArray[System.Array.index(i, isGroundArray)])[System.Array.index(j, $t14)] = solidGidNormalized === 0;
+                                ($t15 = isKillZoneArray[System.Array.index(i, isKillZoneArray)])[System.Array.index(j, $t15)] = solidGidNormalized === 41;
+                                ($t16 = isSpikesArray[System.Array.index(i, isSpikesArray)])[System.Array.index(j, $t16)] = solidGidNormalized === 43;
+                                ($t17 = isEndOfLevelArray[System.Array.index(i, isEndOfLevelArray)])[System.Array.index(j, $t17)] = solidGidNormalized === 37;
+                                ($t18 = isCutsceneArray[System.Array.index(i, isCutsceneArray)])[System.Array.index(j, $t18)] = solidGidNormalized === 29;
                             }
                         }
                     }
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.Tilemap(backgroundSpritesArray, foregroundSpritesArray, isGroundArray, isKillZoneArray, isSpikesArray, isEndOfLevelArray, isCutsceneArray, TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.ComputeCheckpointArray(numberOfTileColumns, numberOfTileRows, solidLayerData, solidTileset, actorsTileset, scalingFactorScaled), ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileWidth, scalingFactorScaled), 128)) | 0), ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileHeight, scalingFactorScaled), 128)) | 0), enemies, cutsceneName, tuxLocation, gameMusic);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Tilemap(backgroundSpritesArray, foregroundSpritesArray, isGroundArray, isKillZoneArray, isSpikesArray, isEndOfLevelArray, isCutsceneArray, TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.ComputeCheckpointArray(numberOfTileColumns, numberOfTileRows, solidLayerData, solidTileset, actorsTileset, scalingFactorScaled), isKeyTileArrays, ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileWidth, scalingFactorScaled), 128)) | 0), ((Bridge.Int.div(Bridge.Int.mul(solidTileset.TileHeight, scalingFactorScaled), 128)) | 0), enemies, cutsceneName, tuxLocation, keyLocations, gameMusic);
                 },
                 ComputeCheckpointArray: function (numberOfTileColumns, numberOfTileRows, solidLayerData, solidTileset, actorsTileset, scalingFactorScaled) {
                     var $t, $t1, $t2, $t3;
@@ -25519,6 +26108,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     tilesetToGameImageMapping.set("Solid", TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Solid);
                     tilesetToGameImageMapping.set("Spikes", TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Spikes);
                     tilesetToGameImageMapping.set("TsSnow", TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TilemapSnow);
+                    tilesetToGameImageMapping.set("TsCastle", TuxPlanetSpeedrunAnyPercentLibrary.GameImage.TilemapCastle);
 
                     var tileset = System.Linq.Enumerable.from(tilesets).where(function (x) {
                             return x.FirstGid <= gid;
@@ -25546,6 +26136,201 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     }
 
                     return new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(image, tilesetX, tilesetY, tileset.TileWidth, tileset.TileHeight, scalingFactorScaled);
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.MapGenerationFailureException", {
+        inherits: [System.Exception]
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.MapKey", {
+        $kind: "enum",
+        statics: {
+            fields: {
+                Copper: 0,
+                Silver: 1,
+                Gold: 2,
+                Mythril: 3
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.MapKeyState", {
+        statics: {
+            fields: {
+                MAP_KEY_ACTIVATION_RADIUS_IN_PIXELS: 0
+            },
+            ctors: {
+                init: function () {
+                    this.MAP_KEY_ACTIVATION_RADIUS_IN_PIXELS = 300;
+                }
+            },
+            methods: {
+                EmptyMapKeyState: function () {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.MapKeyState(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.MapKey)).ctor(), 0, new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.MapKey)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.MapKeyUtil.GetOrderedListOfMapKeys()));
+                }
+            }
+        },
+        fields: {
+            CollectedKeys: null,
+            elapsedMicros: 0,
+            listOfMapKeys: null
+        },
+        ctors: {
+            ctor: function (collectedKeys, elapsedMicros, listOfMapKeys) {
+                this.$initialize();
+                this.CollectedKeys = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.MapKey)).$ctor1(collectedKeys);
+                this.elapsedMicros = elapsedMicros;
+                this.listOfMapKeys = listOfMapKeys;
+            }
+        },
+        methods: {
+            ProcessFrame: function (tuxX, tuxY, isTuxTeleporting, tilemap, elapsedMicrosPerFrame) {
+                var $t;
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+
+                if (newElapsedMicros > 2000000000) {
+                    newElapsedMicros = 1;
+                }
+
+                var newCollectedKeys = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.MapKey)).$ctor1(this.CollectedKeys);
+
+                $t = Bridge.getEnumerator(this.listOfMapKeys, TuxPlanetSpeedrunAnyPercentLibrary.MapKey);
+                try {
+                    while ($t.moveNext()) {
+                        var mapKey = $t.Current;
+                        if (newCollectedKeys.contains(mapKey)) {
+                            continue;
+                        }
+
+                        if (isTuxTeleporting) {
+                            continue;
+                        }
+
+                        var mapKeyLocation = tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation(mapKey, 0, 0);
+
+                        if (mapKeyLocation == null) {
+                            continue;
+                        }
+
+                        var mapKeyX = mapKeyLocation.Item1;
+                        var mapKeyY = mapKeyLocation.Item2;
+
+                        if (((mapKeyX - 24) | 0) <= ((tuxX + 12) | 0) && ((tuxX - 12) | 0) <= ((mapKeyX + 24) | 0) && ((mapKeyY - 24) | 0) <= ((tuxY + 24) | 0) && ((tuxY - 48) | 0) <= ((mapKeyY + 24) | 0)) {
+                            newCollectedKeys.add(mapKey);
+                        }
+                    }
+                } finally {
+                    if (Bridge.is($t, System.IDisposable)) {
+                        $t.System$IDisposable$Dispose();
+                    }
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.MapKeyState(newCollectedKeys, newElapsedMicros, this.listOfMapKeys);
+            },
+            Render: function (absoluteDisplayOutput, translatedDisplayOutput, tilemap, windowWidth, windowHeight) {
+                var $t;
+                var collectedMapKeysX = 10;
+
+                $t = Bridge.getEnumerator(this.listOfMapKeys, TuxPlanetSpeedrunAnyPercentLibrary.MapKey);
+                try {
+                    while ($t.moveNext()) {
+                        var mapKey = $t.Current;
+                        if (System.Linq.Enumerable.from(this.CollectedKeys).contains(mapKey)) {
+                            absoluteDisplayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.MapKeyUtil.GetGameImage(mapKey), 0, 0, 16, 16, collectedMapKeysX, ((((windowHeight - 48) | 0) - 10) | 0), 0, 384);
+
+                            collectedMapKeysX = (collectedMapKeysX + (48)) | 0;
+                        } else {
+                            var mapKeyLocation = tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation(mapKey, 0, 0);
+
+                            if (mapKeyLocation != null) {
+                                var spriteNum = (((Bridge.Int.div(this.elapsedMicros, (100000))) | 0)) % 4;
+
+                                translatedDisplayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.MapKeyUtil.GetGameImage(mapKey), Bridge.Int.mul(spriteNum, 16), 0, 16, 16, ((mapKeyLocation.Item1 - 24) | 0), ((mapKeyLocation.Item2 - 24) | 0), 0, 384);
+                            }
+                        }
+                    }
+                } finally {
+                    if (Bridge.is($t, System.IDisposable)) {
+                        $t.System$IDisposable$Dispose();
+                    }
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.MapKeyUtil", {
+        statics: {
+            methods: {
+                GetOrderedListOfMapKeys: function () {
+                    var $t;
+                    var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.MapKey)).ctor();
+
+                    $t = Bridge.getEnumerator(System.Enum.getValues(TuxPlanetSpeedrunAnyPercentLibrary.MapKey));
+                    try {
+                        while ($t.moveNext()) {
+                            var mapKey = Bridge.cast($t.Current, TuxPlanetSpeedrunAnyPercentLibrary.MapKey);
+                            list.add(mapKey);
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
+                    }
+
+                    list = System.Linq.Enumerable.from(list).select(function (x) {
+                            return TuxPlanetSpeedrunAnyPercentLibrary.MapKeyUtil.ToSerializableInt(x);
+                        }).orderBy(function (x) {
+                        return x;
+                    }).select(function (x) {
+                        return TuxPlanetSpeedrunAnyPercentLibrary.MapKeyUtil.FromSerializableInt(x);
+                    }).toList(TuxPlanetSpeedrunAnyPercentLibrary.MapKey);
+
+                    return list;
+                },
+                GetGameImage: function (mapKey) {
+                    switch (mapKey) {
+                        case TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Copper: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KeyCopper;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Silver: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KeySilver;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Gold: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KeyGold;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Mythril: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KeyMythril;
+                        default: 
+                            throw new System.Exception();
+                    }
+                },
+                ToSerializableInt: function (mapKey) {
+                    switch (mapKey) {
+                        case TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Copper: 
+                            return 1;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Silver: 
+                            return 2;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Gold: 
+                            return 3;
+                        case TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Mythril: 
+                            return 4;
+                        default: 
+                            throw new System.Exception();
+                    }
+                },
+                FromSerializableInt: function (i) {
+                    switch (i) {
+                        case 1: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Copper;
+                        case 2: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Silver;
+                        case 3: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Gold;
+                        case 4: 
+                            return TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Mythril;
+                        default: 
+                            throw new DTLibrary.DTDeserializationException();
+                    }
                 }
             }
         }
@@ -25940,6 +26725,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         methods: {
+            GetNumCompletedLevels: function () {
+                return this.completedLevels.Count;
+            },
             CompleteLevel: function (level) {
                 var newCompletedLevels = new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(this.completedLevels);
 
@@ -25957,32 +26745,34 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         selectedLevel = this.overworldMap.GetLevel(this.tuxXIndex, this.tuxYIndex);
                     }
 
-                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.RightArrow)) {
-                        var p = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 1, Item2: 0 });
+                    if (selectedLevel == null) {
+                        if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.RightArrow)) {
+                            var p = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 1, Item2: 0 });
 
-                        if (p.Count > 0) {
-                            newPath = p;
+                            if (p.Count > 0) {
+                                newPath = p;
+                            }
                         }
-                    }
-                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.LeftArrow)) {
-                        var p1 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: -1, Item2: 0 });
+                        if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.LeftArrow)) {
+                            var p1 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: -1, Item2: 0 });
 
-                        if (p1.Count > 0) {
-                            newPath = p1;
+                            if (p1.Count > 0) {
+                                newPath = p1;
+                            }
                         }
-                    }
-                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.UpArrow)) {
-                        var p2 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 0, Item2: 1 });
+                        if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.UpArrow)) {
+                            var p2 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 0, Item2: 1 });
 
-                        if (p2.Count > 0) {
-                            newPath = p2;
+                            if (p2.Count > 0) {
+                                newPath = p2;
+                            }
                         }
-                    }
-                    if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.DownArrow)) {
-                        var p3 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 0, Item2: -1 });
+                        if (keyboardInput.DTLibrary$IKeyboard$IsPressed(DTLibrary.Key.DownArrow)) {
+                            var p3 = TuxPlanetSpeedrunAnyPercentLibrary.OverworldUtil.GetPath(this.overworldMap.OverworldGameMap, System.Linq.Enumerable.from(this.reachableTiles).toList(System.Tuple$2(System.Int32,System.Int32)), { Item1: this.tuxXIndex, Item2: this.tuxYIndex }, { Item1: 0, Item2: -1 });
 
-                        if (p3.Count > 0) {
-                            newPath = p3;
+                            if (p3.Count > 0) {
+                                newPath = p3;
+                            }
                         }
                     }
                 }
@@ -26138,8 +26928,23 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap", {
         statics: {
             methods: {
+                GetWaterLevels: function () {
+                    return new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).ctor();
+                },
+                GetMountainLevels: function () {
+                    return function (_o1) {
+                            _o1.add(TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4);
+                            return _o1;
+                        }(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).ctor());
+                },
+                GetFortressLevels: function () {
+                    return function (_o1) {
+                            _o1.add(TuxPlanetSpeedrunAnyPercentLibrary.Level.Level6);
+                            return _o1;
+                        }(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).ctor());
+                },
                 GenerateOverworldGameMap: function (windowWidth, windowHeight, random) {
-                    var tilemap = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GenerateOverworldGameMapTileArray(windowWidth, windowHeight, random);
+                    var tilemap = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GenerateOverworldGameMapTileArray(windowWidth, windowHeight, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.GetWaterLevels(), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.GetMountainLevels(), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.GetFortressLevels(), random);
 
                     return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap(tilemap);
                 }
@@ -26211,13 +27016,29 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator", {
         statics: {
             methods: {
-                GenerateOverworldGameMapTileArray: function (windowWidth, windowHeight, random) {
-                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
-                    var path = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+                GenerateOverworldGameMapTileArray: function (windowWidth, windowHeight, waterLevels, mountainLevels, fortressLevels, random) {
+                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
+                    var pathLength = 60;
 
-                    path.add({ Item1: 0, Item2: 0 });
+                    var level1Index = 0;
+                    var level2Index = (10 + random.DTLibrary$IDTRandom$NextInt(4)) | 0;
 
-                    path = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GeneratePathHelper(path, random));
+                    var level5Index = 49;
+                    var level4Index = (35 + random.DTLibrary$IDTRandom$NextInt(4)) | 0;
+
+                    var level3Index = (((((Bridge.Int.div((((level2Index + level4Index) | 0)), 2)) | 0) + random.DTLibrary$IDTRandom$NextInt(4)) | 0) - 2) | 0;
+
+                    var level6Index = 59;
+
+                    var levelToPathIndexMapping = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.Level,System.Int32))();
+                    levelToPathIndexMapping.set(TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1, level1Index);
+                    levelToPathIndexMapping.set(TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2, level2Index);
+                    levelToPathIndexMapping.set(TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3, level3Index);
+                    levelToPathIndexMapping.set(TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4, level4Index);
+                    levelToPathIndexMapping.set(TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5, level5Index);
+                    levelToPathIndexMapping.set(TuxPlanetSpeedrunAnyPercentLibrary.Level.Level6, level6Index);
+
+                    var path = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GeneratePath(pathLength, levelToPathIndexMapping, waterLevels, mountainLevels, fortressLevels, random);
 
                     var minX = null;
                     var minY = null;
@@ -26266,40 +27087,363 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         ($t2 = tilemap[System.Array.index(path.getItem(i1).Item1, tilemap)])[System.Array.index(path.getItem(i1).Item2, $t2)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Path, null);
                     }
 
-                    var level1Index = 0;
-                    var level2Index = (10 + random.DTLibrary$IDTRandom$NextInt(4)) | 0;
-
-                    var level5Index = 49;
-                    var level4Index = (35 + random.DTLibrary$IDTRandom$NextInt(4)) | 0;
-
-                    var level3Index = (((((Bridge.Int.div((((level2Index + level4Index) | 0)), 2)) | 0) + random.DTLibrary$IDTRandom$NextInt(4)) | 0) - 2) | 0;
-
                     ($t3 = tilemap[System.Array.index(path.getItem(level1Index).Item1, tilemap)])[System.Array.index(path.getItem(level1Index).Item2, $t3)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level1);
                     ($t4 = tilemap[System.Array.index(path.getItem(level2Index).Item1, tilemap)])[System.Array.index(path.getItem(level2Index).Item2, $t4)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level2);
                     ($t5 = tilemap[System.Array.index(path.getItem(level3Index).Item1, tilemap)])[System.Array.index(path.getItem(level3Index).Item2, $t5)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level3);
                     ($t6 = tilemap[System.Array.index(path.getItem(level4Index).Item1, tilemap)])[System.Array.index(path.getItem(level4Index).Item2, $t6)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level4);
                     ($t7 = tilemap[System.Array.index(path.getItem(level5Index).Item1, tilemap)])[System.Array.index(path.getItem(level5Index).Item2, $t7)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level5);
+                    ($t8 = tilemap[System.Array.index(path.getItem(level6Index).Item1, tilemap)])[System.Array.index(path.getItem(level6Index).Item2, $t8)] = new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level, TuxPlanetSpeedrunAnyPercentLibrary.Level.Level6);
 
                     return tilemap;
                 },
-                GeneratePathHelper: function (path, random) {
+                GeneratePath: function (pathLength, levelToPathIndexMapping, waterLevels, mountainLevels, fortressLevels, random) {
+                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
+                    var indexesOfSpecialLevels = new (System.Collections.Generic.HashSet$1(System.Int32)).ctor();
+                    var indexesOfMountainLevels = new (System.Collections.Generic.List$1(System.Int32)).ctor();
+
+                    $t = Bridge.getEnumerator(waterLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t.moveNext()) {
+                            var waterLevel = $t.Current;
+                            indexesOfSpecialLevels.add(levelToPathIndexMapping.get(waterLevel));
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
+                    }
+                    $t1 = Bridge.getEnumerator(mountainLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t1.moveNext()) {
+                            var mountainLevel = $t1.Current;
+                            indexesOfSpecialLevels.add(levelToPathIndexMapping.get(mountainLevel));
+                            indexesOfMountainLevels.add(levelToPathIndexMapping.get(mountainLevel));
+                        }
+                    } finally {
+                        if (Bridge.is($t1, System.IDisposable)) {
+                            $t1.System$IDisposable$Dispose();
+                        }
+                    }
+                    $t2 = Bridge.getEnumerator(fortressLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t2.moveNext()) {
+                            var fortressLevel = $t2.Current;
+                            indexesOfSpecialLevels.add(levelToPathIndexMapping.get(fortressLevel));
+                        }
+                    } finally {
+                        if (Bridge.is($t2, System.IDisposable)) {
+                            $t2.System$IDisposable$Dispose();
+                        }
+                    }
+
+                    indexesOfMountainLevels.Sort();
+
+                    var doesPathIndexHaveRestrictions = System.Array.init(pathLength, false, System.Boolean);
+
+                    for (var i = 0; i < pathLength; i = (i + 1) | 0) {
+                        doesPathIndexHaveRestrictions[System.Array.index(i, doesPathIndexHaveRestrictions)] = false;
+                    }
+
+                    var straightPathIndexes = new (System.Collections.Generic.HashSet$1(System.Int32)).ctor();
+                    var mountainPathIndexes = new (System.Collections.Generic.HashSet$1(System.Int32)).ctor();
+
+                    $t3 = Bridge.getEnumerator(waterLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t3.moveNext()) {
+                            var waterLevel1 = $t3.Current;
+                            var waterLevelIndex = levelToPathIndexMapping.get(waterLevel1);
+
+                            var relevantIndexes = new (System.Collections.Generic.List$1(System.Int32)).ctor();
+                            if (waterLevelIndex >= 3) {
+                                relevantIndexes.add(((waterLevelIndex - 3) | 0));
+                            }
+                            if (waterLevelIndex >= 2) {
+                                relevantIndexes.add(((waterLevelIndex - 2) | 0));
+                            }
+                            if (waterLevelIndex >= 1) {
+                                relevantIndexes.add(((waterLevelIndex - 1) | 0));
+                            }
+                            relevantIndexes.add(waterLevelIndex);
+                            if (waterLevelIndex < ((pathLength - 1) | 0)) {
+                                relevantIndexes.add(((waterLevelIndex + 1) | 0));
+                            }
+                            if (waterLevelIndex < ((pathLength - 2) | 0)) {
+                                relevantIndexes.add(((waterLevelIndex + 2) | 0));
+                            }
+                            if (waterLevelIndex < ((pathLength - 3) | 0)) {
+                                relevantIndexes.add(((waterLevelIndex + 3) | 0));
+                            }
+
+                            if (System.Linq.Enumerable.from(relevantIndexes).all(function (x) {
+                                    return !doesPathIndexHaveRestrictions[System.Array.index(x, doesPathIndexHaveRestrictions)];
+                                })) {
+                                $t4 = Bridge.getEnumerator(relevantIndexes);
+                                try {
+                                    while ($t4.moveNext()) {
+                                        var relevantIndex = $t4.Current;
+                                        straightPathIndexes.add(relevantIndex);
+                                        doesPathIndexHaveRestrictions[System.Array.index(relevantIndex, doesPathIndexHaveRestrictions)] = true;
+                                    }
+                                } finally {
+                                    if (Bridge.is($t4, System.IDisposable)) {
+                                        $t4.System$IDisposable$Dispose();
+                                    }
+                                }
+
+                                straightPathIndexes.remove(((waterLevelIndex + 1) | 0));
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t3, System.IDisposable)) {
+                            $t3.System$IDisposable$Dispose();
+                        }
+                    }
+
+                    $t5 = Bridge.getEnumerator(mountainLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t5.moveNext()) {
+                            var mountainLevel1 = $t5.Current;
+                            var mountainLevelIndex = levelToPathIndexMapping.get(mountainLevel1);
+
+                            var relevantIndexes1 = new (System.Collections.Generic.List$1(System.Int32)).ctor();
+                            if (mountainLevelIndex >= 3) {
+                                relevantIndexes1.add(((mountainLevelIndex - 3) | 0));
+                            }
+                            if (mountainLevelIndex >= 2) {
+                                relevantIndexes1.add(((mountainLevelIndex - 2) | 0));
+                            }
+                            if (mountainLevelIndex >= 1) {
+                                relevantIndexes1.add(((mountainLevelIndex - 1) | 0));
+                            }
+                            relevantIndexes1.add(mountainLevelIndex);
+                            if (mountainLevelIndex < ((pathLength - 1) | 0)) {
+                                relevantIndexes1.add(((mountainLevelIndex + 1) | 0));
+                            }
+                            if (mountainLevelIndex < ((pathLength - 2) | 0)) {
+                                relevantIndexes1.add(((mountainLevelIndex + 2) | 0));
+                            }
+                            if (mountainLevelIndex < ((pathLength - 3) | 0)) {
+                                relevantIndexes1.add(((mountainLevelIndex + 3) | 0));
+                            }
+
+                            if (System.Linq.Enumerable.from(relevantIndexes1).all(function (x) {
+                                    return !doesPathIndexHaveRestrictions[System.Array.index(x, doesPathIndexHaveRestrictions)];
+                                })) {
+                                $t6 = Bridge.getEnumerator(relevantIndexes1);
+                                try {
+                                    while ($t6.moveNext()) {
+                                        var relevantIndex1 = $t6.Current;
+                                        mountainPathIndexes.add(relevantIndex1);
+                                        doesPathIndexHaveRestrictions[System.Array.index(relevantIndex1, doesPathIndexHaveRestrictions)] = true;
+                                    }
+                                } finally {
+                                    if (Bridge.is($t6, System.IDisposable)) {
+                                        $t6.System$IDisposable$Dispose();
+                                    }
+                                }
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t5, System.IDisposable)) {
+                            $t5.System$IDisposable$Dispose();
+                        }
+                    }
+
+                    $t7 = Bridge.getEnumerator(fortressLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t7.moveNext()) {
+                            var fortressLevel1 = $t7.Current;
+                            var fortressLevelIndex = levelToPathIndexMapping.get(fortressLevel1);
+
+                            var relevantIndexes2 = new (System.Collections.Generic.List$1(System.Int32)).ctor();
+                            if (fortressLevelIndex >= 3) {
+                                relevantIndexes2.add(((fortressLevelIndex - 3) | 0));
+                            }
+                            if (fortressLevelIndex >= 2) {
+                                relevantIndexes2.add(((fortressLevelIndex - 2) | 0));
+                            }
+                            if (fortressLevelIndex >= 1) {
+                                relevantIndexes2.add(((fortressLevelIndex - 1) | 0));
+                            }
+                            relevantIndexes2.add(fortressLevelIndex);
+                            if (fortressLevelIndex < ((pathLength - 1) | 0)) {
+                                relevantIndexes2.add(((fortressLevelIndex + 1) | 0));
+                            }
+                            if (fortressLevelIndex < ((pathLength - 2) | 0)) {
+                                relevantIndexes2.add(((fortressLevelIndex + 2) | 0));
+                            }
+                            if (fortressLevelIndex < ((pathLength - 3) | 0)) {
+                                relevantIndexes2.add(((fortressLevelIndex + 3) | 0));
+                            }
+
+                            if (System.Linq.Enumerable.from(relevantIndexes2).all(function (x) {
+                                    return !doesPathIndexHaveRestrictions[System.Array.index(x, doesPathIndexHaveRestrictions)];
+                                })) {
+                                $t8 = Bridge.getEnumerator(relevantIndexes2);
+                                try {
+                                    while ($t8.moveNext()) {
+                                        var relevantIndex2 = $t8.Current;
+                                        straightPathIndexes.add(relevantIndex2);
+                                        doesPathIndexHaveRestrictions[System.Array.index(relevantIndex2, doesPathIndexHaveRestrictions)] = true;
+                                    }
+                                } finally {
+                                    if (Bridge.is($t8, System.IDisposable)) {
+                                        $t8.System$IDisposable$Dispose();
+                                    }
+                                }
+
+                                straightPathIndexes.remove(((fortressLevelIndex + 1) | 0));
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t7, System.IDisposable)) {
+                            $t7.System$IDisposable$Dispose();
+                        }
+                    }
+
+                    var path = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+
+                    path.add({ Item1: 0, Item2: 0 });
+
+                    var getPotentialNextSteps = function (previousLocation, currentLocation, i1) {
+                        if (straightPathIndexes.contains(i1)) {
+                            if (previousLocation == null) {
+                                return null;
+                            }
+
+                            return function (_o1) {
+                                    _o1.add({ Item1: ((currentLocation.Item1 + (((currentLocation.Item1 - previousLocation.Item1) | 0))) | 0), Item2: ((currentLocation.Item2 + (((currentLocation.Item2 - previousLocation.Item2) | 0))) | 0) });
+                                    return _o1;
+                                }(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                        }
+
+                        if (mountainPathIndexes.contains(i1)) {
+                            return function (_o2) {
+                                    _o2.add({ Item1: ((currentLocation.Item1 - 1) | 0), Item2: currentLocation.Item2 });
+                                    _o2.add({ Item1: ((currentLocation.Item1 + 1) | 0), Item2: currentLocation.Item2 });
+                                    return _o2;
+                                }(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                        }
+
+                        return null;
+                    };
+
+                    var additionalValidationFunc = function (currentPath) {
+                        var $t9, $t10;
+                        var index = (System.Array.getCount(currentPath, System.Tuple$2(System.Int32,System.Int32)) - 1) | 0;
+
+                        var shouldCheckLevelCollision = indexesOfSpecialLevels.contains(index) || index === ((pathLength - 1) | 0);
+                        var shouldCheckMountainAndPathCollision = indexesOfSpecialLevels.contains(index) || index === ((pathLength - 1) | 0) || index % 3 === 0;
+
+                        if (shouldCheckLevelCollision) {
+                            var specialLevelLocations = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+
+                            $t9 = Bridge.getEnumerator(indexesOfSpecialLevels);
+                            try {
+                                while ($t9.moveNext()) {
+                                    var s = $t9.Current;
+                                    if (s < System.Array.getCount(currentPath, System.Tuple$2(System.Int32,System.Int32))) {
+                                        specialLevelLocations.add(System.Array.getItem(currentPath, s, System.Tuple$2(System.Int32,System.Int32)));
+                                    }
+                                }
+                            } finally {
+                                if (Bridge.is($t9, System.IDisposable)) {
+                                    $t9.System$IDisposable$Dispose();
+                                }
+                            }
+
+                            for (var i1 = 0; i1 < specialLevelLocations.Count; i1 = (i1 + 1) | 0) {
+                                for (var j = (i1 + 1) | 0; j < specialLevelLocations.Count; j = (j + 1) | 0) {
+                                    var levelA = specialLevelLocations.getItem(i1);
+                                    var levelB = specialLevelLocations.getItem(j);
+
+                                    if (((Math.abs(((levelA.Item1 - levelB.Item1) | 0)) + Math.abs(((levelA.Item2 - levelB.Item2) | 0))) | 0) <= 6) {
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (shouldCheckMountainAndPathCollision) {
+                            var pathSet = new (System.Collections.Generic.HashSet$1(System.Tuple$2(System.Int32,System.Int32))).$ctor2(currentPath, new DTLibrary.IntTupleEqualityComparer());
+
+                            $t10 = Bridge.getEnumerator(indexesOfMountainLevels);
+                            try {
+                                while ($t10.moveNext()) {
+                                    var mountainLevelIndex1 = $t10.Current;
+                                    if (mountainLevelIndex1 < System.Array.getCount(currentPath, System.Tuple$2(System.Int32,System.Int32))) {
+                                        var mountainLevelLocation = System.Array.getItem(currentPath, mountainLevelIndex1, System.Tuple$2(System.Int32,System.Int32));
+
+                                        if (pathSet.contains({ Item1: ((mountainLevelLocation.Item1 - 1) | 0), Item2: ((mountainLevelLocation.Item2 + 2) | 0) }) || pathSet.contains({ Item1: mountainLevelLocation.Item1, Item2: ((mountainLevelLocation.Item2 + 2) | 0) }) || pathSet.contains({ Item1: ((mountainLevelLocation.Item1 + 1) | 0), Item2: ((mountainLevelLocation.Item2 + 2) | 0) })) {
+                                            return false;
+                                        }
+                                    }
+                                }
+                            } finally {
+                                if (Bridge.is($t10, System.IDisposable)) {
+                                    $t10.System$IDisposable$Dispose();
+                                }
+                            }
+                        }
+
+                        return true;
+                    };
+
+                    var returnVal;
+
+                    var numTries = 0;
+                    while (true) {
+                        try {
+                            returnVal = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GeneratePathHelper(path, getPotentialNextSteps, additionalValidationFunc, pathLength, new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.BacktrackCounter(5000), random);
+                            break;
+                        } catch ($e1) {
+                            $e1 = System.Exception.create($e1);
+                            if (Bridge.is($e1, TuxPlanetSpeedrunAnyPercentLibrary.MapGenerationFailureException)) {
+                                numTries = (numTries + 1) | 0;
+                            } else {
+                                throw $e1;
+                            }
+                        }
+
+                        if (numTries === 10) {
+                            returnVal = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GeneratePathHelper(path, function (previousLocation, currentLocation, i1) {
+                                return function (_o3) {
+                                        _o3.add({ Item1: ((currentLocation.Item1 + 1) | 0), Item2: currentLocation.Item2 });
+                                        return _o3;
+                                    }(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                            }, additionalValidationFunc, pathLength, new TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.BacktrackCounter(null), random);
+                            break;
+                        }
+                    }
+
+                    return new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(returnVal);
+                },
+                GeneratePathHelper: function (path, getPotentialNextSteps, additionalValidationFunc, pathLength, backtrackCounter, random) {
                     var $t, $t1;
-                    if (System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) === 50) {
+                    if (System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) === pathLength) {
                         return new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(path);
                     }
 
-                    var x = System.Array.getItem(path, ((System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) - 1) | 0), System.Tuple$2(System.Int32,System.Int32)).Item1;
-                    var y = System.Array.getItem(path, ((System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) - 1) | 0), System.Tuple$2(System.Int32,System.Int32)).Item2;
-
                     var occupiedSpaces = new (System.Collections.Generic.HashSet$1(System.Tuple$2(System.Int32,System.Int32))).$ctor2(path, new DTLibrary.IntTupleEqualityComparer());
 
-                    var potentialNextSteps = function (_o1) {
-                            _o1.add({ Item1: ((x - 1) | 0), Item2: y });
-                            _o1.add({ Item1: ((x + 1) | 0), Item2: y });
-                            _o1.add({ Item1: x, Item2: ((y - 1) | 0) });
-                            _o1.add({ Item1: x, Item2: ((y + 1) | 0) });
-                            return _o1;
-                        }(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                    var currentLocation = System.Array.getItem(path, ((System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) - 1) | 0), System.Tuple$2(System.Int32,System.Int32));
+                    var previousLocation = System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) === 1 ? null : System.Array.getItem(path, ((System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)) - 2) | 0), System.Tuple$2(System.Int32,System.Int32));
+
+                    var potentialNextSteps = null;
+
+                    if (!Bridge.staticEquals(getPotentialNextSteps, null)) {
+                        potentialNextSteps = getPotentialNextSteps(previousLocation, currentLocation, System.Array.getCount(path, System.Tuple$2(System.Int32,System.Int32)));
+                    }
+
+                    if (potentialNextSteps == null) {
+                        potentialNextSteps = function (_o1) {
+                                _o1.add({ Item1: ((currentLocation.Item1 - 1) | 0), Item2: currentLocation.Item2 });
+                                _o1.add({ Item1: ((currentLocation.Item1 + 1) | 0), Item2: currentLocation.Item2 });
+                                _o1.add({ Item1: currentLocation.Item1, Item2: ((currentLocation.Item2 - 1) | 0) });
+                                _o1.add({ Item1: currentLocation.Item1, Item2: ((currentLocation.Item2 + 1) | 0) });
+                                return _o1;
+                            }(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                    }
                     DTLibrary.ListUtil.Shuffle(System.Tuple$2(System.Int32,System.Int32), potentialNextSteps, random);
 
                     $t = Bridge.getEnumerator(potentialNextSteps);
@@ -26352,7 +27496,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             var newList = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).$ctor1(path);
                             newList.add(potentialNextStep.v);
 
-                            newList = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GeneratePathHelper(newList, random);
+                            if (!additionalValidationFunc(newList)) {
+                                continue;
+                            }
+
+                            newList = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.GeneratePathHelper(newList, getPotentialNextSteps, additionalValidationFunc, pathLength, backtrackCounter, random);
 
                             if (newList != null) {
                                 return newList;
@@ -26364,7 +27512,32 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         }
                     }
 
+                    backtrackCounter.Increment();
                     return null;
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMapGenerator.BacktrackCounter", {
+        $kind: "nested class",
+        fields: {
+            maxNumBacktracks: null,
+            numBacktracks: 0
+        },
+        ctors: {
+            ctor: function (maxNumBacktracks) {
+                this.$initialize();
+                this.maxNumBacktracks = maxNumBacktracks;
+                this.numBacktracks = 0;
+            }
+        },
+        methods: {
+            Increment: function () {
+                this.numBacktracks = (this.numBacktracks + 1) | 0;
+
+                if (this.maxNumBacktracks != null && this.numBacktracks > System.Nullable.getValue(this.maxNumBacktracks)) {
+                    throw new TuxPlanetSpeedrunAnyPercentLibrary.MapGenerationFailureException();
                 }
             }
         }
@@ -26390,8 +27563,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         fields: {
             OverworldGameMap: null,
-            pathTilemap: null,
+            foregroundTilemap: null,
             backgroundTilemap: null,
+            levelsWithCustomSprite: null,
             RngSeed: null
         },
         props: {
@@ -26409,10 +27583,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                 this.OverworldGameMap = TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.GenerateOverworldGameMap(windowWidth, windowHeight, random);
 
-                var result = TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.GenerateSpriteTilemap(this.OverworldGameMap, random);
+                var result = TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.GenerateSpriteTilemap(this.OverworldGameMap, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.GetWaterLevels(), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.GetMountainLevels(), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.GetFortressLevels(), random);
 
-                this.pathTilemap = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.ShallowCopyTArray(TuxPlanetSpeedrunAnyPercentLibrary.Sprite, result.PathTiles);
+                this.foregroundTilemap = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.ShallowCopyTArray(TuxPlanetSpeedrunAnyPercentLibrary.Sprite, result.ForegroundTiles);
                 this.backgroundTilemap = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.ShallowCopyTArray(TuxPlanetSpeedrunAnyPercentLibrary.Sprite, result.BackgroundTiles);
+                this.levelsWithCustomSprite = new (System.Collections.Generic.HashSet$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(result.LevelsWithCustomSprite);
 
                 this.RngSeed = rngSeed;
             }
@@ -26441,32 +27616,32 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 return System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Level;
             },
             GetMapWidthInPixels: function () {
-                return Bridge.Int.mul(this.pathTilemap.length, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_WIDTH_IN_PIXELS);
+                return Bridge.Int.mul(this.foregroundTilemap.length, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_WIDTH_IN_PIXELS);
             },
             GetMapHeightInPixels: function () {
-                return Bridge.Int.mul(this.pathTilemap[System.Array.index(0, this.pathTilemap)].length, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_HEIGHT_IN_PIXELS);
+                return Bridge.Int.mul(this.foregroundTilemap[System.Array.index(0, this.foregroundTilemap)].length, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMap.TILE_HEIGHT_IN_PIXELS);
             },
             Render: function (displayOutput, completedLevels) {
                 var $t, $t1;
                 var renderX = 0;
 
-                for (var i = 0; i < this.pathTilemap.length; i = (i + 1) | 0) {
+                for (var i = 0; i < this.foregroundTilemap.length; i = (i + 1) | 0) {
                     var renderY = 0;
 
-                    for (var j = 0; j < this.pathTilemap[System.Array.index(i, this.pathTilemap)].length; j = (j + 1) | 0) {
+                    for (var j = 0; j < this.foregroundTilemap[System.Array.index(i, this.foregroundTilemap)].length; j = (j + 1) | 0) {
                         var background = ($t = this.backgroundTilemap[System.Array.index(i, this.backgroundTilemap)])[System.Array.index(j, $t)];
 
                         if (background != null) {
                             displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(background.Image, background.X, background.Y, background.Width, background.Height, renderX, renderY, 0, background.ScalingFactorScaled);
                         }
 
-                        var path = ($t1 = this.pathTilemap[System.Array.index(i, this.pathTilemap)])[System.Array.index(j, $t1)];
+                        var foreground = ($t1 = this.foregroundTilemap[System.Array.index(i, this.foregroundTilemap)])[System.Array.index(j, $t1)];
 
-                        if (path != null) {
-                            displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(path.Image, path.X, path.Y, path.Width, path.Height, renderX, renderY, 0, path.ScalingFactorScaled);
+                        if (foreground != null) {
+                            displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(foreground.Image, foreground.X, foreground.Y, foreground.Width, foreground.Height, renderX, renderY, 0, foreground.ScalingFactorScaled);
                         }
 
-                        if (System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type === TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level) {
+                        if (System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type === TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level && !this.levelsWithCustomSprite.contains(System.Nullable.getValue(System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Level))) {
                             var hasCompletedLevel = completedLevels.contains(System.Nullable.getValue(System.Array.getItem(System.Array.getItem(this.OverworldGameMap.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Level));
 
                             displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.LevelIcons, hasCompletedLevel ? 16 : 0, 0, 16, 16, renderX, renderY, 0, 384);
@@ -26484,16 +27659,65 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator", {
         statics: {
             methods: {
-                GenerateSpriteTilemap: function (map, random) {
-                    var $t, $t1;
+                GenerateSpriteTilemap: function (map, waterLevels, mountainLevels, fortressLevels, random) {
+                    var $t, $t1, $t2, $t3, $t4, $t5;
+                    var length1 = System.Array.getCount(map.Tilemap, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile));
+                    var length2 = System.Array.getCount(System.Array.getItem(map.Tilemap, 0, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile);
+
+                    var foregroundTilemap = System.Array.init(length1, null, System.Array.type(TuxPlanetSpeedrunAnyPercentLibrary.Sprite));
+                    var isWaterArray = System.Array.init(length1, null, System.Array.type(System.Nullable$1(System.Boolean)));
+                    var hasCustomForegroundSpriteArray = System.Array.init(length1, null, System.Array.type(System.Boolean));
+
+                    for (var i = 0; i < length1; i = (i + 1) | 0) {
+                        foregroundTilemap[System.Array.index(i, foregroundTilemap)] = System.Array.init(length2, null, TuxPlanetSpeedrunAnyPercentLibrary.Sprite);
+                        isWaterArray[System.Array.index(i, isWaterArray)] = System.Array.init(length2, null, System.Nullable$1(System.Boolean));
+                        hasCustomForegroundSpriteArray[System.Array.index(i, hasCustomForegroundSpriteArray)] = System.Array.init(length2, false, System.Boolean);
+
+                        for (var j = 0; j < length2; j = (j + 1) | 0) {
+                            ($t = foregroundTilemap[System.Array.index(i, foregroundTilemap)])[System.Array.index(j, $t)] = null;
+
+                            if (System.Array.getItem(System.Array.getItem(map.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type !== TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath) {
+                                ($t1 = isWaterArray[System.Array.index(i, isWaterArray)])[System.Array.index(j, $t1)] = false;
+                            } else {
+                                ($t2 = isWaterArray[System.Array.index(i, isWaterArray)])[System.Array.index(j, $t2)] = null;
+                            }
+
+                            ($t3 = hasCustomForegroundSpriteArray[System.Array.index(i, hasCustomForegroundSpriteArray)])[System.Array.index(j, $t3)] = false;
+                        }
+                    }
+
+                    TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.AddPathToForegroundTilemap(map, foregroundTilemap);
+
+                    var levelsWithCustomSprite = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).ctor();
+
+                    var levelLocations = TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.GetLevelLocations(map);
+
+                    TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.MarkWaterLevels(isWaterArray, waterLevels, levelLocations);
+
+                    TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.MarkMountainLevels(map, isWaterArray, hasCustomForegroundSpriteArray, foregroundTilemap, levelsWithCustomSprite, mountainLevels, levelLocations);
+
+                    TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.MarkFortressLevels(map, isWaterArray, hasCustomForegroundSpriteArray, foregroundTilemap, levelsWithCustomSprite, fortressLevels, levelLocations);
+
+                    TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.FillOutWaterArray(isWaterArray, random);
+
+                    var nonNullIsWaterArray = System.Array.init(length1, null, System.Array.type(System.Boolean));
+                    for (var i1 = 0; i1 < length1; i1 = (i1 + 1) | 0) {
+                        nonNullIsWaterArray[System.Array.index(i1, nonNullIsWaterArray)] = System.Array.init(length2, false, System.Boolean);
+                        for (var j1 = 0; j1 < length2; j1 = (j1 + 1) | 0) {
+                            ($t4 = nonNullIsWaterArray[System.Array.index(i1, nonNullIsWaterArray)])[System.Array.index(j1, $t4)] = System.Nullable.getValue(($t5 = isWaterArray[System.Array.index(i1, isWaterArray)])[System.Array.index(j1, $t5)]);
+                        }
+                    }
+
+                    TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.AddScenery(foregroundTilemap, nonNullIsWaterArray, random);
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.Result(foregroundTilemap, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.GenerateBackgroundTiles(length1, length2, nonNullIsWaterArray, random), levelsWithCustomSprite);
+                },
+                AddPathToForegroundTilemap: function (map, foregroundTilemap) {
+                    var $t;
                     var numColumns = System.Array.getCount(map.Tilemap, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile));
                     var numRows = System.Array.getCount(System.Array.getItem(map.Tilemap, 0, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile);
 
-                    var pathTilemap = System.Array.init(numColumns, null, System.Array.type(TuxPlanetSpeedrunAnyPercentLibrary.Sprite));
-
                     for (var i = 0; i < numColumns; i = (i + 1) | 0) {
-                        pathTilemap[System.Array.index(i, pathTilemap)] = System.Array.init(numRows, null, TuxPlanetSpeedrunAnyPercentLibrary.Sprite);
-
                         for (var j = 0; j < numRows; j = (j + 1) | 0) {
                             var spriteX;
                             var spriteY;
@@ -26566,24 +27790,526 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             }
 
                             if (spriteX != null) {
-                                ($t = pathTilemap[System.Array.index(i, pathTilemap)])[System.Array.index(j, $t)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, System.Nullable.getValue(spriteX) << 4, System.Nullable.getValue(spriteY) << 4, 16, 16, 384);
-                            } else {
-                                ($t1 = pathTilemap[System.Array.index(i, pathTilemap)])[System.Array.index(j, $t1)] = null;
+                                ($t = foregroundTilemap[System.Array.index(i, foregroundTilemap)])[System.Array.index(j, $t)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, System.Nullable.getValue(spriteX) << 4, System.Nullable.getValue(spriteY) << 4, 16, 16, 384);
+                            }
+                        }
+                    }
+                },
+                GetLevelLocations: function (map) {
+                    var length1 = System.Array.getCount(map.Tilemap, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile));
+                    var length2 = System.Array.getCount(System.Array.getItem(map.Tilemap, 0, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile);
+
+                    var levelLocations = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.Level,System.Tuple$2(System.Int32,System.Int32)))();
+
+                    for (var i = 0; i < length1; i = (i + 1) | 0) {
+                        for (var j = 0; j < length2; j = (j + 1) | 0) {
+                            if (System.Array.getItem(System.Array.getItem(map.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type === TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.Level) {
+                                levelLocations.set(System.Nullable.getValue(System.Array.getItem(System.Array.getItem(map.Tilemap, i, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), j, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Level), { Item1: i, Item2: j });
                             }
                         }
                     }
 
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.Result(pathTilemap, TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.GenerateBackgroundTiles(numColumns, numRows, random));
+                    return levelLocations;
                 },
-                GenerateBackgroundTiles: function (numColumns, numRows, random) {
-                    var $t;
+                MarkWaterLevels: function (isWaterArray, waterLevels, levelLocations) {
+                    var $t, $t1, $t2;
+                    var length1 = isWaterArray.length;
+                    var length2 = isWaterArray[System.Array.index(0, isWaterArray)].length;
+
+                    $t = Bridge.getEnumerator(waterLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t.moveNext()) {
+                            var level = $t.Current;
+                            var levelLocation = { v : levelLocations.System$Collections$Generic$IReadOnlyDictionary$2$TuxPlanetSpeedrunAnyPercentLibrary$Level$System$Tuple$2$System$Int32$System$Int32$getItem(level) };
+
+                            var levelAndAdjacentSquares = (function ($me, levelLocation) {
+                                    return function (_o1) {
+                                        _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: ((levelLocation.v.Item2 - 1) | 0) });
+                                        _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: levelLocation.v.Item2 });
+                                        _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                        _o1.add({ Item1: levelLocation.v.Item1, Item2: ((levelLocation.v.Item2 - 1) | 0) });
+                                        _o1.add({ Item1: levelLocation.v.Item1, Item2: levelLocation.v.Item2 });
+                                        _o1.add({ Item1: levelLocation.v.Item1, Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                        _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: ((levelLocation.v.Item2 - 1) | 0) });
+                                        _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: levelLocation.v.Item2 });
+                                        _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                        return _o1;
+                                    };
+                                })(this, levelLocation)(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+
+                            $t1 = Bridge.getEnumerator(levelAndAdjacentSquares);
+                            try {
+                                while ($t1.moveNext()) {
+                                    var square = $t1.Current;
+                                    if (square.Item1 >= 0 && square.Item1 < length1 && square.Item2 >= 0 && square.Item2 < length2) {
+                                        ($t2 = isWaterArray[System.Array.index(square.Item1, isWaterArray)])[System.Array.index(square.Item2, $t2)] = true;
+                                    }
+                                }
+                            } finally {
+                                if (Bridge.is($t1, System.IDisposable)) {
+                                    $t1.System$IDisposable$Dispose();
+                                }
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
+                    }
+                },
+                MarkMountainLevels: function (map, isWaterArray, hasCustomForegroundSpriteArray, foregroundTilemap, levelsWithCustomSprite, mountainLevels, levelLocations) {
+                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
+                    var length1 = isWaterArray.length;
+                    var length2 = isWaterArray[System.Array.index(0, isWaterArray)].length;
+
+                    $t = Bridge.getEnumerator(mountainLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t.moveNext()) {
+                            var level = $t.Current;
+                            var levelLocation = { v : levelLocations.System$Collections$Generic$IReadOnlyDictionary$2$TuxPlanetSpeedrunAnyPercentLibrary$Level$System$Tuple$2$System$Int32$System$Int32$getItem(level) };
+
+                            if (((levelLocation.v.Item1 - 1) | 0) >= 0 && ((levelLocation.v.Item1 + 1) | 0) < length1 && ((levelLocation.v.Item2 + 2) | 0) < length2) {
+                                var relevantSquares = (function ($me, levelLocation) {
+                                        return function (_o1) {
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: levelLocation.v.Item2 });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: ((levelLocation.v.Item2 + 2) | 0) });
+                                            _o1.add({ Item1: levelLocation.v.Item1, Item2: levelLocation.v.Item2 });
+                                            _o1.add({ Item1: levelLocation.v.Item1, Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                            _o1.add({ Item1: levelLocation.v.Item1, Item2: ((levelLocation.v.Item2 + 2) | 0) });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: levelLocation.v.Item2 });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: ((levelLocation.v.Item2 + 2) | 0) });
+                                            return _o1;
+                                        };
+                                    })(this, levelLocation)(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+
+                                var isNotInWater = System.Linq.Enumerable.from(relevantSquares).all(function (x) {
+                                        var $t1, $t2;
+                                        return ($t1 = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t1)] == null || System.Nullable.getValue(($t2 = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t2)]) === false;
+                                    });
+                                var isNotAlreadyOccupied = System.Linq.Enumerable.from(relevantSquares).all(function (x) {
+                                        var $t1;
+                                        return ($t1 = hasCustomForegroundSpriteArray[System.Array.index(x.Item1, hasCustomForegroundSpriteArray)])[System.Array.index(x.Item2, $t1)] === false;
+                                    });
+
+                                if (isNotInWater && isNotAlreadyOccupied) {
+                                    levelsWithCustomSprite.add(level);
+
+                                    $t1 = Bridge.getEnumerator(relevantSquares);
+                                    try {
+                                        while ($t1.moveNext()) {
+                                            var relevantSquare = $t1.Current;
+                                            ($t2 = isWaterArray[System.Array.index(relevantSquare.Item1, isWaterArray)])[System.Array.index(relevantSquare.Item2, $t2)] = false;
+                                            ($t3 = hasCustomForegroundSpriteArray[System.Array.index(relevantSquare.Item1, hasCustomForegroundSpriteArray)])[System.Array.index(relevantSquare.Item2, $t3)] = true;
+                                        }
+                                    } finally {
+                                        if (Bridge.is($t1, System.IDisposable)) {
+                                            $t1.System$IDisposable$Dispose();
+                                        }
+                                    }
+
+                                    var getMountainSprite = function (x, y) {
+                                        return new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Mountains, Bridge.Int.mul(x, 16), Bridge.Int.mul(y, 16), 16, 16, 384);
+                                    };
+
+                                    ($t4 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 - 1) | 0), foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t4)] = getMountainSprite(0, 2);
+                                    ($t5 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 - 1) | 0), foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 1) | 0), $t5)] = getMountainSprite(0, 1);
+                                    ($t6 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 - 1) | 0), foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 2) | 0), $t6)] = getMountainSprite(0, 0);
+                                    ($t7 = foregroundTilemap[System.Array.index(levelLocation.v.Item1, foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t7)] = getMountainSprite(1, 2);
+                                    ($t8 = foregroundTilemap[System.Array.index(levelLocation.v.Item1, foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 1) | 0), $t8)] = getMountainSprite(1, 1);
+                                    ($t9 = foregroundTilemap[System.Array.index(levelLocation.v.Item1, foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 2) | 0), $t9)] = getMountainSprite(1, 0);
+                                    ($t10 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 + 1) | 0), foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t10)] = getMountainSprite(2, 2);
+                                    ($t11 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 + 1) | 0), foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 1) | 0), $t11)] = getMountainSprite(2, 1);
+                                    ($t12 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 + 1) | 0), foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 2) | 0), $t12)] = getMountainSprite(2, 0);
+
+                                    var isPath = function (x, y) {
+                                        if (x < 0 || x >= length1 || y < 0 || y >= length2) {
+                                            return false;
+                                        }
+                                        return System.Array.getItem(System.Array.getItem(map.Tilemap, x, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), y, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type !== TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath;
+                                    };
+
+                                    if (isPath(((levelLocation.v.Item1 - 2) | 0), levelLocation.v.Item2) && isPath(((levelLocation.v.Item1 - 3) | 0), levelLocation.v.Item2) && isPath(((levelLocation.v.Item1 - 1) | 0), levelLocation.v.Item2) && !isPath(((levelLocation.v.Item1 - 2) | 0), ((levelLocation.v.Item2 - 1) | 0)) && !isPath(((levelLocation.v.Item1 - 2) | 0), ((levelLocation.v.Item2 + 1) | 0))) {
+                                        ($t13 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 - 2) | 0), foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t13)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, 32, 112, 16, 16, 384);
+                                    }
+
+                                    if (isPath(((levelLocation.v.Item1 + 2) | 0), levelLocation.v.Item2) && isPath(((levelLocation.v.Item1 + 3) | 0), levelLocation.v.Item2) && isPath(((levelLocation.v.Item1 + 1) | 0), levelLocation.v.Item2) && !isPath(((levelLocation.v.Item1 + 2) | 0), ((levelLocation.v.Item2 - 1) | 0)) && !isPath(((levelLocation.v.Item1 + 2) | 0), ((levelLocation.v.Item2 + 1) | 0))) {
+                                        ($t14 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 + 2) | 0), foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t14)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, 16, 112, 16, 16, 384);
+                                    }
+                                }
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
+                    }
+                },
+                MarkFortressLevels: function (map, isWaterArray, hasCustomForegroundSpriteArray, foregroundTilemap, levelsWithCustomSprite, fortressLevels, levelLocations) {
+                    var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
+                    var length1 = isWaterArray.length;
+                    var length2 = isWaterArray[System.Array.index(0, isWaterArray)].length;
+
+                    $t = Bridge.getEnumerator(fortressLevels, TuxPlanetSpeedrunAnyPercentLibrary.Level);
+                    try {
+                        while ($t.moveNext()) {
+                            var level = $t.Current;
+                            var levelLocation = { v : levelLocations.System$Collections$Generic$IReadOnlyDictionary$2$TuxPlanetSpeedrunAnyPercentLibrary$Level$System$Tuple$2$System$Int32$System$Int32$getItem(level) };
+
+                            if (((levelLocation.v.Item1 - 1) | 0) >= 0 && ((levelLocation.v.Item1 + 1) | 0) < length1 && ((levelLocation.v.Item2 - 1) | 0) >= 0 && ((levelLocation.v.Item2 + 1) | 0) < length2) {
+                                var relevantSquares = (function ($me, levelLocation) {
+                                        return function (_o1) {
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: ((levelLocation.v.Item2 - 1) | 0) });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: levelLocation.v.Item2 });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 - 1) | 0), Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                            _o1.add({ Item1: levelLocation.v.Item1, Item2: ((levelLocation.v.Item2 - 1) | 0) });
+                                            _o1.add({ Item1: levelLocation.v.Item1, Item2: levelLocation.v.Item2 });
+                                            _o1.add({ Item1: levelLocation.v.Item1, Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: ((levelLocation.v.Item2 - 1) | 0) });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: levelLocation.v.Item2 });
+                                            _o1.add({ Item1: ((levelLocation.v.Item1 + 1) | 0), Item2: ((levelLocation.v.Item2 + 1) | 0) });
+                                            return _o1;
+                                        };
+                                    })(this, levelLocation)(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+
+                                var isNotInWater = System.Linq.Enumerable.from(relevantSquares).all(function (x) {
+                                        var $t1, $t2;
+                                        return ($t1 = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t1)] == null || System.Nullable.getValue(($t2 = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t2)]) === false;
+                                    });
+                                var isNotAlreadyOccupied = System.Linq.Enumerable.from(relevantSquares).all(function (x) {
+                                        var $t1;
+                                        return ($t1 = hasCustomForegroundSpriteArray[System.Array.index(x.Item1, hasCustomForegroundSpriteArray)])[System.Array.index(x.Item2, $t1)] === false;
+                                    });
+
+                                if (isNotInWater && isNotAlreadyOccupied) {
+                                    levelsWithCustomSprite.add(level);
+
+                                    $t1 = Bridge.getEnumerator(relevantSquares);
+                                    try {
+                                        while ($t1.moveNext()) {
+                                            var relevantSquare = $t1.Current;
+                                            ($t2 = isWaterArray[System.Array.index(relevantSquare.Item1, isWaterArray)])[System.Array.index(relevantSquare.Item2, $t2)] = false;
+                                            ($t3 = hasCustomForegroundSpriteArray[System.Array.index(relevantSquare.Item1, hasCustomForegroundSpriteArray)])[System.Array.index(relevantSquare.Item2, $t3)] = true;
+                                        }
+                                    } finally {
+                                        if (Bridge.is($t1, System.IDisposable)) {
+                                            $t1.System$IDisposable$Dispose();
+                                        }
+                                    }
+
+                                    var getFortressSprite = function (x, y) {
+                                        return new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Towns, ((240 + Bridge.Int.mul(x, 16)) | 0), Bridge.Int.mul(y, 16), 16, 16, 384);
+                                    };
+
+                                    ($t4 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 - 1) | 0), foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 - 1) | 0), $t4)] = getFortressSprite(0, 2);
+                                    ($t5 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 - 1) | 0), foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t5)] = getFortressSprite(0, 1);
+                                    ($t6 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 - 1) | 0), foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 1) | 0), $t6)] = getFortressSprite(0, 0);
+                                    ($t7 = foregroundTilemap[System.Array.index(levelLocation.v.Item1, foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 - 1) | 0), $t7)] = getFortressSprite(1, 2);
+                                    ($t8 = foregroundTilemap[System.Array.index(levelLocation.v.Item1, foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t8)] = getFortressSprite(1, 1);
+                                    ($t9 = foregroundTilemap[System.Array.index(levelLocation.v.Item1, foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 1) | 0), $t9)] = getFortressSprite(1, 0);
+                                    ($t10 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 + 1) | 0), foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 - 1) | 0), $t10)] = getFortressSprite(2, 2);
+                                    ($t11 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 + 1) | 0), foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t11)] = getFortressSprite(2, 1);
+                                    ($t12 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 + 1) | 0), foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 1) | 0), $t12)] = getFortressSprite(2, 0);
+
+                                    var isPath = function (x, y) {
+                                        if (x < 0 || x >= length1 || y < 0 || y >= length2) {
+                                            return false;
+                                        }
+                                        return System.Array.getItem(System.Array.getItem(map.Tilemap, x, System.Collections.Generic.IReadOnlyList$1(TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile)), y, TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.Tile).Type !== TuxPlanetSpeedrunAnyPercentLibrary.OverworldGameMap.TileType.NonPath;
+                                    };
+
+                                    if (isPath(((levelLocation.v.Item1 - 2) | 0), levelLocation.v.Item2) && isPath(((levelLocation.v.Item1 - 3) | 0), levelLocation.v.Item2) && isPath(((levelLocation.v.Item1 - 1) | 0), levelLocation.v.Item2) && !isPath(((levelLocation.v.Item1 - 2) | 0), ((levelLocation.v.Item2 - 1) | 0)) && !isPath(((levelLocation.v.Item1 - 2) | 0), ((levelLocation.v.Item2 + 1) | 0))) {
+                                        ($t13 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 - 2) | 0), foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t13)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, 32, 112, 16, 16, 384);
+                                    }
+
+                                    if (isPath(((levelLocation.v.Item1 + 2) | 0), levelLocation.v.Item2) && isPath(((levelLocation.v.Item1 + 3) | 0), levelLocation.v.Item2) && isPath(((levelLocation.v.Item1 + 1) | 0), levelLocation.v.Item2) && !isPath(((levelLocation.v.Item1 + 2) | 0), ((levelLocation.v.Item2 - 1) | 0)) && !isPath(((levelLocation.v.Item1 + 2) | 0), ((levelLocation.v.Item2 + 1) | 0))) {
+                                        ($t14 = foregroundTilemap[System.Array.index(((levelLocation.v.Item1 + 2) | 0), foregroundTilemap)])[System.Array.index(levelLocation.v.Item2, $t14)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, 16, 112, 16, 16, 384);
+                                    }
+
+                                    if (isPath(levelLocation.v.Item1, ((levelLocation.v.Item2 - 2) | 0)) && isPath(levelLocation.v.Item1, ((levelLocation.v.Item2 - 3) | 0)) && isPath(levelLocation.v.Item1, ((levelLocation.v.Item2 - 1) | 0)) && !isPath(((levelLocation.v.Item1 - 1) | 0), ((levelLocation.v.Item2 - 2) | 0)) && !isPath(((levelLocation.v.Item1 + 1) | 0), ((levelLocation.v.Item2 - 2) | 0))) {
+                                        ($t15 = foregroundTilemap[System.Array.index(levelLocation.v.Item1, foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 - 2) | 0), $t15)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, 0, 112, 16, 16, 384);
+                                    }
+
+                                    if (isPath(levelLocation.v.Item1, ((levelLocation.v.Item2 + 2) | 0)) && isPath(levelLocation.v.Item1, ((levelLocation.v.Item2 + 3) | 0)) && isPath(levelLocation.v.Item1, ((levelLocation.v.Item2 + 1) | 0)) && !isPath(((levelLocation.v.Item1 - 1) | 0), ((levelLocation.v.Item2 + 2) | 0)) && !isPath(((levelLocation.v.Item1 + 1) | 0), ((levelLocation.v.Item2 + 2) | 0))) {
+                                        ($t16 = foregroundTilemap[System.Array.index(levelLocation.v.Item1, foregroundTilemap)])[System.Array.index(((levelLocation.v.Item2 + 2) | 0), $t16)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.PathDirt, 0, 128, 16, 16, 384);
+                                    }
+                                }
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
+                    }
+                },
+                AddScenery: function (foregroundTilemap, isWaterArray, random) {
+                    var $t, $t1, $t2, $t3;
+                    var length1 = foregroundTilemap.length;
+                    var length2 = foregroundTilemap[System.Array.index(0, foregroundTilemap)].length;
+
+                    var numLandTiles = 0;
+
+                    for (var i = 0; i < isWaterArray.length; i = (i + 1) | 0) {
+                        for (var j = 0; j < isWaterArray[System.Array.index(i, isWaterArray)].length; j = (j + 1) | 0) {
+                            if (!($t = isWaterArray[System.Array.index(i, isWaterArray)])[System.Array.index(j, $t)]) {
+                                numLandTiles = (numLandTiles + 1) | 0;
+                            }
+                        }
+                    }
+
+                    var maxNumTries = (((Bridge.Int.div(numLandTiles, 20)) | 0) + random.DTLibrary$IDTRandom$NextInt(((((Bridge.Int.div(numLandTiles, 20)) | 0) + 1) | 0))) | 0;
+
+                    for (var numTries = 0; numTries < maxNumTries; numTries = (numTries + 1) | 0) {
+                        var i1 = random.DTLibrary$IDTRandom$NextInt(length1);
+                        var j1 = random.DTLibrary$IDTRandom$NextInt(length2);
+
+                        if (($t1 = isWaterArray[System.Array.index(i1, isWaterArray)])[System.Array.index(j1, $t1)]) {
+                            continue;
+                        }
+
+                        if (($t2 = foregroundTilemap[System.Array.index(i1, foregroundTilemap)])[System.Array.index(j1, $t2)] != null) {
+                            continue;
+                        }
+
+                        var sprite;
+
+                        switch (random.DTLibrary$IDTRandom$NextInt(2)) {
+                            case 0: 
+                                sprite = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.ForestSnowy, 0, random.DTLibrary$IDTRandom$NextBool() ? 0 : 16, 16, 16, 384);
+                                break;
+                            case 1: 
+                                sprite = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.RocksSnow, random.DTLibrary$IDTRandom$NextBool() ? 16 : 32, 16, 16, 16, 384);
+                                break;
+                            default: 
+                                throw new System.Exception();
+                        }
+
+                        ($t3 = foregroundTilemap[System.Array.index(i1, foregroundTilemap)])[System.Array.index(j1, $t3)] = sprite;
+                    }
+                },
+                FillOutWaterArray: function (isWaterArray, random) {
+                    var $t, $t1, $t2, $t3, $t4;
+                    var length1 = isWaterArray.length;
+                    var length2 = isWaterArray[System.Array.index(0, isWaterArray)].length;
+
+                    var waterTiles = new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor();
+
+                    for (var i = 0; i < length1; i = (i + 1) | 0) {
+                        var isWater = function (x, y) {
+                            var $t, $t1;
+                            if (x < 0 || x >= length1 || y < 0 || y >= length2) {
+                                return false;
+                            }
+                            return System.Nullable.hasValue(($t = isWaterArray[System.Array.index(x, isWaterArray)])[System.Array.index(y, $t)]) && System.Nullable.getValue(($t1 = isWaterArray[System.Array.index(x, isWaterArray)])[System.Array.index(y, $t1)]);
+                        };
+
+                        for (var j = 0; j < length2; j = (j + 1) | 0) {
+                            if (isWater(i, j)) {
+                                var numAdjacentWater = 0;
+                                if (isWater(((i - 1) | 0), j)) {
+                                    numAdjacentWater = (numAdjacentWater + 1) | 0;
+                                }
+                                if (isWater(((i + 1) | 0), j)) {
+                                    numAdjacentWater = (numAdjacentWater + 1) | 0;
+                                }
+                                if (isWater(i, ((j - 1) | 0))) {
+                                    numAdjacentWater = (numAdjacentWater + 1) | 0;
+                                }
+                                if (isWater(i, ((j + 1) | 0))) {
+                                    numAdjacentWater = (numAdjacentWater + 1) | 0;
+                                }
+
+                                if (numAdjacentWater >= 3) {
+                                    waterTiles.add({ Item1: i, Item2: j });
+                                }
+                            }
+                        }
+                    }
+
+                    var numWaterTilesAdded = 0;
+
+                    var numWaterTilesToAdd = (Bridge.Int.mul(waterTiles.Count, 30) + random.DTLibrary$IDTRandom$NextInt(((Bridge.Int.mul(waterTiles.Count, 8) + 1) | 0))) | 0;
+
+                    while (true) {
+                        if (waterTiles.Count === 0) {
+                            break;
+                        }
+
+                        if (numWaterTilesAdded >= numWaterTilesToAdd) {
+                            break;
+                        }
+
+                        var randomIndex = random.DTLibrary$IDTRandom$NextInt(waterTiles.Count);
+
+                        var temp = waterTiles.getItem(randomIndex);
+                        waterTiles.setItem(randomIndex, waterTiles.getItem(((waterTiles.Count - 1) | 0)));
+                        waterTiles.setItem(((waterTiles.Count - 1) | 0), temp);
+
+                        var toBeProcessed = { v : waterTiles.getItem(((waterTiles.Count - 1) | 0)) };
+                        waterTiles.removeAt(((waterTiles.Count - 1) | 0));
+
+                        var adjacentTiles = (function ($me, toBeProcessed) {
+                                return function (_o1) {
+                                    _o1.add({ Item1: ((toBeProcessed.v.Item1 - 1) | 0), Item2: ((toBeProcessed.v.Item2 - 1) | 0) });
+                                    _o1.add({ Item1: ((toBeProcessed.v.Item1 - 1) | 0), Item2: toBeProcessed.v.Item2 });
+                                    _o1.add({ Item1: ((toBeProcessed.v.Item1 - 1) | 0), Item2: ((toBeProcessed.v.Item2 + 1) | 0) });
+                                    _o1.add({ Item1: toBeProcessed.v.Item1, Item2: ((toBeProcessed.v.Item2 - 1) | 0) });
+                                    _o1.add({ Item1: toBeProcessed.v.Item1, Item2: toBeProcessed.v.Item2 });
+                                    _o1.add({ Item1: toBeProcessed.v.Item1, Item2: ((toBeProcessed.v.Item2 + 1) | 0) });
+                                    _o1.add({ Item1: ((toBeProcessed.v.Item1 + 1) | 0), Item2: ((toBeProcessed.v.Item2 - 1) | 0) });
+                                    _o1.add({ Item1: ((toBeProcessed.v.Item1 + 1) | 0), Item2: toBeProcessed.v.Item2 });
+                                    _o1.add({ Item1: ((toBeProcessed.v.Item1 + 1) | 0), Item2: ((toBeProcessed.v.Item2 + 1) | 0) });
+                                    return _o1;
+                                };
+                            })(this, toBeProcessed)(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                        adjacentTiles = System.Linq.Enumerable.from(adjacentTiles).where(function (x) {
+                                return x.Item1 >= 0 && x.Item1 < length1 && x.Item2 >= 0 && x.Item2 < length2;
+                            }).toList(System.Tuple$2(System.Int32,System.Int32));
+
+                        if (System.Linq.Enumerable.from(adjacentTiles).any(function (x) {
+                                var $t, $t1;
+                                return System.Nullable.hasValue(($t = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t)]) && !System.Nullable.getValue(($t1 = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t1)]);
+                            })) {
+                            continue;
+                        }
+                        if (System.Linq.Enumerable.from(adjacentTiles).all(function (x) {
+                                var $t, $t1;
+                                return System.Nullable.hasValue(($t = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t)]) && System.Nullable.getValue(($t1 = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t1)]);
+                            })) {
+                            continue;
+                        }
+
+                        var waterTilesToAdd = System.Linq.Enumerable.from(adjacentTiles).where(function (x) {
+                                var $t;
+                                return ($t = isWaterArray[System.Array.index(x.Item1, isWaterArray)])[System.Array.index(x.Item2, $t)] == null;
+                            }).toList(System.Tuple$2(System.Int32,System.Int32));
+
+                        var shouldNotAddTheseTiles = System.Linq.Enumerable.from(waterTilesToAdd).any((function ($me, toBeProcessed) {
+                                return function (x) {
+                                    var tilesAdjacentToThisWaterTile = function (_o2) {
+                                            _o2.add({ Item1: ((x.Item1 - 1) | 0), Item2: ((x.Item2 - 1) | 0) });
+                                            _o2.add({ Item1: ((x.Item1 - 1) | 0), Item2: x.Item2 });
+                                            _o2.add({ Item1: ((x.Item1 - 1) | 0), Item2: ((x.Item2 + 1) | 0) });
+                                            _o2.add({ Item1: x.Item1, Item2: ((x.Item2 - 1) | 0) });
+                                            _o2.add({ Item1: x.Item1, Item2: ((x.Item2 + 1) | 0) });
+                                            _o2.add({ Item1: ((x.Item1 + 1) | 0), Item2: ((x.Item2 - 1) | 0) });
+                                            _o2.add({ Item1: ((x.Item1 + 1) | 0), Item2: x.Item2 });
+                                            _o2.add({ Item1: ((x.Item1 + 1) | 0), Item2: ((x.Item2 + 1) | 0) });
+                                            return _o2;
+                                        }(new (System.Collections.Generic.List$1(System.Tuple$2(System.Int32,System.Int32))).ctor());
+                                    tilesAdjacentToThisWaterTile = System.Linq.Enumerable.from(tilesAdjacentToThisWaterTile).where(function (t) {
+                                            return t.Item1 >= 0 && t.Item1 < length1 && t.Item2 >= 0 && t.Item2 < length2;
+                                        }).toList(System.Tuple$2(System.Int32,System.Int32));
+
+                                    var tilesToCheck = System.Linq.Enumerable.from(tilesAdjacentToThisWaterTile).where(function (t) {
+                                            return Math.abs(((t.Item1 - toBeProcessed.v.Item1) | 0)) === 2 && Math.abs(((t.Item2 - toBeProcessed.v.Item2) | 0)) === 2 || Math.abs(((t.Item1 - toBeProcessed.v.Item1) | 0)) === 2 && Math.abs(((t.Item2 - toBeProcessed.v.Item2) | 0)) === 1 || Math.abs(((t.Item1 - toBeProcessed.v.Item1) | 0)) === 1 && Math.abs(((t.Item2 - toBeProcessed.v.Item2) | 0)) === 2;
+                                        }).toList(System.Tuple$2(System.Int32,System.Int32));
+
+                                    var isBadTile = System.Linq.Enumerable.from(tilesToCheck).any(function (t) {
+                                            var $t, $t1;
+                                            return System.Nullable.hasValue(($t = isWaterArray[System.Array.index(t.Item1, isWaterArray)])[System.Array.index(t.Item2, $t)]) && System.Nullable.getValue(($t1 = isWaterArray[System.Array.index(t.Item1, isWaterArray)])[System.Array.index(t.Item2, $t1)]);
+                                        });
+
+                                    return isBadTile;
+                                };
+                            })(this, toBeProcessed));
+
+                        if (shouldNotAddTheseTiles) {
+                            continue;
+                        }
+
+                        $t = Bridge.getEnumerator(adjacentTiles);
+                        try {
+                            while ($t.moveNext()) {
+                                var adjacentTile = $t.Current;
+                                if (($t1 = isWaterArray[System.Array.index(adjacentTile.Item1, isWaterArray)])[System.Array.index(adjacentTile.Item2, $t1)] == null) {
+                                    ($t2 = isWaterArray[System.Array.index(adjacentTile.Item1, isWaterArray)])[System.Array.index(adjacentTile.Item2, $t2)] = true;
+                                    numWaterTilesAdded = (numWaterTilesAdded + 1) | 0;
+                                }
+
+                                if (((Math.abs(((adjacentTile.Item1 - toBeProcessed.v.Item1) | 0)) + Math.abs(((adjacentTile.Item2 - toBeProcessed.v.Item2) | 0))) | 0) === 1) {
+                                    waterTiles.add(adjacentTile);
+                                }
+                            }
+                        } finally {
+                            if (Bridge.is($t, System.IDisposable)) {
+                                $t.System$IDisposable$Dispose();
+                            }
+                        }
+                    }
+
+                    for (var i1 = 0; i1 < length1; i1 = (i1 + 1) | 0) {
+                        for (var j1 = 0; j1 < length2; j1 = (j1 + 1) | 0) {
+                            if (($t3 = isWaterArray[System.Array.index(i1, isWaterArray)])[System.Array.index(j1, $t3)] == null) {
+                                ($t4 = isWaterArray[System.Array.index(i1, isWaterArray)])[System.Array.index(j1, $t4)] = false;
+                            }
+                        }
+                    }
+                },
+                GenerateBackgroundTiles: function (numColumns, numRows, isWaterArray, random) {
+                    var $t, $t1;
                     var tilemap = System.Array.init(numColumns, null, System.Array.type(TuxPlanetSpeedrunAnyPercentLibrary.Sprite));
+
+                    var isLand = function (i, j) {
+                        var $t;
+                        return i >= 0 && i < isWaterArray.length && j >= 0 && j < isWaterArray[System.Array.index(i, isWaterArray)].length && !($t = isWaterArray[System.Array.index(i, isWaterArray)])[System.Array.index(j, $t)];
+                    };
 
                     for (var i = 0; i < numColumns; i = (i + 1) | 0) {
                         tilemap[System.Array.index(i, tilemap)] = System.Array.init(numRows, null, TuxPlanetSpeedrunAnyPercentLibrary.Sprite);
 
                         for (var j = 0; j < numRows; j = (j + 1) | 0) {
-                            ($t = tilemap[System.Array.index(i, tilemap)])[System.Array.index(j, $t)] = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Snow, random.DTLibrary$IDTRandom$NextInt(3) << 4, 80, 16, 16, 384);
+                            var sprite;
+
+                            if (($t = isWaterArray[System.Array.index(i, isWaterArray)])[System.Array.index(j, $t)]) {
+                                var x = random.DTLibrary$IDTRandom$NextInt(3);
+                                var y = 5;
+
+                                if (isLand(((i - 1) | 0), j) && isLand(i, ((j - 1) | 0))) {
+                                    x = 1;
+                                    y = 1;
+                                } else if (isLand(((i - 1) | 0), j) && isLand(i, ((j + 1) | 0))) {
+                                    x = 1;
+                                    y = 0;
+                                } else if (isLand(((i + 1) | 0), j) && isLand(i, ((j - 1) | 0))) {
+                                    x = 2;
+                                    y = 1;
+                                } else if (isLand(((i + 1) | 0), j) && isLand(i, ((j + 1) | 0))) {
+                                    x = 2;
+                                    y = 0;
+                                } else if (isLand(((i - 1) | 0), j)) {
+                                    x = 2;
+                                    y = 3;
+                                } else if (isLand(((i + 1) | 0), j)) {
+                                    x = 0;
+                                    y = 3;
+                                } else if (isLand(i, ((j - 1) | 0))) {
+                                    x = 1;
+                                    y = 2;
+                                } else if (isLand(i, ((j + 1) | 0))) {
+                                    x = 1;
+                                    y = 4;
+                                } else if (isLand(((i - 1) | 0), ((j - 1) | 0))) {
+                                    x = 2;
+                                    y = 2;
+                                } else if (isLand(((i - 1) | 0), ((j + 1) | 0))) {
+                                    x = 2;
+                                    y = 4;
+                                } else if (isLand(((i + 1) | 0), ((j - 1) | 0))) {
+                                    x = 0;
+                                    y = 2;
+                                } else if (isLand(((i + 1) | 0), ((j + 1) | 0))) {
+                                    x = 0;
+                                    y = 4;
+                                }
+
+                                sprite = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.WaterCliffSnow, x << 4, y << 4, 16, 16, 384);
+                            } else {
+                                sprite = new TuxPlanetSpeedrunAnyPercentLibrary.Sprite(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Snow, random.DTLibrary$IDTRandom$NextInt(3) << 4, 80, 16, 16, 384);
+                            }
+
+                            ($t1 = tilemap[System.Array.index(i, tilemap)])[System.Array.index(j, $t1)] = sprite;
                         }
                     }
 
@@ -26596,14 +28322,16 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.OverworldMapGenerator.Result", {
         $kind: "nested class",
         fields: {
-            PathTiles: null,
-            BackgroundTiles: null
+            ForegroundTiles: null,
+            BackgroundTiles: null,
+            LevelsWithCustomSprite: null
         },
         ctors: {
-            ctor: function (pathTiles, backgroundTiles) {
+            ctor: function (foregroundTiles, backgroundTiles, levelsWithCustomSprite) {
                 this.$initialize();
-                this.PathTiles = pathTiles;
+                this.ForegroundTiles = foregroundTiles;
                 this.BackgroundTiles = backgroundTiles;
+                this.LevelsWithCustomSprite = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Level)).$ctor1(levelsWithCustomSprite);
             }
         }
     });
@@ -27222,6 +28950,304 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Tilemap", {
+        statics: {
+            methods: {
+                GetTilemapWithoutCutscene: function (tilemap) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Tilemap(tilemap.backgroundSpritesArray, tilemap.foregroundSpritesArray, tilemap.isGroundArray, tilemap.isKillZoneArray, tilemap.isSpikesArray, tilemap.isEndOfLevelArray, TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.EmptyBoolArray(tilemap.isGroundArray.length, tilemap.isGroundArray[System.Array.index(0, tilemap.isGroundArray)].length), tilemap.checkpointArray, tilemap.isKeyTileArrays, tilemap.tileWidth, tilemap.tileHeight, tilemap.enemies, null, tilemap.tuxLocation, tilemap.keyLocations, tilemap.gameMusic);
+                }
+            }
+        },
+        fields: {
+            backgroundSpritesArray: null,
+            foregroundSpritesArray: null,
+            isGroundArray: null,
+            isKillZoneArray: null,
+            isSpikesArray: null,
+            isEndOfLevelArray: null,
+            isCutsceneArray: null,
+            checkpointArray: null,
+            isKeyTileArrays: null,
+            tileWidth: 0,
+            tileHeight: 0,
+            tilemapWidth: 0,
+            tilemapHeight: 0,
+            enemies: null,
+            cutsceneName: null,
+            tuxLocation: null,
+            keyLocations: null,
+            gameMusic: 0
+        },
+        ctors: {
+            ctor: function (backgroundSpritesArray, foregroundSpritesArray, isGroundArray, isKillZoneArray, isSpikesArray, isEndOfLevelArray, isCutsceneArray, checkpointArray, isKeyTileArrays, tileWidth, tileHeight, enemies, cutsceneName, tuxLocation, keyLocations, gameMusic) {
+                var $t, $t1;
+                this.$initialize();
+                this.backgroundSpritesArray = TuxPlanetSpeedrunAnyPercentLibrary.SpriteUtil.CopySpriteArray(backgroundSpritesArray);
+                this.foregroundSpritesArray = TuxPlanetSpeedrunAnyPercentLibrary.SpriteUtil.CopySpriteArray(foregroundSpritesArray);
+                this.isGroundArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isGroundArray);
+                this.isKillZoneArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isKillZoneArray);
+                this.isSpikesArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isSpikesArray);
+                this.isEndOfLevelArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isEndOfLevelArray);
+                this.isCutsceneArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isCutsceneArray);
+                this.checkpointArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.ShallowCopyTArray(System.Tuple$2(System.Int32,System.Int32), checkpointArray);
+
+                this.isKeyTileArrays = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.MapKey,System.Array.type(System.Array.type(System.Boolean))))();
+                $t = Bridge.getEnumerator(isKeyTileArrays);
+                try {
+                    while ($t.moveNext()) {
+                        var kvp = $t.Current;
+                        this.isKeyTileArrays.set(kvp.key, TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(kvp.value));
+                    }
+                } finally {
+                    if (Bridge.is($t, System.IDisposable)) {
+                        $t.System$IDisposable$Dispose();
+                    }
+                }
+
+                this.tileWidth = tileWidth;
+                this.tileHeight = tileHeight;
+                this.tilemapWidth = Bridge.Int.mul(tileWidth, foregroundSpritesArray.length);
+                this.tilemapHeight = Bridge.Int.mul(tileHeight, foregroundSpritesArray[System.Array.index(0, foregroundSpritesArray)].length);
+                this.enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.EnemySpawnLocation)).$ctor1(enemies);
+                this.cutsceneName = cutsceneName;
+                this.tuxLocation = tuxLocation;
+
+                this.keyLocations = new (System.Collections.Generic.Dictionary$2(TuxPlanetSpeedrunAnyPercentLibrary.MapKey,System.Tuple$2(System.Int32,System.Int32)))();
+                $t1 = Bridge.getEnumerator(keyLocations);
+                try {
+                    while ($t1.moveNext()) {
+                        var kvp1 = $t1.Current;
+                        this.keyLocations.set(kvp1.key, kvp1.value);
+                    }
+                } finally {
+                    if (Bridge.is($t1, System.IDisposable)) {
+                        $t1.System$IDisposable$Dispose();
+                    }
+                }
+
+                this.gameMusic = gameMusic;
+            }
+        },
+        methods: {
+            GetArrayValue: function (array, worldX, worldY) {
+                var $t;
+                if (worldX < 0 || worldY < 0) {
+                    return false;
+                }
+
+                var arrayI = (Bridge.Int.div(worldX, this.tileWidth)) | 0;
+                var arrayJ = (Bridge.Int.div(worldY, this.tileHeight)) | 0;
+
+                if (arrayI < array.length) {
+                    if (arrayJ < array[System.Array.index(arrayI, array)].length) {
+                        return ($t = array[System.Array.index(arrayI, array)])[System.Array.index(arrayJ, $t)];
+                    }
+                }
+
+                return false;
+            },
+            IsGroundNotIncludingKeyTiles: function (x, y) {
+                return this.GetArrayValue(this.isGroundArray, x, y);
+            },
+            IsSpikes: function (x, y) {
+                return this.GetArrayValue(this.isSpikesArray, x, y);
+            },
+            IsKillZone: function (x, y) {
+                return this.GetArrayValue(this.isKillZoneArray, x, y);
+            },
+            IsEndOfLevel: function (x, y) {
+                return this.GetArrayValue(this.isEndOfLevelArray, x, y);
+            },
+            IsKeyTile: function (key, x, y) {
+                return this.GetArrayValue(this.isKeyTileArrays.get(key), x, y);
+            },
+            GetCutscene: function (x, y) {
+                var isCutscene = this.GetArrayValue(this.isCutsceneArray, x, y);
+
+                if (isCutscene) {
+                    return this.cutsceneName;
+                }
+
+                return null;
+            },
+            GetCheckpoint: function (x, y) {
+                var $t;
+                if (x < 0 || y < 0) {
+                    return null;
+                }
+
+                var arrayI = (Bridge.Int.div(x, this.tileWidth)) | 0;
+                var arrayJ = (Bridge.Int.div(y, this.tileHeight)) | 0;
+
+                if (arrayI < this.checkpointArray.length) {
+                    if (arrayJ < this.checkpointArray[System.Array.index(arrayI, this.checkpointArray)].length) {
+                        return ($t = this.checkpointArray[System.Array.index(arrayI, this.checkpointArray)])[System.Array.index(arrayJ, $t)];
+                    }
+                }
+
+                return null;
+            },
+            GetWidth: function () {
+                return this.tilemapWidth;
+            },
+            GetHeight: function () {
+                return this.tilemapHeight;
+            },
+            RenderSprites: function (sprites, renderKeyTiles, tuxX, tuxY, collectedKeys, cameraX, cameraY, windowWidth, windowHeight, displayOutput) {
+                var $t, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
+                var worldX = 0;
+
+                var windowLeft = (cameraX - ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0;
+                var windowRight = (cameraX + ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0;
+                var windowBottom = (cameraY - ((Bridge.Int.div(windowHeight, 2)) | 0)) | 0;
+                var windowTop = (cameraY + ((Bridge.Int.div(windowHeight, 2)) | 0)) | 0;
+
+                for (var i = 0; i < sprites.length; i = (i + 1) | 0) {
+                    if (windowLeft <= ((worldX + this.tileWidth) | 0) && worldX <= windowRight) {
+                        var worldY = 0;
+
+                        for (var j = 0; j < sprites[System.Array.index(i, sprites)].length; j = (j + 1) | 0) {
+                            if (windowBottom <= ((worldY + this.tileHeight) | 0) && worldY <= windowTop) {
+                                var sprite = ($t = sprites[System.Array.index(i, sprites)])[System.Array.index(j, $t)];
+
+                                if (sprite != null) {
+                                    displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(sprite.Image, sprite.X, sprite.Y, sprite.Width, sprite.Height, worldX, worldY, 0, sprite.ScalingFactorScaled);
+                                }
+
+                                if (renderKeyTiles) {
+                                    var isTuxInRange;
+
+                                    if (tuxX == null || tuxY == null) {
+                                        isTuxInRange = false;
+                                    } else {
+                                        var deltaX = Math.abs(((System.Nullable.getValue(tuxX) - worldX) | 0));
+                                        var deltaY = Math.abs(((System.Nullable.getValue(tuxY) - worldY) | 0));
+
+                                        isTuxInRange = ((Bridge.Int.mul(deltaX, deltaX) + Bridge.Int.mul(deltaY, deltaY)) | 0) <= 90000;
+                                    }
+
+                                    if (($t1 = ($t2 = this.isKeyTileArrays.get(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Copper))[System.Array.index(i, $t2)])[System.Array.index(j, $t1)] && (!System.Linq.Enumerable.from(collectedKeys).contains(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Copper) || !isTuxInRange)) {
+                                        displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Lock, 0, 0, 16, 16, worldX, worldY, 0, 384);
+                                    }
+                                    if (($t3 = ($t4 = this.isKeyTileArrays.get(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Silver))[System.Array.index(i, $t4)])[System.Array.index(j, $t3)] && (!System.Linq.Enumerable.from(collectedKeys).contains(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Silver) || !isTuxInRange)) {
+                                        displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Lock, 16, 0, 16, 16, worldX, worldY, 0, 384);
+                                    }
+                                    if (($t5 = ($t6 = this.isKeyTileArrays.get(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Gold))[System.Array.index(i, $t6)])[System.Array.index(j, $t5)] && (!System.Linq.Enumerable.from(collectedKeys).contains(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Gold) || !isTuxInRange)) {
+                                        displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Lock, 32, 0, 16, 16, worldX, worldY, 0, 384);
+                                    }
+                                    if (($t7 = ($t8 = this.isKeyTileArrays.get(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Mythril))[System.Array.index(i, $t8)])[System.Array.index(j, $t7)] && (!System.Linq.Enumerable.from(collectedKeys).contains(TuxPlanetSpeedrunAnyPercentLibrary.MapKey.Mythril) || !isTuxInRange)) {
+                                        displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Lock, 48, 0, 16, 16, worldX, worldY, 0, 384);
+                                    }
+                                }
+                            }
+
+                            worldY = (worldY + this.tileHeight) | 0;
+                        }
+                    }
+
+                    worldX = (worldX + this.tileWidth) | 0;
+                }
+            },
+            RenderBackgroundTiles: function (displayOutput, tuxX, tuxY, collectedKeys, cameraX, cameraY, windowWidth, windowHeight) {
+                this.RenderSprites(this.backgroundSpritesArray, false, tuxX, tuxY, collectedKeys, cameraX, cameraY, windowWidth, windowHeight, displayOutput);
+            },
+            RenderForegroundTiles: function (displayOutput, tuxX, tuxY, collectedKeys, cameraX, cameraY, windowWidth, windowHeight) {
+                this.RenderSprites(this.foregroundSpritesArray, true, tuxX, tuxY, collectedKeys, cameraX, cameraY, windowWidth, windowHeight, displayOutput);
+            },
+            GetEnemies: function (xOffset, yOffset) {
+                var $t;
+                var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                var halfTileWidth = this.tileWidth >> 1;
+                var halfTileHeight = this.tileHeight >> 1;
+
+                $t = Bridge.getEnumerator(this.enemies);
+                try {
+                    while ($t.moveNext()) {
+                        var enemy = $t.Current;
+                        if (enemy.ActorId === 13) {
+                            var xMibi = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
+                            var yMibi = (((((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + 3) | 0) + yOffset) | 0)) << 10;
+
+                            var enemySmartcap = TuxPlanetSpeedrunAnyPercentLibrary.EnemySmartcap.GetEnemySmartcap(xMibi, yMibi, true, enemy.EnemyId);
+
+                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemySmartcap, xMibi, yMibi, 48, 54));
+                        } else if (enemy.ActorId === 23) {
+                            var xMibi1 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
+                            var yMibi1 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
+
+                            var konqi = TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiCutscene.GetEnemyKonqiCutscene(xMibi1, yMibi1, enemy.EnemyId);
+
+                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(konqi, xMibi1, yMibi1, 96, 96));
+                        } else if (enemy.ActorId === 26) {
+                            var xMibi2 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
+                            var yMibi2 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
+
+                            var enemySnail = TuxPlanetSpeedrunAnyPercentLibrary.EnemySnail.GetEnemySnail(xMibi2, yMibi2, true, enemy.EnemyId);
+
+                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemySnail, xMibi2, yMibi2, 48, 48));
+                        } else if (enemy.ActorId === 27) {
+                            var xMibi3 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
+                            var yMibi3 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
+
+                            var enemyOrange = TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.GetEnemyOrange(xMibi3, yMibi3, false, enemy.EnemyId);
+
+                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemyOrange, xMibi3, yMibi3, 48, 48));
+                        } else if (enemy.ActorId === 46) {
+                            var xMibi4 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
+                            var yMibi4 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
+
+                            var enemyFlyamanita = TuxPlanetSpeedrunAnyPercentLibrary.EnemyFlyamanita.GetEnemyFlyamanita(xMibi4, yMibi4, enemy.EnemyId);
+
+                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemyFlyamanita, xMibi4, yMibi4, 60, 60));
+                        } else if (enemy.ActorId === 67) {
+                            var xMibi5 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
+                            var yMibi5 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
+
+                            var enemyBlazeborn = TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn.GetEnemyBlazeborn(xMibi5, yMibi5, true, enemy.EnemyId);
+
+                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemyBlazeborn, xMibi5, yMibi5, 48, 48));
+                        } else if (enemy.ActorId === 73) {
+                            var xMibi6 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
+                            var yMibi6 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
+
+                            var enemyBouncecap = TuxPlanetSpeedrunAnyPercentLibrary.EnemyBouncecap.GetEnemyBouncecap(xMibi6, yMibi6, enemy.EnemyId);
+
+                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemyBouncecap, xMibi6, yMibi6, 48, 48));
+                        } else {
+                            throw new System.Exception();
+                        }
+                    }
+                } finally {
+                    if (Bridge.is($t, System.IDisposable)) {
+                        $t.System$IDisposable$Dispose();
+                    }
+                }
+
+                return list;
+            },
+            PlayMusic: function () {
+                return this.gameMusic;
+            },
+            GetTuxLocation: function (xOffset, yOffset) {
+                if (this.tuxLocation != null) {
+                    return { Item1: ((this.tuxLocation.Item1 + xOffset) | 0), Item2: ((this.tuxLocation.Item2 + yOffset) | 0) };
+                }
+
+                return null;
+            },
+            GetMapKeyLocation: function (mapKey, xOffset, yOffset) {
+                var keyLocation = this.keyLocations.get(mapKey);
+
+                if (keyLocation != null) {
+                    return { Item1: ((keyLocation.Item1 + xOffset) | 0), Item2: ((keyLocation.Item2 + yOffset) | 0) };
+                }
+
+                return null;
+            }
+        }
+    });
+
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.EnemySpawnLocation", {
         $kind: "nested class",
         fields: {
@@ -27558,7 +29584,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         newYSpeedInMibipixelsPerSecond = (Bridge.Int.div(Bridge.Int.mul(newYSpeedInMibipixelsPerSecond, 2), 5)) | 0;
                     }
 
-                    if (!tuxState.IsOnGround && newYSpeedInMibipixelsPerSecond >= -5000000) {
+                    if (!tuxState.IsOnGround && newYSpeedInMibipixelsPerSecond >= -4000000) {
                         newYSpeedInMibipixelsPerSecond = (newYSpeedInMibipixelsPerSecond - (Bridge.Int.mul(elapsedMicrosPerFrame, 3))) | 0;
                     }
 
@@ -27829,6 +29855,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     list.add(new TuxPlanetSpeedrunAnyPercentLibrary.VersionInfo("1.00", "1204514613893229"));
                     list.add(new TuxPlanetSpeedrunAnyPercentLibrary.VersionInfo("1.01", "3012096945791874"));
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.VersionInfo("1.02", "7537950542756516"));
 
                     return list;
                 }
@@ -28368,28 +30395,57 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 MusicOn_White: 6,
                 MusicOff_White: 7,
                 TilemapSnow: 8,
-                Tux: 9,
-                TuxMirrored: 10,
-                Konqi: 11,
-                KonqiMirrored: 12,
-                Blazeborn: 13,
-                BlazebornMirrored: 14,
-                Smartcap: 15,
-                SmartcapMirrored: 16,
-                BossHealth: 17,
-                C4: 18,
-                Coin: 19,
-                EarthShell: 20,
-                Igloo: 21,
-                Actors: 22,
-                Solid: 23,
-                Spikes: 24,
-                Signpost: 25,
-                PathDirt: 26,
-                Snow: 27,
-                LevelIcons: 28,
-                TuxOverworld: 29,
-                OceanBackground: 30
+                TilemapCastle: 9,
+                BossDoor: 10,
+                Tux: 11,
+                TuxMirrored: 12,
+                Konqi: 13,
+                KonqiMirrored: 14,
+                KonqiFire: 15,
+                KonqiFireMirrored: 16,
+                Blazeborn: 17,
+                BlazebornMirrored: 18,
+                Smartcap: 19,
+                SmartcapMirrored: 20,
+                Bouncecap: 21,
+                BouncecapMirrored: 22,
+                Flyamanita: 23,
+                FlyamanitaMirrored: 24,
+                Snail: 25,
+                SnailMirrored: 26,
+                SnailBlue: 27,
+                SnailBlueMirrored: 28,
+                Orange: 29,
+                OrangeMirrored: 30,
+                Poof: 31,
+                BossHealth: 32,
+                C4: 33,
+                Coin: 34,
+                EarthShell: 35,
+                Igloo: 36,
+                Actors: 37,
+                Solid: 38,
+                Spikes: 39,
+                Flash: 40,
+                ExplodeF: 41,
+                Flame: 42,
+                Lock: 43,
+                KeyCopper: 44,
+                KeySilver: 45,
+                KeyGold: 46,
+                KeyMythril: 47,
+                Signpost: 48,
+                PathDirt: 49,
+                ForestSnowy: 50,
+                RocksSnow: 51,
+                Snow: 52,
+                WaterCliffSnow: 53,
+                Mountains: 54,
+                Towns: 55,
+                LevelIcons: 56,
+                TuxOverworld: 57,
+                OceanBackground: 58,
+                Arctis2: 59
             }
         }
     });
@@ -28680,7 +30736,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 Theme: 1,
                 PeaceAtLast: 2,
                 Chipdisko: 3,
-                Jewels: 4
+                Jewels: 4,
+                BossTheme: 5
             }
         }
     });
@@ -28694,7 +30751,40 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 Die: 2,
                 Squish: 3,
                 Jump: 4,
-                Teleport: 5
+                Teleport: 5,
+                Explosion02: 6
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Background_Arctis", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IBackground],
+        alias: ["Render", "TuxPlanetSpeedrunAnyPercentLibrary$IBackground$Render"],
+        methods: {
+            Render: function (cameraX, cameraY, windowWidth, windowHeight, displayOutput) {
+                var displacement = (Bridge.Int.div(((-cameraX) | 0), 8)) | 0;
+
+                var image = TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Arctis2;
+
+                var imageWidth = displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$GetWidth(image);
+                var scalingFactor = 1;
+
+                if (displacement >= 0) {
+                    displacement = displacement % (Bridge.Int.mul(imageWidth, scalingFactor));
+                } else {
+                    var multiple = (Bridge.Int.div((((-displacement) | 0)), (Bridge.Int.mul(imageWidth, scalingFactor)))) | 0;
+                    displacement = (displacement + Bridge.Int.mul(Bridge.Int.mul(multiple, imageWidth), scalingFactor)) | 0;
+                    while (displacement >= Bridge.Int.mul(imageWidth, scalingFactor)) {
+                        displacement = (displacement - Bridge.Int.mul(imageWidth, scalingFactor)) | 0;
+                    }
+                    while (displacement < 0) {
+                        displacement = (displacement + Bridge.Int.mul(imageWidth, scalingFactor)) | 0;
+                    }
+                }
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$1(image, displacement, 0, 0, Bridge.Int.mul(scalingFactor, 128));
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$1(image, ((displacement - Bridge.Int.mul(imageWidth, scalingFactor)) | 0), 0, 0, Bridge.Int.mul(scalingFactor, 128));
             }
         }
     });
@@ -28748,6 +30838,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
             "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
             "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetMapKeyLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation",
             "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
             "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
             "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
@@ -28799,6 +30890,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             },
             GetTuxLocation: function (xOffset, yOffset) {
                 return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(xOffset, yOffset);
+            },
+            GetMapKeyLocation: function (mapKey, xOffset, yOffset) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation(mapKey, xOffset, yOffset);
             },
             GetEnemies: function (xOffset, yOffset) {
                 return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies(xOffset, yOffset);
@@ -28855,7 +30949,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         fields: {
             tilemaps: null,
             width: 0,
-            height: 0
+            height: 0,
+            tuxX: null,
+            tuxY: null,
+            mapKeyState: null,
+            listOfAllMapKeys: null
         },
         alias: [
             "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
@@ -28870,15 +30968,20 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
             "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
             "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
-            "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation"
+            "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetMapKeyLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation"
         ],
         ctors: {
-            ctor: function (normalizedTilemaps, width, height) {
+            ctor: function (normalizedTilemaps, width, height, tuxX, tuxY, mapKeyState) {
                 this.$initialize();
                 this.tilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(normalizedTilemaps);
 
                 this.width = width;
                 this.height = height;
+                this.tuxX = tuxX;
+                this.tuxY = tuxY;
+                this.mapKeyState = mapKeyState;
+                this.listOfAllMapKeys = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.MapKey)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.MapKeyUtil.GetOrderedListOfMapKeys());
             }
         },
         methods: {
@@ -28888,7 +30991,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 try {
                     while ($t.moveNext()) {
                         var tilemap = $t.Current;
-                        var music = tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic();
+                        var music = tilemap.Tilemap.PlayMusic();
 
                         if (music != null) {
                             return System.Nullable.getValue(music);
@@ -28903,10 +31006,38 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 return null;
             },
             IsGround: function (x, y) {
+                var $t;
                 for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
                     var tilemap = this.tilemaps.getItem(i);
-                    if (tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
+                    if (tilemap.Tilemap.IsGroundNotIncludingKeyTiles(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
                         return true;
+                    }
+
+                    $t = Bridge.getEnumerator(this.listOfAllMapKeys, TuxPlanetSpeedrunAnyPercentLibrary.MapKey);
+                    try {
+                        while ($t.moveNext()) {
+                            var mapKey = $t.Current;
+                            if (tilemap.Tilemap.IsKeyTile(mapKey, ((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
+                                if (!System.Linq.Enumerable.from(this.mapKeyState.CollectedKeys).contains(mapKey)) {
+                                    return true;
+                                }
+
+                                if (this.tuxX == null || this.tuxY == null) {
+                                    return true;
+                                }
+
+                                var deltaX = Math.abs(((System.Nullable.getValue(this.tuxX) - x) | 0));
+                                var deltaY = Math.abs(((System.Nullable.getValue(this.tuxY) - y) | 0));
+
+                                if (((Bridge.Int.mul(deltaX, deltaX) + Bridge.Int.mul(deltaY, deltaY)) | 0) > 90000) {
+                                    return true;
+                                }
+                            }
+                        }
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
                     }
                 }
 
@@ -28915,7 +31046,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             IsSpikes: function (x, y) {
                 for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
                     var tilemap = this.tilemaps.getItem(i);
-                    if (tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
+                    if (tilemap.Tilemap.IsSpikes(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
                         return true;
                     }
                 }
@@ -28925,7 +31056,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             IsKillZone: function (x, y) {
                 for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
                     var tilemap = this.tilemaps.getItem(i);
-                    if (tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
+                    if (tilemap.Tilemap.IsKillZone(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
                         return true;
                     }
                 }
@@ -28935,7 +31066,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             IsEndOfLevel: function (x, y) {
                 for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
                     var tilemap = this.tilemaps.getItem(i);
-                    if (tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
+                    if (tilemap.Tilemap.IsEndOfLevel(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0))) {
                         return true;
                     }
                 }
@@ -28945,7 +31076,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetCutscene: function (x, y) {
                 for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
                     var tilemap = this.tilemaps.getItem(i);
-                    var cutscene = tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0));
+                    var cutscene = tilemap.Tilemap.GetCutscene(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0));
 
                     if (cutscene != null) {
                         return cutscene;
@@ -28957,7 +31088,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetCheckpoint: function (x, y) {
                 for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
                     var tilemap = this.tilemaps.getItem(i);
-                    var checkpoint = tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0));
+                    var checkpoint = tilemap.Tilemap.GetCheckpoint(((x - tilemap.XOffset) | 0), ((y - tilemap.YOffset) | 0));
 
                     if (checkpoint != null) {
                         return { Item1: ((checkpoint.Item1 + tilemap.XOffset) | 0), Item2: ((checkpoint.Item2 + tilemap.YOffset) | 0) };
@@ -28974,7 +31105,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         var tilemap = $t.Current;
                         var translatedDisplayOutput = new (DTLibrary.TranslatedDisplayOutput$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage,TuxPlanetSpeedrunAnyPercentLibrary.GameFont))(displayOutput, tilemap.XOffset, tilemap.YOffset);
 
-                        tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles(translatedDisplayOutput, ((cameraX - tilemap.XOffset) | 0), ((cameraY - tilemap.YOffset) | 0), windowWidth, windowHeight);
+                        tilemap.Tilemap.RenderBackgroundTiles(translatedDisplayOutput, Bridge.Int.clip32(System.Nullable.sub(this.tuxX, tilemap.XOffset)), Bridge.Int.clip32(System.Nullable.sub(this.tuxY, tilemap.YOffset)), this.mapKeyState.CollectedKeys, ((cameraX - tilemap.XOffset) | 0), ((cameraY - tilemap.YOffset) | 0), windowWidth, windowHeight);
                     }
                 } finally {
                     if (Bridge.is($t, System.IDisposable)) {
@@ -28990,7 +31121,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         var tilemap = $t.Current;
                         var translatedDisplayOutput = new (DTLibrary.TranslatedDisplayOutput$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage,TuxPlanetSpeedrunAnyPercentLibrary.GameFont))(displayOutput, tilemap.XOffset, tilemap.YOffset);
 
-                        tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles(translatedDisplayOutput, ((cameraX - tilemap.XOffset) | 0), ((cameraY - tilemap.YOffset) | 0), windowWidth, windowHeight);
+                        tilemap.Tilemap.RenderForegroundTiles(translatedDisplayOutput, Bridge.Int.clip32(System.Nullable.sub(this.tuxX, tilemap.XOffset)), Bridge.Int.clip32(System.Nullable.sub(this.tuxY, tilemap.YOffset)), this.mapKeyState.CollectedKeys, ((cameraX - tilemap.XOffset) | 0), ((cameraY - tilemap.YOffset) | 0), windowWidth, windowHeight);
                     }
                 } finally {
                     if (Bridge.is($t, System.IDisposable)) {
@@ -29012,7 +31143,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 try {
                     while ($t.moveNext()) {
                         var tilemap = $t.Current;
-                        var tilemapEnemies = tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies(((tilemap.XOffset + xOffset) | 0), ((tilemap.YOffset + yOffset) | 0));
+                        var tilemapEnemies = tilemap.Tilemap.GetEnemies(((tilemap.XOffset + xOffset) | 0), ((tilemap.YOffset + yOffset) | 0));
                         enemies.AddRange(tilemapEnemies);
                     }
                 } finally {
@@ -29026,7 +31157,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetTuxLocation: function (xOffset, yOffset) {
                 for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
                     var tilemap = this.tilemaps.getItem(i);
-                    var tuxLocation = tilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(((xOffset + tilemap.XOffset) | 0), ((yOffset + tilemap.YOffset) | 0));
+                    var tuxLocation = tilemap.Tilemap.GetTuxLocation(((xOffset + tilemap.XOffset) | 0), ((yOffset + tilemap.YOffset) | 0));
 
                     if (tuxLocation != null) {
                         return tuxLocation;
@@ -29034,6 +31165,269 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 }
 
                 return null;
+            },
+            GetMapKeyLocation: function (mapKey, xOffset, yOffset) {
+                for (var i = 0; i < this.tilemaps.Count; i = (i + 1) | 0) {
+                    var tilemap = this.tilemaps.getItem(i);
+                    var keyLocation = tilemap.Tilemap.GetMapKeyLocation(mapKey, ((xOffset + tilemap.XOffset) | 0), ((yOffset + tilemap.YOffset) | 0));
+
+                    if (keyLocation != null) {
+                        return keyLocation;
+                    }
+                }
+
+                return null;
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ICutscene],
+        statics: {
+            fields: {
+                KONQI_DISAPPEAR_WAIT_TIME: 0
+            },
+            ctors: {
+                init: function () {
+                    this.KONQI_DISAPPEAR_WAIT_TIME = 500000;
+                }
+            },
+            methods: {
+                GetCutscene: function (customLevelInfo) {
+                    var dialogues = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue)).ctor();
+
+                    dialogues.add(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue.GetDialogue(500, 250, 490, 92, "Why are you allowed to jump on \nme when I have flames on my \nhead? :("));
+
+                    var dialogueList = new TuxPlanetSpeedrunAnyPercentLibrary.DialogueList(dialogues);
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated(TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.A_Dialogue, dialogueList, 0, true, new (System.Collections.Generic.Dictionary$2(System.String,System.String))(customLevelInfo));
+                }
+            }
+        },
+        fields: {
+            status: 0,
+            dialogueList: null,
+            konqiDisappearElapsedMicros: 0,
+            isFirstFrame: false,
+            customLevelInfo: null
+        },
+        alias: [
+            "GetCutsceneName", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$GetCutsceneName",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$Render"
+        ],
+        ctors: {
+            ctor: function (status, dialogueList, konqiDisappearElapsedMicros, isFirstFrame, customLevelInfo) {
+                this.$initialize();
+                this.status = status;
+                this.dialogueList = dialogueList;
+                this.konqiDisappearElapsedMicros = konqiDisappearElapsedMicros;
+                this.isFirstFrame = isFirstFrame;
+                this.customLevelInfo = customLevelInfo;
+            }
+        },
+        methods: {
+            GetCutsceneName: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.BOSS_DEFEATED_CUTSCENE;
+            },
+            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap, enemies, levelFlags) {
+                var newCameraState;
+                var newDialogueList;
+                var newStatus = new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status();
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
+                var newLevelFlags = new (System.Collections.Generic.List$1(System.String)).ctor();
+                var newKonqiDisappearElapsedMicros = this.konqiDisappearElapsedMicros;
+
+                switch (this.status) {
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.A_Dialogue: 
+                        {
+                            newLevelFlags.add(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_DEFEATED_RESTORE_DEFAULT_CAMERA);
+
+                            var dialogueListResult = this.dialogueList.ProcessFrame(move, elapsedMicrosPerFrame);
+
+                            newCameraState = cameraState;
+                            newDialogueList = dialogueListResult.DialogueList;
+
+                            if (dialogueListResult.IsDone) {
+                                newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.B_KonqiDisappear;
+                                newLevelFlags.add(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS);
+                            } else {
+                                newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.A_Dialogue;
+                            }
+
+                            break;
+                        }
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.B_KonqiDisappear: 
+                        {
+                            newKonqiDisappearElapsedMicros = (newKonqiDisappearElapsedMicros + elapsedMicrosPerFrame) | 0;
+
+                            newCameraState = cameraState;
+                            newDialogueList = this.dialogueList;
+
+                            if (newKonqiDisappearElapsedMicros >= TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.KONQI_DISAPPEAR_WAIT_TIME) {
+                                newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.C_Camera;
+                            } else {
+                                newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.B_KonqiDisappear;
+                            }
+
+                            break;
+                        }
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.C_Camera: 
+                        {
+                            var destinationCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(tuxXMibi, tuxYMibi, null, null, tilemap, windowWidth, windowHeight);
+
+                            newDialogueList = this.dialogueList;
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.C_Camera;
+
+                            if (cameraState.X === destinationCameraState.X && cameraState.Y === destinationCameraState.Y) {
+                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, newLevelFlags, null, false, false, false);
+                            } else {
+                                newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
+                            }
+
+                            break;
+                        }
+                    default: 
+                        throw new System.Exception();
+                }
+
+                var newMove;
+
+                if (this.isFirstFrame) {
+                    newMove = new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false);
+                } else {
+                    newMove = TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove();
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(newMove, newCameraState, newEnemies, newLevelFlags, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated(newStatus, newDialogueList, newKonqiDisappearElapsedMicros, false, this.customLevelInfo), false, false, false);
+            },
+            Render: function (displayOutput, windowWidth, windowHeight) {
+                if (this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossDefeated.Status.A_Dialogue) {
+                    this.dialogueList.Render(displayOutput, windowWidth, windowHeight);
+                }
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ICutscene],
+        statics: {
+            methods: {
+                GetCutscene: function (customLevelInfo) {
+                    var dialogues = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue)).ctor();
+
+                    dialogues.add(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue.GetDialogue(500, 355, 490, 40, "Hello Tux!"));
+
+                    dialogues.add(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue.GetDialogue(500, 245, 490, 150, "The World Boss is currently on \nvacation. \n\nSo I'll serve as the substitute \nboss today."));
+
+                    dialogues.add(TuxPlanetSpeedrunAnyPercentLibrary.Dialogue.GetDialogue(500, 355, 490, 40, "Are you ready?"));
+
+                    var dialogueList = new TuxPlanetSpeedrunAnyPercentLibrary.DialogueList(dialogues);
+
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro(TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.A_SpawnKonqi, dialogueList, new (System.Collections.Generic.Dictionary$2(System.String,System.String))(customLevelInfo));
+                }
+            }
+        },
+        fields: {
+            status: 0,
+            dialogueList: null,
+            customLevelInfo: null
+        },
+        alias: [
+            "GetCutsceneName", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$GetCutsceneName",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$ICutscene$Render"
+        ],
+        ctors: {
+            ctor: function (status, dialogueList, customLevelInfo) {
+                this.$initialize();
+                this.status = status;
+                this.dialogueList = dialogueList;
+                this.customLevelInfo = customLevelInfo;
+            }
+        },
+        methods: {
+            GetCutsceneName: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.BOSS_CUTSCENE;
+            },
+            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap, enemies, levelFlags) {
+                var newCameraState;
+                var newDialogueList;
+                var newStatus = new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status();
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
+
+                var newLevelFlags = new (System.Collections.Generic.List$1(System.String)).ctor();
+
+                var konqiXMibi = (((DTLibrary.StringUtil.ParseAsIntCultureInvariant(this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START)) + 816) | 0)) << 10;
+                var konqiYMibi = 172032;
+
+                switch (this.status) {
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.A_SpawnKonqi: 
+                        {
+                            newCameraState = cameraState;
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.B_Camera;
+                            newDialogueList = this.dialogueList;
+                            newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiCutscene.GetEnemyKonqiCutscene(konqiXMibi, konqiYMibi, "enemyKonqiCutscene_konqiBossIntro"));
+                            break;
+                        }
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.B_Camera: 
+                        {
+                            var destinationCameraState = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.GetBossRoomCameraState(this.customLevelInfo, tilemap, windowWidth, windowHeight);
+
+                            newDialogueList = this.dialogueList;
+
+                            if (cameraState.X === destinationCameraState.X && cameraState.Y === destinationCameraState.Y) {
+                                newCameraState = cameraState;
+                                newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.C_Dialogue;
+                            } else {
+                                newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
+                                newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.B_Camera;
+                            }
+
+                            break;
+                        }
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.C_Dialogue: 
+                        var dialogueListResult = this.dialogueList.ProcessFrame(move, elapsedMicrosPerFrame);
+                        newCameraState = cameraState;
+                        newDialogueList = dialogueListResult.DialogueList;
+                        if (dialogueListResult.IsDone) {
+                            newLevelFlags.add(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BEGIN_BOSS_BATTLE);
+
+                            var bossRoomXOffsetStart = DTLibrary.StringUtil.ParseAsIntCultureInvariant(this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START));
+                            var bossRoomXOffsetEnd = DTLibrary.StringUtil.ParseAsIntCultureInvariant(this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_END));
+
+                            newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.GetEnemyBossDoor((((bossRoomXOffsetStart - 48) | 0)) << 10, 147456, false, "konqiBoss_bossDoor1"));
+                            newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.GetEnemyBossDoor((((bossRoomXOffsetStart - 48) | 0)) << 10, 245760, true, "konqiBoss_bossDoor2"));
+                            newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.GetEnemyBossDoor(bossRoomXOffsetEnd << 10, 147456, false, "konqiBoss_bossDoor3"));
+                            newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.GetEnemyBossDoor(bossRoomXOffsetEnd << 10, 245760, true, "konqiBoss_bossDoor4"));
+                            newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiBoss.GetEnemyKonqiBoss(konqiXMibi, konqiYMibi, "cutscene_konqiBossIntro_konqiBoss", this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.KONQI_BOSS_RNG_SEED)));
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.D_Delay;
+                        } else {
+                            newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.C_Dialogue;
+                        }
+                        break;
+                    case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.D_Delay: 
+                        {
+                            return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, newLevelFlags, null, false, false, false);
+                        }
+                    default: 
+                        throw new System.Exception();
+                }
+
+                var newMove;
+
+                if ((tuxXMibi >> 10) < ((DTLibrary.StringUtil.ParseAsIntCultureInvariant(this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START)) - 50) | 0)) {
+                    newMove = new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false);
+                } else {
+                    newMove = TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove();
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(newMove, newCameraState, newEnemies, newLevelFlags, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro(newStatus, newDialogueList, this.customLevelInfo), false, false, false);
+            },
+            Render: function (displayOutput, windowWidth, windowHeight) {
+                if (this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_KonqiBossIntro.Status.C_Dialogue) {
+                    this.dialogueList.Render(displayOutput, windowWidth, windowHeight);
+                }
             }
         }
     });
@@ -29091,12 +31485,12 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetCutsceneName: function () {
                 return TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.SAVESTATE_CUTSCENE;
             },
-            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap) {
+            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap, enemies, levelFlags) {
                 var newCameraState;
                 var newDialogueList;
                 var newStatus = new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status();
                 var newKonqiDisappearElapsedMicros = this.konqiDisappearElapsedMicros;
-                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
 
                 switch (this.status) {
                     case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.A_Camera: 
@@ -29144,7 +31538,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.D_Camera;
 
                             if (cameraState.X <= destinationCameraState1.X) {
-                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, true, false, false);
+                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, null, true, false, false);
                             } else {
                                 newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState1, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
                             }
@@ -29155,7 +31549,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         throw new System.Exception();
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.D_Camera, false, false);
+                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, null, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.D_Camera, false, false);
             },
             Render: function (displayOutput, windowWidth, windowHeight) {
                 if (this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_SaveState.Status.B_Dialogue) {
@@ -29218,12 +31612,12 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetCutsceneName: function () {
                 return TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TELEPORT_CUTSCENE;
             },
-            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap) {
+            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap, enemies, levelFlags) {
                 var newCameraState;
                 var newDialogueList;
                 var newStatus = new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status();
                 var newKonqiDisappearElapsedMicros = this.konqiDisappearElapsedMicros;
-                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
 
                 switch (this.status) {
                     case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.A_Camera: 
@@ -29271,7 +31665,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.D_Camera;
 
                             if (cameraState.X <= destinationCameraState1.X) {
-                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, false, false, true);
+                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, null, false, false, true);
                             } else {
                                 newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState1, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
                             }
@@ -29282,7 +31676,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         throw new System.Exception();
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), false, false, this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.D_Camera);
+                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, null, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), false, false, this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.D_Camera);
             },
             Render: function (displayOutput, windowWidth, windowHeight) {
                 if (this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_Teleport.Status.B_Dialogue) {
@@ -29345,12 +31739,12 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetCutsceneName: function () {
                 return TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TIME_SLOWDOWN_CUTSCENE;
             },
-            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap) {
+            ProcessFrame: function (move, tuxXMibi, tuxYMibi, cameraState, elapsedMicrosPerFrame, windowWidth, windowHeight, tilemap, enemies, levelFlags) {
                 var newCameraState;
                 var newDialogueList;
                 var newStatus = new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status();
                 var newKonqiDisappearElapsedMicros = this.konqiDisappearElapsedMicros;
-                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
 
                 switch (this.status) {
                     case TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.A_Camera: 
@@ -29398,7 +31792,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                             newStatus = TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.D_Camera;
 
                             if (cameraState.X <= destinationCameraState1.X) {
-                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, false, true, false);
+                                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), cameraState, newEnemies, null, null, false, true, false);
                             } else {
                                 newCameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.SmoothCameraState$2(cameraState, destinationCameraState1, elapsedMicrosPerFrame, TuxPlanetSpeedrunAnyPercentLibrary.CameraState.CUTSCENE_CAMERA_SPEED);
                             }
@@ -29409,7 +31803,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                         throw new System.Exception();
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), false, this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.D_Camera, false);
+                return new TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.Result(this.isFirstFrame ? new TuxPlanetSpeedrunAnyPercentLibrary.Move(false, false, false, true, false, false, false) : TuxPlanetSpeedrunAnyPercentLibrary.Move.EmptyMove(), newCameraState, newEnemies, null, new TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown(false, newStatus, newKonqiDisappearElapsedMicros, newDialogueList), false, this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.C_KonqiDisappear || this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.D_Camera, false);
             },
             Render: function (displayOutput, windowWidth, windowHeight) {
                 if (this.status === TuxPlanetSpeedrunAnyPercentLibrary.Cutscene_TimeSlowdown.Status.B_Dialogue) {
@@ -29439,7 +31833,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             EnemyId: null
         },
         props: {
-            IsKonqi: {
+            IsKonqiCutscene: {
                 get: function () {
                     return false;
                 }
@@ -29457,10 +31851,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
-            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
             "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
             "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
-            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
             "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
             "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
             "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
@@ -29478,7 +31872,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         methods: {
-            GetKonqiLocation: function () {
+            GetKonqiCutsceneLocation: function () {
                 return null;
             },
             GetHitboxes: function () {
@@ -29493,7 +31887,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetDeadEnemy: function () {
                 return null;
             },
-            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
                 var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
 
                 var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
@@ -29534,7 +31928,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn(newXMibi, newYMibi, newIsFacingRight, newElapsedMicros, this.EnemyId));
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor());
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
             },
             Render: function (displayOutput) {
                 var image = this.isFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Blazeborn : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BlazebornMirrored;
@@ -29542,6 +31936,774 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 var spriteNum = (Bridge.Int.div((this.elapsedMicros % 1000000), 250000)) | 0;
 
                 displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(image, Bridge.Int.mul(spriteNum, 16), 0, 16, 16, (((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 0, 384);
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            fields: {
+                DOOR_ANIMATION_DURATION: 0
+            },
+            ctors: {
+                init: function () {
+                    this.DOOR_ANIMATION_DURATION = 500000;
+                }
+            },
+            methods: {
+                GetEnemyBossDoor: function (xMibi, yMibi, isUpperDoor, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor(xMibi >> 10, yMibi >> 10, 0, 0, isUpperDoor, new (System.Collections.Generic.List$1(System.String)).ctor(), new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor(), enemyId);
+                }
+            }
+        },
+        fields: {
+            x: 0,
+            y: 0,
+            elapsedMicrosClosing: 0,
+            elapsedMicrosOpening: 0,
+            isUpperDoor: false,
+            emptyStringList: null,
+            emptyHitboxList: null,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return true;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy"
+        ],
+        ctors: {
+            ctor: function (x, y, elapsedMicrosClosing, elapsedMicrosOpening, isUpperDoor, emptyStringList, emptyHitboxList, enemyId) {
+                this.$initialize();
+                this.x = x;
+                this.y = y;
+                this.elapsedMicrosClosing = elapsedMicrosClosing;
+                this.elapsedMicrosOpening = elapsedMicrosOpening;
+                this.isUpperDoor = isUpperDoor;
+                this.emptyStringList = emptyStringList;
+                this.emptyHitboxList = emptyHitboxList;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return this.emptyHitboxList;
+            },
+            GetDamageBoxes: function () {
+                return this.emptyHitboxList;
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var newElapsedMicrosClosing = this.elapsedMicrosClosing;
+                var newElapsedMicrosOpening = this.elapsedMicrosOpening;
+
+                if (newElapsedMicrosClosing <= TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION) {
+                    if (System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BEGIN_BOSS_BATTLE)) {
+                        newElapsedMicrosClosing = (newElapsedMicrosClosing + elapsedMicrosPerFrame) | 0;
+                    }
+                }
+
+                if (newElapsedMicrosOpening <= TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION) {
+                    if (System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS)) {
+                        newElapsedMicrosOpening = (newElapsedMicrosOpening + elapsedMicrosPerFrame) | 0;
+                    }
+                }
+
+                if (newElapsedMicrosOpening >= TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), this.emptyStringList, null);
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor(this.x, this.y, newElapsedMicrosClosing, newElapsedMicrosOpening, this.isUpperDoor, this.emptyStringList, this.emptyHitboxList, this.EnemyId));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
+            },
+            Render: function (displayOutput) {
+                var y;
+
+                if (this.elapsedMicrosClosing < TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION) {
+                    if (this.isUpperDoor) {
+                        y = (((this.y + 96) | 0) - ((Bridge.Int.div(Bridge.Int.mul(96, this.elapsedMicrosClosing), TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION)) | 0)) | 0;
+                    } else {
+                        y = (((this.y - 96) | 0) + ((Bridge.Int.div(Bridge.Int.mul(96, this.elapsedMicrosClosing), TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION)) | 0)) | 0;
+                    }
+                } else if (this.elapsedMicrosOpening < TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION) {
+                    if (this.isUpperDoor) {
+                        y = (this.y + ((Bridge.Int.div(Bridge.Int.mul(96, this.elapsedMicrosOpening), TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION)) | 0)) | 0;
+                    } else {
+                        y = (this.y - ((Bridge.Int.div(Bridge.Int.mul(96, this.elapsedMicrosOpening), TuxPlanetSpeedrunAnyPercentLibrary.EnemyBossDoor.DOOR_ANIMATION_DURATION)) | 0)) | 0;
+                    }
+                } else {
+                    y = this.y;
+                }
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$1(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BossDoor, this.x, y, 0, 384);
+            },
+            GetDeadEnemy: function () {
+                return null;
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyBouncecap", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            methods: {
+                GetEnemyBouncecap: function (xMibi, yMibi, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyBouncecap(xMibi, yMibi, false, 0, enemyId);
+                },
+                IsGroundOrSpike: function (tilemap, x, y) {
+                    return tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y) || tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y);
+                }
+            }
+        },
+        fields: {
+            xMibi: 0,
+            yMibi: 0,
+            isFacingRight: false,
+            ySpeedInMibipixelsPerSecond: 0,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return false;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, isFacingRight, ySpeedInMibipixelsPerSecond, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.isFacingRight = isFacingRight;
+                this.ySpeedInMibipixelsPerSecond = ySpeedInMibipixelsPerSecond;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 21) | 0), (((this.yMibi >> 10) - 21) | 0), 42, 42));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDamageBoxes: function () {
+                return new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor();
+            },
+            GetDeadEnemy: function () {
+                return null;
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                var newYMibi = this.yMibi;
+                var newIsFacingRight;
+                var newYSpeedInMibipixelsPerSecond = this.ySpeedInMibipixelsPerSecond;
+
+                if (tuxState.TeleportStartingLocation != null) {
+                    newIsFacingRight = tuxState.TeleportStartingLocation.Item1 > this.xMibi;
+                } else {
+                    newIsFacingRight = tuxState.XMibi > this.xMibi;
+                }
+
+                if (newYSpeedInMibipixelsPerSecond >= -5000000) {
+                    newYSpeedInMibipixelsPerSecond = (newYSpeedInMibipixelsPerSecond - (Bridge.Int.mul(elapsedMicrosPerFrame, 3))) | 0;
+                }
+
+                var isOnGround = TuxPlanetSpeedrunAnyPercentLibrary.EnemyBouncecap.IsGroundOrSpike(tilemap, this.xMibi >> 10, (((newYMibi >> 10) - 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyBouncecap.IsGroundOrSpike(tilemap, (((this.xMibi >> 10) - 21) | 0), (((newYMibi >> 10) - 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyBouncecap.IsGroundOrSpike(tilemap, (((this.xMibi >> 10) + 21) | 0), (((newYMibi >> 10) - 24) | 0));
+
+                if (isOnGround) {
+                    newYSpeedInMibipixelsPerSecond = 1100000;
+                }
+
+                newYMibi = System.Int64.clip32(System.Int64(newYMibi).add(System.Int64(newYSpeedInMibipixelsPerSecond).mul(System.Int64(elapsedMicrosPerFrame)).div(System.Int64(1000)).div(System.Int64(1000))));
+
+                var isOutOfBounds = (((this.xMibi >> 10) + 24) | 0) < ((((cameraX - (windowWidth >> 1)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((this.xMibi >> 10) - 24) | 0) > ((((cameraX + (windowWidth >> 1)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newYMibi >> 10) + 24) | 0) < ((((cameraY - (windowHeight >> 1)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newYMibi >> 10) - 24) | 0) > ((((cameraY + (windowHeight >> 1)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0);
+
+                if (!isOutOfBounds) {
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyBouncecap(this.xMibi, newYMibi, newIsFacingRight, newYSpeedInMibipixelsPerSecond, this.EnemyId));
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
+            },
+            Render: function (displayOutput) {
+                var image = this.isFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Bouncecap : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.BouncecapMirrored;
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$1(image, (((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 0, 384);
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyDeadPoof", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            fields: {
+                DEAD_ANIMATION_DURATION: 0
+            },
+            ctors: {
+                init: function () {
+                    this.DEAD_ANIMATION_DURATION = 500000;
+                }
+            },
+            methods: {
+                SpawnEnemyDeadPoof: function (xMibi, yMibi, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyDeadPoof(xMibi >> 10, yMibi >> 10, 0, new (System.Collections.Generic.List$1(System.String)).ctor(), new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor(), enemyId);
+                }
+            }
+        },
+        fields: {
+            x: 0,
+            y: 0,
+            elapsedMicros: 0,
+            emptyStringList: null,
+            emptyHitboxList: null,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return false;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render"
+        ],
+        ctors: {
+            ctor: function (x, y, elapsedMicros, emptyStringList, emptyHitboxList, enemyId) {
+                this.$initialize();
+                this.x = x;
+                this.y = y;
+                this.elapsedMicros = elapsedMicros;
+                this.emptyStringList = emptyStringList;
+                this.emptyHitboxList = emptyHitboxList;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return this.emptyHitboxList;
+            },
+            GetDamageBoxes: function () {
+                return this.emptyHitboxList;
+            },
+            GetDeadEnemy: function () {
+                return null;
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+
+                if (newElapsedMicros >= TuxPlanetSpeedrunAnyPercentLibrary.EnemyDeadPoof.DEAD_ANIMATION_DURATION) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), this.emptyStringList, null);
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyDeadPoof(this.x, this.y, newElapsedMicros, this.emptyStringList, this.emptyHitboxList, this.EnemyId));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
+            },
+            Render: function (displayOutput) {
+                var spriteNum = (((Bridge.Int.div(this.elapsedMicros, (125000))) | 0)) % 4;
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Poof, Bridge.Int.mul(spriteNum, 16), 0, 16, 16, ((this.x - 24) | 0), ((this.y - 24) | 0), 0, 384);
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyFlyamanita", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            methods: {
+                GetEnemyFlyamanita: function (xMibi, yMibi, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyFlyamanita(xMibi, yMibi, false, 0, yMibi, 0, null, enemyId);
+                }
+            }
+        },
+        fields: {
+            xMibi: 0,
+            yMibi: 0,
+            isFacingRight: false,
+            elapsedMicros: 0,
+            initialYMibi: 0,
+            yAngleScaled: 0,
+            deadAngularSpeedInAnglesScaledPerSecond: null,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return false;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, isFacingRight, elapsedMicros, initialYMibi, yAngleScaled, deadAngularSpeedInAnglesScaledPerSecond, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.isFacingRight = isFacingRight;
+                this.elapsedMicros = elapsedMicros;
+                this.initialYMibi = initialYMibi;
+                this.yAngleScaled = yAngleScaled;
+                this.deadAngularSpeedInAnglesScaledPerSecond = deadAngularSpeedInAnglesScaledPerSecond;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 27) | 0), (((this.yMibi >> 10) - 27) | 0), 54, 54));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDamageBoxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 30) | 0), (((this.yMibi >> 10) - 30) | 0), 60, 60));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDeadEnemy: function () {
+                var angularSpeedInAnglesScaledPerSecond = 46080;
+
+                if (System.Nullable.hasValue(this.deadAngularSpeedInAnglesScaledPerSecond)) {
+                    angularSpeedInAnglesScaledPerSecond = System.Nullable.getValue(this.deadAngularSpeedInAnglesScaledPerSecond);
+                }
+
+                return TuxPlanetSpeedrunAnyPercentLibrary.EnemyFlyamanitaDead.SpawnEnemyFlyamanitaDead(this.xMibi, this.yMibi, angularSpeedInAnglesScaledPerSecond, (this.EnemyId || "") + "_dead");
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                var newYMibi = (this.initialYMibi + Bridge.Int.mul(100, DTLibrary.DTMath.SineScaled(this.yAngleScaled))) | 0;
+                var newIsFacingRight;
+
+                if (tuxState.TeleportStartingLocation != null) {
+                    newIsFacingRight = tuxState.TeleportStartingLocation.Item1 > this.xMibi;
+                } else {
+                    newIsFacingRight = tuxState.XMibi > this.xMibi;
+                }
+
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+                if (newElapsedMicros > 2000000000) {
+                    newElapsedMicros = 1;
+                }
+
+                var isOutOfBounds = (((this.xMibi >> 10) + 30) | 0) < ((((cameraX - (windowWidth >> 1)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((this.xMibi >> 10) - 30) | 0) > ((((cameraX + (windowWidth >> 1)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newYMibi >> 10) + 30) | 0) < ((((cameraY - (windowHeight >> 1)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newYMibi >> 10) - 30) | 0) > ((((cameraY + (windowHeight >> 1)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0);
+
+                var newYAngleScaled = (this.yAngleScaled + (elapsedMicrosPerFrame >> 7)) | 0;
+                while (newYAngleScaled >= 46080) {
+                    newYAngleScaled = (newYAngleScaled - (46080)) | 0;
+                }
+
+                if (!isOutOfBounds) {
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyFlyamanita(this.xMibi, newYMibi, newIsFacingRight, newElapsedMicros, this.initialYMibi, newYAngleScaled, System.Nullable.hasValue(this.deadAngularSpeedInAnglesScaledPerSecond) ? System.Nullable.getValue(this.deadAngularSpeedInAnglesScaledPerSecond) : Bridge.Int.mul((((random.DTLibrary$IDTRandom$NextInt(51200) + 15360) | 0)), (random.DTLibrary$IDTRandom$NextBool() ? 1 : -1)), this.EnemyId));
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
+            },
+            Render: function (displayOutput) {
+                var image = this.isFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Flyamanita : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.FlyamanitaMirrored;
+
+                var spriteNum = (((Bridge.Int.div(this.elapsedMicros, (100000))) | 0)) % 4;
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(image, Bridge.Int.mul(spriteNum, 20), 0, 20, 20, (((this.xMibi >> 10) - 30) | 0), (((this.yMibi >> 10) - 30) | 0), 0, 384);
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyFlyamanitaDead", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            methods: {
+                SpawnEnemyFlyamanitaDead: function (xMibi, yMibi, angularSpeedInAnglesScaledPerSecond, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyFlyamanitaDead(xMibi, yMibi, 0, angularSpeedInAnglesScaledPerSecond, 0, new (System.Collections.Generic.List$1(System.String)).ctor(), new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor(), enemyId);
+                }
+            }
+        },
+        fields: {
+            xMibi: 0,
+            yMibi: 0,
+            ySpeedInMibipixelsPerSecond: 0,
+            angularSpeedInAnglesScaledPerSecond: 0,
+            angleScaled: 0,
+            emptyStringList: null,
+            emptyHitboxList: null,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return false;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, ySpeedInMibipixelsPerSecond, angularSpeedInAnglesScaledPerSecond, angleScaled, emptyStringList, emptyHitboxList, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.ySpeedInMibipixelsPerSecond = ySpeedInMibipixelsPerSecond;
+                this.angularSpeedInAnglesScaledPerSecond = angularSpeedInAnglesScaledPerSecond;
+                this.angleScaled = angleScaled;
+                this.emptyStringList = emptyStringList;
+                this.emptyHitboxList = emptyHitboxList;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return this.emptyHitboxList;
+            },
+            GetDamageBoxes: function () {
+                return this.emptyHitboxList;
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var isOutOfBounds = (((this.xMibi >> 10) + 30) | 0) < ((((cameraX - (windowWidth >> 1)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((this.xMibi >> 10) - 30) | 0) > ((((cameraX + (windowWidth >> 1)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((this.yMibi >> 10) + 30) | 0) < ((((cameraY - (windowHeight >> 1)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((this.yMibi >> 10) - 30) | 0) > ((((cameraY + (windowHeight >> 1)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0);
+
+                if (isOutOfBounds) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), this.emptyStringList, null);
+                }
+
+                var newYSpeedInMibipixelsPerSecond = this.ySpeedInMibipixelsPerSecond;
+                if (newYSpeedInMibipixelsPerSecond >= -5000000) {
+                    newYSpeedInMibipixelsPerSecond = (newYSpeedInMibipixelsPerSecond - (Bridge.Int.mul(elapsedMicrosPerFrame, 3))) | 0;
+                }
+
+                var newAngleScaled = this.angleScaled;
+                newAngleScaled = (newAngleScaled + (((Bridge.Int.div(Bridge.Int.mul(((Bridge.Int.div(this.angularSpeedInAnglesScaledPerSecond, 1000)) | 0), elapsedMicrosPerFrame), 1000)) | 0))) | 0;
+                while (newAngleScaled >= 46080) {
+                    newAngleScaled = (newAngleScaled - (46080)) | 0;
+                }
+                while (newAngleScaled < 0) {
+                    newAngleScaled = (newAngleScaled + (46080)) | 0;
+                }
+
+                var newYMibi = System.Int64.clip32(System.Int64(this.yMibi).add(System.Int64(newYSpeedInMibipixelsPerSecond).mul(System.Int64(elapsedMicrosPerFrame)).div(System.Int64(1000)).div(System.Int64(1000))));
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyFlyamanitaDead(this.xMibi, newYMibi, newYSpeedInMibipixelsPerSecond, this.angularSpeedInAnglesScaledPerSecond, newAngleScaled, this.emptyStringList, this.emptyHitboxList, this.EnemyId));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
+            },
+            Render: function (displayOutput) {
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Flyamanita, 0, 0, 20, 20, (((this.xMibi >> 10) - 30) | 0), (((this.yMibi >> 10) - 30) | 0), this.angleScaled, 384);
+            },
+            GetDeadEnemy: function () {
+                return null;
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiBoss", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            fields: {
+                INVULNERABILITY_DURATION: 0
+            },
+            ctors: {
+                init: function () {
+                    this.INVULNERABILITY_DURATION = 1000000;
+                }
+            },
+            methods: {
+                GetEnemyKonqiBoss: function (xMibi, yMibi, enemyId, rngSeed) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiBoss(xMibi, yMibi, 0, 0, null, 1000000, 0, rngSeed, new (System.Collections.Generic.List$1(System.String)).ctor(), new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor(), yMibi, enemyId);
+                }
+            }
+        },
+        fields: {
+            xMibi: 0,
+            yMibi: 0,
+            elapsedMicros: 0,
+            numTimesHit: 0,
+            invulnerabilityElapsedMicros: null,
+            currentAttackCooldown: 0,
+            enemyIdCounter: 0,
+            rngSeed: null,
+            emptyStringList: null,
+            emptyHitboxList: null,
+            startingYMibi: 0,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return true;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, elapsedMicros, numTimesHit, invulnerabilityElapsedMicros, currentAttackCooldown, enemyIdCounter, rngSeed, emptyStringList, emptyHitboxList, startingYMibi, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.elapsedMicros = elapsedMicros;
+                this.numTimesHit = numTimesHit;
+                this.invulnerabilityElapsedMicros = invulnerabilityElapsedMicros;
+                this.currentAttackCooldown = currentAttackCooldown;
+                this.enemyIdCounter = enemyIdCounter;
+                this.rngSeed = rngSeed;
+                this.emptyStringList = emptyStringList;
+                this.emptyHitboxList = emptyHitboxList;
+                this.startingYMibi = startingYMibi;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 48, 78));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDamageBoxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 48, 78));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            IsFacingRight: function () {
+                return this.numTimesHit % 2 === 1;
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                if (System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS)) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
+                            _o1.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear.GetEnemyKonqiDisappear(this.xMibi, this.yMibi, (this.EnemyId || "") + "_konqiDisappear" + (DTLibrary.StringUtil.ToStringCultureInvariant(this.enemyIdCounter) || "")));
+                            return _o1;
+                        })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
+                }
+
+                var newXMibi = this.xMibi;
+                var newYMibi = this.yMibi;
+                var newInvulnerabilityElapsedMicros = this.invulnerabilityElapsedMicros;
+                var newRngSeed = this.rngSeed;
+                var newCurrentAttackCooldown = this.currentAttackCooldown;
+                var newEnemyIdCounter = this.enemyIdCounter;
+
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+
+                if (newElapsedMicros > 2000000000) {
+                    newElapsedMicros = 1;
+                }
+
+                if (System.Nullable.hasValue(newInvulnerabilityElapsedMicros) && System.Nullable.getValue(newInvulnerabilityElapsedMicros) === 0) {
+                    newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear.GetEnemyKonqiDisappear(newXMibi, newYMibi, (this.EnemyId || "") + "_konqiDisappear" + (DTLibrary.StringUtil.ToStringCultureInvariant(newEnemyIdCounter) || "")));
+                    newEnemyIdCounter = (newEnemyIdCounter + 1) | 0;
+
+                    if (this.numTimesHit % 2 === 0) {
+                        newXMibi = (newXMibi + (737280)) | 0;
+                    } else {
+                        newXMibi = (newXMibi - (737280)) | 0;
+                    }
+
+                    newYMibi = this.startingYMibi;
+
+                    newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear.GetEnemyKonqiDisappear(newXMibi, newYMibi, (this.EnemyId || "") + "_konqiDisappear" + (DTLibrary.StringUtil.ToStringCultureInvariant(newEnemyIdCounter) || "")));
+                    newEnemyIdCounter = (newEnemyIdCounter + 1) | 0;
+                }
+
+                newCurrentAttackCooldown = (newCurrentAttackCooldown - elapsedMicrosPerFrame) | 0;
+                if (newCurrentAttackCooldown <= 0) {
+                    var rng = new DTLibrary.DTDeterministicRandom.ctor();
+                    rng.DeserializeFromString(newRngSeed);
+                    newCurrentAttackCooldown = (300000 + rng.NextInt(500000)) | 0;
+                    var fireballYSpeed = (300000 + rng.NextInt(1500000)) | 0;
+                    newRngSeed = rng.SerializeToString();
+
+                    if (this.numTimesHit < 4) {
+                        newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireball.GetEnemyKonqiFireball(((newXMibi + (this.IsFacingRight() ? 5120 : -5120)) | 0), ((newYMibi + 24576) | 0), this.IsFacingRight() ? 700000 : -700000, fireballYSpeed, (this.EnemyId || "") + "_fireball" + (DTLibrary.StringUtil.ToStringCultureInvariant(newEnemyIdCounter) || "")));
+                        newEnemyIdCounter = (newEnemyIdCounter + 1) | 0;
+                    }
+                }
+
+                if (newInvulnerabilityElapsedMicros != null) {
+                    newInvulnerabilityElapsedMicros = Bridge.Int.clip32(System.Nullable.getValue(newInvulnerabilityElapsedMicros) + elapsedMicrosPerFrame);
+                    if (System.Nullable.getValue(newInvulnerabilityElapsedMicros) >= TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiBoss.INVULNERABILITY_DURATION) {
+                        newInvulnerabilityElapsedMicros = null;
+                    }
+                }
+
+                newEnemies.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiBoss(newXMibi, newYMibi, newElapsedMicros, this.numTimesHit, newInvulnerabilityElapsedMicros, newCurrentAttackCooldown, newEnemyIdCounter, newRngSeed, this.emptyStringList, this.emptyHitboxList, this.startingYMibi, this.EnemyId));
+
+                var newlyAddedLevelFlags;
+
+                if (this.numTimesHit === 4) {
+                    newlyAddedLevelFlags = function (_o2) {
+                            _o2.add(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_DEFEATED);
+                            return _o2;
+                        }(new (System.Collections.Generic.List$1(System.String)).ctor());
+                } else {
+                    newlyAddedLevelFlags = null;
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(newEnemies, this.emptyStringList, newlyAddedLevelFlags);
+            },
+            Render: function (displayOutput) {
+                if (this.invulnerabilityElapsedMicros != null) {
+                    if ((((Bridge.Int.div(System.Nullable.getValue(this.invulnerabilityElapsedMicros), (100000))) | 0)) % 2 === 0) {
+                        return;
+                    }
+                }
+
+                var spriteNum = (Bridge.Int.div((this.elapsedMicros % 1000000), 250000)) | 0;
+
+                var image = this.IsFacingRight() ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KonqiFire : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.KonqiFireMirrored;
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(image, Bridge.Int.mul(spriteNum, 32), 0, 32, 32, (((this.xMibi >> 10) - 48) | 0), (((this.yMibi >> 10) - 24) | 0), 0, 384);
+            },
+            GetDeadEnemy: function () {
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiBoss(this.xMibi, this.yMibi, this.elapsedMicros, ((this.numTimesHit + 1) | 0), 0, this.currentAttackCooldown, this.enemyIdCounter, this.rngSeed, this.emptyStringList, this.emptyHitboxList, this.startingYMibi, (this.EnemyId || "") + "_hit");
             }
         }
     });
@@ -29564,7 +32726,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             EnemyId: null
         },
         props: {
-            IsKonqi: {
+            IsKonqiCutscene: {
                 get: function () {
                     return true;
                 }
@@ -29582,10 +32744,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
-            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
             "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
             "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
-            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
             "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
             "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
             "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
@@ -29604,7 +32766,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         methods: {
-            GetKonqiLocation: function () {
+            GetKonqiCutsceneLocation: function () {
                 return { Item1: this.x, Item2: this.y };
             },
             GetHitboxes: function () {
@@ -29613,17 +32775,24 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetDamageBoxes: function () {
                 return this.emptyHitboxList;
             },
-            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
                 var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
 
                 if (newElapsedMicros > 2000000000) {
                     newElapsedMicros = 1;
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
-                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiCutscene(this.x, this.y, newElapsedMicros, this.emptyStringList, this.emptyHitboxList, this.EnemyId));
-                        return _o1;
-                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList);
+                if (System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BEGIN_BOSS_BATTLE)) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
+                            _o1.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear.GetEnemyKonqiDisappear(this.x << 10, this.y << 10, (this.EnemyId || "") + "_konqiDisappear"));
+                            return _o1;
+                        })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o2) {
+                        _o2.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiCutscene(this.x, this.y, newElapsedMicros, this.emptyStringList, this.emptyHitboxList, this.EnemyId));
+                        return _o2;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
             },
             Render: function (displayOutput) {
                 var spriteNum = (Bridge.Int.div((this.elapsedMicros % 1000000), 250000)) | 0;
@@ -29639,6 +32808,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear", {
         inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
         statics: {
+            fields: {
+                ANIMATION_DURATION: 0
+            },
+            ctors: {
+                init: function () {
+                    this.ANIMATION_DURATION = 600000;
+                }
+            },
             methods: {
                 GetEnemyKonqiDisappear: function (xMibi, yMibi, enemyId) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear(xMibi, yMibi, 0, new (System.Collections.Generic.List$1(System.String)).ctor(), new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor(), enemyId);
@@ -29654,7 +32831,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             EnemyId: null
         },
         props: {
-            IsKonqi: {
+            IsKonqiCutscene: {
                 get: function () {
                     return false;
                 }
@@ -29672,10 +32849,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
-            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
             "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
             "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
-            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
             "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
             "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
             "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
@@ -29694,7 +32871,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         methods: {
-            GetKonqiLocation: function () {
+            GetKonqiCutsceneLocation: function () {
                 return null;
             },
             GetHitboxes: function () {
@@ -29706,30 +32883,228 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetDeadEnemy: function () {
                 return null;
             },
-            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
-                if (this.elapsedMicros > 200000) {
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), this.emptyStringList);
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                if (this.elapsedMicros > TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear.ANIMATION_DURATION) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), this.emptyStringList, null);
                 }
 
                 return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
                         _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiDisappear(this.xMibi, this.yMibi, ((this.elapsedMicros + elapsedMicrosPerFrame) | 0), this.emptyStringList, this.emptyHitboxList, this.EnemyId));
                         return _o1;
-                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList);
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
             },
             Render: function (displayOutput) {
-                var distance = (Bridge.Int.div(this.elapsedMicros, (2000))) | 0;
+                var spriteNum = (Bridge.Int.div(this.elapsedMicros, (150000))) | 0;
 
-                var color = new DTLibrary.DTColor.ctor(50, 168, 64);
-
-                for (var i = 0; i < 46080; i = (i + 384) | 0) {
-                    var deltaX = Bridge.Int.mul(DTLibrary.DTMath.CosineScaled(i), distance);
-                    var deltaY = Bridge.Int.mul(DTLibrary.DTMath.SineScaled(i), distance);
-
-                    var x = (((this.xMibi + deltaX) | 0)) >> 10;
-                    var y = (((this.yMibi + deltaY) | 0)) >> 10;
-
-                    displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawRectangle(((x - 2) | 0), ((y - 2) | 0), 5, 5, color, true);
+                if (spriteNum > 3) {
+                    spriteNum = 3;
                 }
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Flash, Bridge.Int.mul(32, spriteNum), 0, 32, 40, (((this.xMibi >> 10) - 48) | 0), (((this.yMibi >> 10) - 60) | 0), 0, 384);
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireball", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            methods: {
+                GetEnemyKonqiFireball: function (xMibi, yMibi, xSpeedInMibipixelsPerSecond, ySpeedInMibipixelsPerSecond, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireball(xMibi, yMibi, 0, xSpeedInMibipixelsPerSecond, ySpeedInMibipixelsPerSecond, enemyId);
+                }
+            }
+        },
+        fields: {
+            xMibi: 0,
+            yMibi: 0,
+            elapsedMicros: 0,
+            xSpeedInMibipixelsPerSecond: 0,
+            ySpeedInMibipixelsPerSecond: 0,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return true;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, elapsedMicros, xSpeedInMibipixelsPerSecond, ySpeedInMibipixelsPerSecond, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.elapsedMicros = elapsedMicros;
+                this.xSpeedInMibipixelsPerSecond = xSpeedInMibipixelsPerSecond;
+                this.ySpeedInMibipixelsPerSecond = ySpeedInMibipixelsPerSecond;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 18) | 0), (((this.yMibi >> 10) - 18) | 0), 36, 36));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDamageBoxes: function () {
+                return new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor();
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var newXMibi = this.xMibi;
+                var newYMibi = this.yMibi;
+                var newYSpeedInMibipixelsPerSecond = this.ySpeedInMibipixelsPerSecond;
+
+                newXMibi = (newXMibi + ((Bridge.Int.div(Bridge.Int.mul(((Bridge.Int.div(this.xSpeedInMibipixelsPerSecond, 10000)) | 0), elapsedMicrosPerFrame), 100)) | 0)) | 0;
+                newYMibi = (newYMibi + ((Bridge.Int.div(Bridge.Int.mul(((Bridge.Int.div(newYSpeedInMibipixelsPerSecond, 10000)) | 0), elapsedMicrosPerFrame), 100)) | 0)) | 0;
+
+                newYSpeedInMibipixelsPerSecond = (newYSpeedInMibipixelsPerSecond - (Bridge.Int.mul(elapsedMicrosPerFrame, 3))) | 0;
+
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                if (tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(newXMibi >> 10, newYMibi >> 10)) {
+                    soundOutput.DTLibrary$ISoundOutput$1$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$PlaySound(TuxPlanetSpeedrunAnyPercentLibrary.GameSound.Explosion02);
+                    newEnemies.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireballExplosion.GetEnemyKonqiFireballExplosion(newXMibi, newYMibi, (this.EnemyId || "") + "_explosion"));
+                } else {
+                    newEnemies.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireball(newXMibi, newYMibi, ((this.elapsedMicros + elapsedMicrosPerFrame) | 0), this.xSpeedInMibipixelsPerSecond, newYSpeedInMibipixelsPerSecond, this.EnemyId));
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(newEnemies, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
+            },
+            Render: function (displayOutput) {
+                var spriteNum = (((Bridge.Int.div(this.elapsedMicros, (100000))) | 0)) % 5;
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Flame, Bridge.Int.mul(spriteNum, 14), 0, 14, 20, (((this.xMibi >> 10) - 21) | 0), (((this.yMibi >> 10) - 30) | 0), ((((-DTLibrary.DTMath.ArcTangentScaled(this.xSpeedInMibipixelsPerSecond, this.ySpeedInMibipixelsPerSecond)) | 0) - 11520) | 0), 384);
+            },
+            GetDeadEnemy: function () {
+                return null;
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireballExplosion", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            fields: {
+                EXPLOSION_ANIMATION_DURATION: 0
+            },
+            ctors: {
+                init: function () {
+                    this.EXPLOSION_ANIMATION_DURATION = 500000;
+                }
+            },
+            methods: {
+                GetEnemyKonqiFireballExplosion: function (xMibi, yMibi, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireballExplosion(xMibi, yMibi, 0, enemyId);
+                }
+            }
+        },
+        fields: {
+            xMibi: 0,
+            yMibi: 0,
+            elapsedMicros: 0,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return true;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, elapsedMicros, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.elapsedMicros = elapsedMicros;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 48, 48));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDamageBoxes: function () {
+                return new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor();
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var newEnemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+
+                if (newElapsedMicros > TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireballExplosion.EXPLOSION_ANIMATION_DURATION) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(newEnemies, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
+                }
+
+                newEnemies.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiFireballExplosion(this.xMibi, this.yMibi, newElapsedMicros, this.EnemyId));
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(newEnemies, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
+            },
+            Render: function (displayOutput) {
+                var spriteNum = (Bridge.Int.div(this.elapsedMicros, (100000))) | 0;
+
+                if (spriteNum > 4) {
+                    spriteNum = 4;
+                }
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(TuxPlanetSpeedrunAnyPercentLibrary.GameImage.ExplodeF, Bridge.Int.mul(spriteNum, 24), 0, 24, 24, (((this.xMibi >> 10) - 36) | 0), (((this.yMibi >> 10) - 36) | 0), 0, 384);
+            },
+            GetDeadEnemy: function () {
+                return null;
             }
         }
     });
@@ -29753,7 +33128,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             EnemyId: null
         },
         props: {
-            IsKonqi: {
+            IsKonqiCutscene: {
                 get: function () {
                     return false;
                 }
@@ -29771,11 +33146,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
-            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
             "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
             "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
             "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
-            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
             "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
             "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
             "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
@@ -29797,7 +33172,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetDeadEnemy: function () {
                 return null;
             },
-            GetKonqiLocation: function () {
+            GetKonqiCutsceneLocation: function () {
                 return null;
             },
             GetHitboxes: function () {
@@ -29809,7 +33184,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetDamageBoxes: function () {
                 return this.emptyHitboxList;
             },
-            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
                 var newXMibi = (this.xMibi + ((Bridge.Int.div(Bridge.Int.mul(elapsedMicrosPerFrame, 400), 1000)) | 0)) | 0;
 
                 if (newXMibi > this.endingXMibi) {
@@ -29819,7 +33194,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
                         _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyLevel5Spikes(newXMibi, this.yMibiBottom, this.heightInTiles, this.endingXMibi, this.emptyHitboxList, this.emptyStringList, this.EnemyId));
                         return _o1;
-                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList);
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
             },
             Render: function (displayOutput) {
                 var y = this.yMibiBottom >> 10;
@@ -29833,13 +33208,212 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            methods: {
+                GetEnemyOrange: function (xMibi, yMibi, isFacingRight, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange(xMibi, yMibi, Bridge.Int.mul(150000, (isFacingRight ? 1 : -1)), 0, 0, enemyId);
+                },
+                IsGroundOrSpike: function (tilemap, x, y) {
+                    return tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y) || tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y);
+                }
+            }
+        },
+        fields: {
+            xMibi: 0,
+            yMibi: 0,
+            xSpeedInMibipixelsPerSecond: 0,
+            ySpeedInMibipixelsPerSecond: 0,
+            elapsedMicros: 0,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return false;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, xSpeedInMibipixelsPerSecond, ySpeedInMibipixelsPerSecond, elapsedMicros, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.xSpeedInMibipixelsPerSecond = xSpeedInMibipixelsPerSecond;
+                this.ySpeedInMibipixelsPerSecond = ySpeedInMibipixelsPerSecond;
+                this.elapsedMicros = elapsedMicros;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 18) | 0), (((this.yMibi >> 10) - 18) | 0), 36, 36));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDamageBoxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 21) | 0), (((this.yMibi >> 10) - 21) | 0), 42, 42));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDeadEnemy: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.EnemyDeadPoof.SpawnEnemyDeadPoof(this.xMibi, this.yMibi, (this.EnemyId || "") + "_enemyDeadPoof");
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                var x = this.xMibi >> 10;
+                var y = this.yMibi >> 10;
+
+                var newXMibi = this.xMibi;
+                var newYMibi = this.yMibi;
+                var newXSpeedInMibipixelsPerSecond = this.xSpeedInMibipixelsPerSecond;
+                var newYSpeedInMibipixelsPerSecond = this.ySpeedInMibipixelsPerSecond;
+
+                var isOnGround = TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, x, ((((y - 24) | 0) - 1) | 0)) && !TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, x, ((y - 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((x - 18) | 0), ((((y - 24) | 0) - 1) | 0)) && !TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((x - 18) | 0), ((y - 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((x + 18) | 0), ((((y - 24) | 0) - 1) | 0)) && !TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((x + 18) | 0), ((y - 24) | 0));
+
+                if (isOnGround) {
+                    newYSpeedInMibipixelsPerSecond = 1050000;
+                } else {
+                    newYSpeedInMibipixelsPerSecond = (newYSpeedInMibipixelsPerSecond - (Bridge.Int.mul(elapsedMicrosPerFrame, 3))) | 0;
+                }
+
+                if (newYSpeedInMibipixelsPerSecond < -2000000) {
+                    newYSpeedInMibipixelsPerSecond = -2000000;
+                }
+
+                var proposedNewYMibi = System.Int64.clip32(System.Int64(newYMibi).add(System.Int64(newYSpeedInMibipixelsPerSecond).mul(System.Int64(elapsedMicrosPerFrame)).div(System.Int64(1000)).div(System.Int64(1000))));
+                if (newYSpeedInMibipixelsPerSecond > 0) {
+                    while (true) {
+                        if (TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((Bridge.Int.div(newXMibi, 1024)) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) + 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(newXMibi, 1024)) | 0) - 24) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) + 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(newXMibi, 1024)) | 0) + 24) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) + 24) | 0))) {
+                            newYSpeedInMibipixelsPerSecond = 0;
+                            proposedNewYMibi = (proposedNewYMibi - 1024) | 0;
+                            if (proposedNewYMibi <= newYMibi) {
+                                proposedNewYMibi = newYMibi;
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                if (newYSpeedInMibipixelsPerSecond < 0) {
+                    while (true) {
+                        if (TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((Bridge.Int.div(newXMibi, 1024)) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) - 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(newXMibi, 1024)) | 0) - 24) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) - 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(newXMibi, 1024)) | 0) + 24) | 0), ((((Bridge.Int.div(proposedNewYMibi, 1024)) | 0) - 24) | 0))) {
+                            newYSpeedInMibipixelsPerSecond = 0;
+                            proposedNewYMibi = (proposedNewYMibi + 1024) | 0;
+                            if (proposedNewYMibi >= newYMibi) {
+                                proposedNewYMibi = newYMibi;
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                newYMibi = proposedNewYMibi;
+
+                var proposedNewXMibi = System.Int64.clip32(System.Int64(newXMibi).add(System.Int64(newXSpeedInMibipixelsPerSecond).mul(System.Int64(elapsedMicrosPerFrame)).div(System.Int64(1000)).div(System.Int64(1000))));
+                if (newXSpeedInMibipixelsPerSecond > 0) {
+                    while (true) {
+                        if (TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) + 24) | 0), ((((Bridge.Int.div(newYMibi, 1024)) | 0) - 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) + 24) | 0), ((Bridge.Int.div(newYMibi, 1024)) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) + 24) | 0), ((((Bridge.Int.div(newYMibi, 1024)) | 0) + 24) | 0))) {
+                            proposedNewXMibi = (proposedNewXMibi - 1024) | 0;
+                            if (proposedNewXMibi <= newXMibi) {
+                                proposedNewXMibi = newXMibi;
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                if (newXSpeedInMibipixelsPerSecond < 0) {
+                    while (true) {
+                        if (TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) - 24) | 0), ((((Bridge.Int.div(newYMibi, 1024)) | 0) - 24) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) - 24) | 0), ((Bridge.Int.div(newYMibi, 1024)) | 0)) || TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange.IsGroundOrSpike(tilemap, ((((Bridge.Int.div(proposedNewXMibi, 1024)) | 0) - 24) | 0), ((((Bridge.Int.div(newYMibi, 1024)) | 0) + 24) | 0))) {
+                            proposedNewXMibi = (proposedNewXMibi + 1024) | 0;
+                            if (proposedNewXMibi >= newXMibi) {
+                                proposedNewXMibi = newXMibi;
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                newXMibi = proposedNewXMibi;
+
+                if (newXSpeedInMibipixelsPerSecond > 0) {
+                    if (newXMibi <= this.xMibi) {
+                        newXSpeedInMibipixelsPerSecond = (-newXSpeedInMibipixelsPerSecond) | 0;
+                    }
+                } else {
+                    if (newXMibi >= this.xMibi) {
+                        newXSpeedInMibipixelsPerSecond = (-newXSpeedInMibipixelsPerSecond) | 0;
+                    }
+                }
+
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+                if (newElapsedMicros > 2000000000) {
+                    newElapsedMicros = 1;
+                }
+
+                var isOutOfBounds = (((this.xMibi >> 10) + 24) | 0) < ((((cameraX - (windowWidth >> 1)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((this.xMibi >> 10) - 24) | 0) > ((((cameraX + (windowWidth >> 1)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((this.yMibi >> 10) + 24) | 0) < ((((cameraY - (windowHeight >> 1)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((this.yMibi >> 10) - 24) | 0) > ((((cameraY + (windowHeight >> 1)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0);
+
+                if (!isOutOfBounds) {
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyOrange(newXMibi, newYMibi, newXSpeedInMibipixelsPerSecond, newYSpeedInMibipixelsPerSecond, newElapsedMicros, this.EnemyId));
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
+            },
+            Render: function (displayOutput) {
+                var isFacingRight = this.xSpeedInMibipixelsPerSecond > 0;
+
+                var image = isFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Orange : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.OrangeMirrored;
+
+                var spriteNum = (((Bridge.Int.div(this.elapsedMicros, (100000))) | 0)) % 8;
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(image, Bridge.Int.mul(spriteNum, 16), 0, 16, 16, (((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 0, 384);
+            }
+        }
+    });
+
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemyRemoveKonqiCutscene", {
         inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
         fields: {
             EnemyId: null
         },
         props: {
-            IsKonqi: {
+            IsKonqiCutscene: {
                 get: function () {
                     return false;
                 }
@@ -29857,10 +33431,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
-            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
             "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
             "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
-            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
             "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
             "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
             "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
@@ -29874,7 +33448,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         methods: {
-            GetKonqiLocation: function () {
+            GetKonqiCutsceneLocation: function () {
                 return null;
             },
             GetHitboxes: function () {
@@ -29886,11 +33460,11 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetDeadEnemy: function () {
                 return null;
             },
-            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
                 return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
                         _o1.add(this);
                         return _o1;
-                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), new (System.Collections.Generic.List$1(System.String)).ctor());
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), new (System.Collections.Generic.List$1(System.String)).ctor(), null);
             },
             Render: function (displayOutput) { }
         }
@@ -29916,7 +33490,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             EnemyId: null
         },
         props: {
-            IsKonqi: {
+            IsKonqiCutscene: {
                 get: function () {
                     return false;
                 }
@@ -29934,10 +33508,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
-            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
             "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
             "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
-            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
             "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
             "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
             "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
@@ -29955,7 +33529,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         methods: {
-            GetKonqiLocation: function () {
+            GetKonqiCutsceneLocation: function () {
                 return null;
             },
             GetHitboxes: function () {
@@ -29975,7 +33549,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                 return TuxPlanetSpeedrunAnyPercentLibrary.EnemySmartcapDead.SpawnEnemySmartcapDead(this.xMibi, this.yMibi, this.isFacingRight, (enemyId || "") + "enemySmartcapDead");
             },
-            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
                 var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
 
                 var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
@@ -30016,7 +33590,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySmartcap(newXMibi, newYMibi, newIsFacingRight, newElapsedMicros, this.EnemyId));
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor());
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
             },
             Render: function (displayOutput) {
                 var image = this.isFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Smartcap : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SmartcapMirrored;
@@ -30055,7 +33629,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             EnemyId: null
         },
         props: {
-            IsKonqi: {
+            IsKonqiCutscene: {
                 get: function () {
                     return false;
                 }
@@ -30073,10 +33647,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
-            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
             "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
             "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
-            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
             "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
             "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
             "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
@@ -30096,7 +33670,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         methods: {
-            GetKonqiLocation: function () {
+            GetKonqiCutsceneLocation: function () {
                 return null;
             },
             GetHitboxes: function () {
@@ -30105,15 +33679,15 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetDamageBoxes: function () {
                 return new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor();
             },
-            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
                 if (this.elapsedMicros > TuxPlanetSpeedrunAnyPercentLibrary.EnemySmartcapDead.DEAD_ANIMATION_DURATION) {
-                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), this.emptyStringList);
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), this.emptyStringList, null);
                 }
 
                 return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
                         _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySmartcapDead(this.x, this.y, this.isFacingRight, ((this.elapsedMicros + elapsedMicrosPerFrame) | 0), this.emptyStringList, this.emptyHitboxList, this.EnemyId));
                         return _o1;
-                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList);
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), this.emptyStringList, null);
             },
             Render: function (displayOutput) {
                 displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(this.isFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.Smartcap : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SmartcapMirrored, 64, 0, 16, 18, this.x, this.y, 0, 384);
@@ -30124,18 +33698,27 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         }
     });
 
-    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper", {
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemySnail", {
         inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        statics: {
+            methods: {
+                GetEnemySnail: function (xMibi, yMibi, isFacingRight, enemyId) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.EnemySnail(xMibi, yMibi, isFacingRight, 0, enemyId);
+                },
+                IsGroundOrSpike: function (tilemap, x, y) {
+                    return tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y) || tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y);
+                }
+            }
+        },
         fields: {
-            enemyToSpawn: null,
             xMibi: 0,
             yMibi: 0,
-            enemyWidth: 0,
-            enemyHeight: 0,
+            isFacingRight: false,
+            elapsedMicros: 0,
             EnemyId: null
         },
         props: {
-            IsKonqi: {
+            IsKonqiCutscene: {
                 get: function () {
                     return false;
                 }
@@ -30153,10 +33736,133 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         alias: [
             "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
-            "IsKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqi",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
             "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
             "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
-            "GetKonqiLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiLocation",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
+            "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
+            "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
+            "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
+            "ProcessFrame", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ProcessFrame",
+            "Render", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$Render"
+        ],
+        ctors: {
+            ctor: function (xMibi, yMibi, isFacingRight, elapsedMicros, enemyId) {
+                this.$initialize();
+                this.xMibi = xMibi;
+                this.yMibi = yMibi;
+                this.isFacingRight = isFacingRight;
+                this.elapsedMicros = elapsedMicros;
+                this.EnemyId = enemyId;
+            }
+        },
+        methods: {
+            GetKonqiCutsceneLocation: function () {
+                return null;
+            },
+            GetHitboxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 48, 42));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDamageBoxes: function () {
+                return Bridge.fn.bind(this, function (_o1) {
+                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.Hitbox((((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 48, 42));
+                        return _o1;
+                    })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Hitbox)).ctor());
+            },
+            GetDeadEnemy: function () {
+                var enemyId = this.EnemyId;
+
+                return TuxPlanetSpeedrunAnyPercentLibrary.EnemyDeadPoof.SpawnEnemyDeadPoof(this.xMibi, this.yMibi, (enemyId || "") + "_enemyDeadPoof");
+            },
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
+                var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
+
+                var newElapsedMicros = (this.elapsedMicros + elapsedMicrosPerFrame) | 0;
+
+                if (newElapsedMicros > 2000000000) {
+                    newElapsedMicros = 0;
+                }
+
+                var newXMibi = this.xMibi;
+                var newYMibi = this.yMibi;
+                var newIsFacingRight = this.isFacingRight;
+
+                if (this.isFacingRight) {
+                    newXMibi = (newXMibi + (((Bridge.Int.div(Bridge.Int.mul(elapsedMicrosPerFrame, 20), 1000)) | 0))) | 0;
+                } else {
+                    newXMibi = (newXMibi - (((Bridge.Int.div(Bridge.Int.mul(elapsedMicrosPerFrame, 20), 1000)) | 0))) | 0;
+                }
+
+                if (newIsFacingRight) {
+                    if (TuxPlanetSpeedrunAnyPercentLibrary.EnemySnail.IsGroundOrSpike(tilemap, (((newXMibi >> 10) + 24) | 0), newYMibi >> 10)) {
+                        newIsFacingRight = false;
+                    }
+                    if (!TuxPlanetSpeedrunAnyPercentLibrary.EnemySnail.IsGroundOrSpike(tilemap, (((newXMibi >> 10) + 12) | 0), (((newYMibi >> 10) - 33) | 0))) {
+                        newIsFacingRight = false;
+                    }
+                } else {
+                    if (TuxPlanetSpeedrunAnyPercentLibrary.EnemySnail.IsGroundOrSpike(tilemap, (((newXMibi >> 10) - 24) | 0), newYMibi >> 10)) {
+                        newIsFacingRight = true;
+                    }
+                    if (!TuxPlanetSpeedrunAnyPercentLibrary.EnemySnail.IsGroundOrSpike(tilemap, (((newXMibi >> 10) - 12) | 0), (((newYMibi >> 10) - 33) | 0))) {
+                        newIsFacingRight = true;
+                    }
+                }
+
+                var isOutOfBounds = (((newXMibi >> 10) + 24) | 0) < ((((cameraX - ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newXMibi >> 10) - 24) | 0) > ((((cameraX + ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newYMibi >> 10) + 24) | 0) < ((((cameraY - ((Bridge.Int.div(windowHeight, 2)) | 0)) | 0) - TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0) || (((newYMibi >> 10) - 24) | 0) > ((((cameraY + ((Bridge.Int.div(windowHeight, 2)) | 0)) | 0) + TuxPlanetSpeedrunAnyPercentLibrary.GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS) | 0);
+
+                if (!isOutOfBounds) {
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySnail(newXMibi, newYMibi, newIsFacingRight, newElapsedMicros, this.EnemyId));
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(list, new (System.Collections.Generic.List$1(System.String)).ctor(), null);
+            },
+            Render: function (displayOutput) {
+                var image = this.isFacingRight ? TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SnailBlue : TuxPlanetSpeedrunAnyPercentLibrary.GameImage.SnailBlueMirrored;
+
+                var spriteNum = (((Bridge.Int.div(this.elapsedMicros, 250000)) | 0)) % 2;
+
+                displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(image, Bridge.Int.mul(spriteNum, 16), 0, 16, 16, (((this.xMibi >> 10) - 24) | 0), (((this.yMibi >> 10) - 24) | 0), 0, 384);
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.IEnemy],
+        fields: {
+            enemyToSpawn: null,
+            xMibi: 0,
+            yMibi: 0,
+            enemyWidth: 0,
+            enemyHeight: 0,
+            EnemyId: null
+        },
+        props: {
+            IsKonqiCutscene: {
+                get: function () {
+                    return false;
+                }
+            },
+            IsRemoveKonqi: {
+                get: function () {
+                    return false;
+                }
+            },
+            ShouldAlwaysSpawnRegardlessOfCamera: {
+                get: function () {
+                    return false;
+                }
+            }
+        },
+        alias: [
+            "EnemyId", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$EnemyId",
+            "IsKonqiCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsKonqiCutscene",
+            "IsRemoveKonqi", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$IsRemoveKonqi",
+            "ShouldAlwaysSpawnRegardlessOfCamera", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$ShouldAlwaysSpawnRegardlessOfCamera",
+            "GetKonqiCutsceneLocation", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetKonqiCutsceneLocation",
             "GetHitboxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetHitboxes",
             "GetDamageBoxes", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDamageBoxes",
             "GetDeadEnemy", "TuxPlanetSpeedrunAnyPercentLibrary$IEnemy$GetDeadEnemy",
@@ -30175,7 +33881,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         methods: {
-            GetKonqiLocation: function () {
+            GetKonqiCutsceneLocation: function () {
                 return null;
             },
             GetHitboxes: function () {
@@ -30187,7 +33893,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetDeadEnemy: function () {
                 return null;
             },
-            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tilemap) {
+            ProcessFrame: function (cameraX, cameraY, windowWidth, windowHeight, elapsedMicrosPerFrame, tuxState, random, tilemap, levelFlags, soundOutput) {
                 var halfWindowWidth = windowWidth >> 1;
                 var halfWindowHeight = windowHeight >> 1;
 
@@ -30201,10 +33907,10 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(Bridge.fn.bind(this, function (_o1) {
                             _o1.add(this.enemyToSpawn);
                             return _o1;
-                        })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), new (System.Collections.Generic.List$1(System.String)).ctor());
+                        })(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor()), new (System.Collections.Generic.List$1(System.String)).ctor(), null);
                 }
 
-                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), new (System.Collections.Generic.List$1(System.String)).ctor());
+                return new TuxPlanetSpeedrunAnyPercentLibrary.EnemyProcessing.Result(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor(), new (System.Collections.Generic.List$1(System.String)).ctor(), null);
 
             },
             Render: function (displayOutput) { }
@@ -30227,6 +33933,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
             "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
             "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetMapKeyLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation",
             "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
             "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
             "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
@@ -30267,6 +33974,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetTuxLocation: function (xOffset, yOffset) {
                 return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(xOffset, yOffset);
             },
+            GetMapKeyLocation: function (mapKey, xOffset, yOffset) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation(mapKey, xOffset, yOffset);
+            },
             GetEnemies: function (xOffset, yOffset) {
                 var enemies = Bridge.fn.bind(this, function (_o1) {
                         _o1.add(TuxPlanetSpeedrunAnyPercentLibrary.EnemyLevel5Spikes.GetEnemyLevel5Spikes(((-147456 + (xOffset << 10)) | 0), yOffset << 10, 30, ((this.endingXMibi + (xOffset << 10)) | 0), "level5Spikes"));
@@ -30281,6 +33991,180 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             },
             PlayMusic: function () {
                 return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic();
+            },
+            RenderBackgroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
+                this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
+            },
+            RenderForegroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
+                this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Level6Tilemap_BossBattle", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ITilemap],
+        fields: {
+            mapTilemap: null,
+            bossRoomXOffsetStart: 0,
+            bossRoomXOffsetEnd: 0
+        },
+        alias: [
+            "IsGround", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround",
+            "IsKillZone", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone",
+            "IsSpikes", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes",
+            "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
+            "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
+            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
+            "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
+            "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
+            "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetMapKeyLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation",
+            "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
+            "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
+            "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
+            "RenderForegroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles"
+        ],
+        ctors: {
+            ctor: function (mapTilemap, bossRoomXOffsetStart, bossRoomXOffsetEnd) {
+                this.$initialize();
+                this.mapTilemap = mapTilemap;
+                this.bossRoomXOffsetStart = bossRoomXOffsetStart;
+                this.bossRoomXOffsetEnd = bossRoomXOffsetEnd;
+            }
+        },
+        methods: {
+            IsGround: function (x, y) {
+                if (x < this.bossRoomXOffsetStart) {
+                    return true;
+                }
+
+                if (x >= this.bossRoomXOffsetEnd) {
+                    return true;
+                }
+
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y);
+            },
+            IsKillZone: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone(x, y);
+            },
+            IsSpikes: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y);
+            },
+            IsEndOfLevel: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel(x, y);
+            },
+            GetCutscene: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene(x, y);
+            },
+            GetCheckpoint: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(x, y);
+            },
+            GetWidth: function () {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth();
+            },
+            GetHeight: function () {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight();
+            },
+            GetTuxLocation: function (xOffset, yOffset) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(xOffset, yOffset);
+            },
+            GetMapKeyLocation: function (mapKey, xOffset, yOffset) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation(mapKey, xOffset, yOffset);
+            },
+            GetEnemies: function (xOffset, yOffset) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies(xOffset, yOffset);
+            },
+            PlayMusic: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.BossTheme;
+            },
+            RenderBackgroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
+                this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
+            },
+            RenderForegroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
+                this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Level6Tilemap_BossDefeated", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ITilemap],
+        fields: {
+            mapTilemap: null,
+            bossRoomXOffsetStart: 0,
+            bossRoomXOffsetEnd: 0,
+            shouldRestrictToBossRoom: false
+        },
+        alias: [
+            "IsGround", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround",
+            "IsKillZone", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone",
+            "IsSpikes", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes",
+            "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
+            "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
+            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
+            "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
+            "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
+            "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetMapKeyLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation",
+            "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
+            "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
+            "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
+            "RenderForegroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles"
+        ],
+        ctors: {
+            ctor: function (mapTilemap, bossRoomXOffsetStart, bossRoomXOffsetEnd, shouldRestrictToBossRoom) {
+                this.$initialize();
+                this.mapTilemap = mapTilemap;
+                this.bossRoomXOffsetStart = bossRoomXOffsetStart;
+                this.bossRoomXOffsetEnd = bossRoomXOffsetEnd;
+                this.shouldRestrictToBossRoom = shouldRestrictToBossRoom;
+            }
+        },
+        methods: {
+            IsGround: function (x, y) {
+                if (this.shouldRestrictToBossRoom) {
+                    if (x < this.bossRoomXOffsetStart) {
+                        return true;
+                    }
+
+                    if (x >= this.bossRoomXOffsetEnd) {
+                        return true;
+                    }
+                }
+
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y);
+            },
+            IsKillZone: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone(x, y);
+            },
+            IsSpikes: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y);
+            },
+            IsEndOfLevel: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel(x, y);
+            },
+            GetCutscene: function (x, y) {
+                return TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.BOSS_DEFEATED_CUTSCENE;
+            },
+            GetCheckpoint: function (x, y) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(x, y);
+            },
+            GetWidth: function () {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth();
+            },
+            GetHeight: function () {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight();
+            },
+            GetTuxLocation: function (xOffset, yOffset) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(xOffset, yOffset);
+            },
+            GetMapKeyLocation: function (mapKey, xOffset, yOffset) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation(mapKey, xOffset, yOffset);
+            },
+            GetEnemies: function (xOffset, yOffset) {
+                return this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies(xOffset, yOffset);
+            },
+            PlayMusic: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.BossTheme;
             },
             RenderBackgroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
                 this.mapTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
@@ -30311,11 +34195,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         fields: {
-            normalizedTilemaps: null
+            normalizedTilemaps: null,
+            background: null
         },
         alias: [
+            "GetCustomLevelInfo", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCustomLevelInfo",
             "GetBackground", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground",
-            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap"
+            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap",
+            "GetCameraState", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCameraState"
         ],
         ctors: {
             ctor: function (mapInfo, random) {
@@ -30323,14 +34210,22 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level1.ConstructUnnormalizedTilemaps(mapInfo, random);
 
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
+
+                this.background = TuxPlanetSpeedrunAnyPercentLibrary.BackgroundUtil.GetRandomBackground(random);
             }
         },
         methods: {
-            GetBackground: function () {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.Background_Ocean();
+            GetCustomLevelInfo: function () {
+                return new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
             },
-            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight) {
-                return TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, windowWidth, windowHeight);
+            GetBackground: function () {
+                return this.background;
+            },
+            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight, levelFlags, mapKeyState) {
+                return TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, mapKeyState, windowWidth, windowHeight);
+            },
+            GetCameraState: function (tuxXMibi, tuxYMibi, tuxTeleportStartingLocation, tuxTeleportInProgressElapsedMicros, tilemap, windowWidth, windowHeight, levelFlags) {
+                return null;
             }
         }
     });
@@ -30354,13 +34249,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var chooseAPath1TilemapB = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop2"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var chooseAPath1TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? chooseAPath1TilemapA : chooseAPath1TilemapB, 0, ((-chooseAPath1TilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var chooseAPath1TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? chooseAPath1TilemapA : chooseAPath1TilemapB, 0, ((-chooseAPath1TilemapA.GetHeight()) | 0), false);
 
                     list.add(chooseAPath1TilemapWithOffset);
 
                     var level2bPlatformTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Platform"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2bPlatformTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2bPlatformTilemap, 0, ((chooseAPath1TilemapWithOffset.YOffset - level2bPlatformTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var level2bPlatformTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2bPlatformTilemap, 0, ((chooseAPath1TilemapWithOffset.YOffset - level2bPlatformTilemap.GetHeight()) | 0), false);
 
                     list.add(level2bPlatformTilemapWithOffset);
 
@@ -30368,25 +34263,25 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var chooseAPath2TilemapB = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2B_Drop2"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var chooseAPath2TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? chooseAPath2TilemapA : chooseAPath2TilemapB, 0, ((level2bPlatformTilemapWithOffset.YOffset - chooseAPath2TilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var chooseAPath2TilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? chooseAPath2TilemapA : chooseAPath2TilemapB, 0, ((level2bPlatformTilemapWithOffset.YOffset - chooseAPath2TilemapA.GetHeight()) | 0), false);
 
                     list.add(chooseAPath2TilemapWithOffset);
 
                     var level2cLowerFloorTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2C_LowerFloor"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2cLowerFloorTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2cLowerFloorTilemap, chooseAPath2TilemapWithOffset.XOffset, ((chooseAPath2TilemapWithOffset.YOffset - level2cLowerFloorTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var level2cLowerFloorTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2cLowerFloorTilemap, chooseAPath2TilemapWithOffset.XOffset, ((chooseAPath2TilemapWithOffset.YOffset - level2cLowerFloorTilemap.GetHeight()) | 0), false);
 
                     list.add(level2cLowerFloorTilemapWithOffset);
 
                     var cutsceneTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2D_Cutscene"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.SAVESTATE_CUTSCENE, 384, gameMusic);
 
-                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseSaveStates ? new TuxPlanetSpeedrunAnyPercentLibrary.NoCutsceneWrappedTilemap(cutsceneTilemap) : cutsceneTilemap, ((level2cLowerFloorTilemapWithOffset.XOffset + level2cLowerFloorTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0), level2cLowerFloorTilemapWithOffset.YOffset, false);
+                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseSaveStates ? TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.GetTilemapWithoutCutscene(cutsceneTilemap) : cutsceneTilemap, ((level2cLowerFloorTilemapWithOffset.XOffset + level2cLowerFloorTilemap.GetWidth()) | 0), level2cLowerFloorTilemapWithOffset.YOffset, false);
 
                     list.add(cutsceneTilemapWithOffset);
 
                     var level2eTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2E"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2eTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2eTilemap, ((cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0), ((cutsceneTilemapWithOffset.YOffset + 960) | 0), false);
+                    var level2eTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2eTilemap, ((cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.GetWidth()) | 0), ((cutsceneTilemapWithOffset.YOffset + 960) | 0), false);
 
                     list.add(level2eTilemapWithOffset);
 
@@ -30395,13 +34290,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var level2fTilemapC = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop3"), enemyIdGenerator, null, 384, gameMusic);
                     var level2fTilemapD = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop4"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2fTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapA : level2fTilemapB) : (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapC : level2fTilemapD), level2eTilemapWithOffset.XOffset, ((level2eTilemapWithOffset.YOffset - level2fTilemapA.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var level2fTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapA : level2fTilemapB) : (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapC : level2fTilemapD), level2eTilemapWithOffset.XOffset, ((level2eTilemapWithOffset.YOffset - level2fTilemapA.GetHeight()) | 0), false);
 
                     list.add(level2fTilemapWithOffset);
 
                     var level2fPlatformTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Platform"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2fPlatformTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2fPlatformTilemap, level2fTilemapWithOffset.XOffset, ((level2fTilemapWithOffset.YOffset - level2fPlatformTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var level2fPlatformTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(level2fPlatformTilemap, level2fTilemapWithOffset.XOffset, ((level2fTilemapWithOffset.YOffset - level2fPlatformTilemap.GetHeight()) | 0), false);
 
                     list.add(level2fPlatformTilemapWithOffset);
 
@@ -30410,43 +34305,59 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     var level2fTilemapC2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop3"), enemyIdGenerator, null, 384, gameMusic);
                     var level2fTilemapD2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2F_Drop4"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level2fTilemapWithOffset2 = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapA2 : level2fTilemapB2) : (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapC2 : level2fTilemapD2), level2fPlatformTilemapWithOffset.XOffset, ((level2fPlatformTilemapWithOffset.YOffset - level2fTilemapA2.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var level2fTilemapWithOffset2 = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapA2 : level2fTilemapB2) : (random.DTLibrary$IDTRandom$NextBool() ? level2fTilemapC2 : level2fTilemapD2), level2fPlatformTilemapWithOffset.XOffset, ((level2fPlatformTilemapWithOffset.YOffset - level2fTilemapA2.GetHeight()) | 0), false);
 
                     list.add(level2fTilemapWithOffset2);
 
                     var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level2G_Finish"), enemyIdGenerator, null, 384, gameMusic);
 
-                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, level2fTilemapWithOffset2.XOffset, ((level2fTilemapWithOffset2.YOffset - finishTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false));
+                    list.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, level2fTilemapWithOffset2.XOffset, ((level2fTilemapWithOffset2.YOffset - finishTilemap.GetHeight()) | 0), false));
 
                     return list;
                 }
             }
         },
         fields: {
-            normalizedTilemaps: null
+            normalizedTilemaps: null,
+            shouldSpawnRemoveKonqi: false,
+            background: null
         },
         alias: [
+            "GetCustomLevelInfo", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCustomLevelInfo",
             "GetBackground", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground",
-            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap"
+            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap",
+            "GetCameraState", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCameraState"
         ],
         ctors: {
             ctor: function (mapInfo, canAlreadyUseSaveStates, random) {
                 this.$initialize();
                 var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level2.ConstructUnnormalizedTilemaps(mapInfo, canAlreadyUseSaveStates, random);
 
-                if (canAlreadyUseSaveStates) {
-                    unnormalizedTilemaps.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(), 0, 0, true));
-                }
+                this.shouldSpawnRemoveKonqi = canAlreadyUseSaveStates;
 
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
+
+                this.background = TuxPlanetSpeedrunAnyPercentLibrary.BackgroundUtil.GetRandomBackground(random);
             }
         },
         methods: {
-            GetBackground: function () {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.Background_Ocean();
+            GetCustomLevelInfo: function () {
+                return new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
             },
-            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight) {
-                return TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, windowWidth, windowHeight);
+            GetBackground: function () {
+                return this.background;
+            },
+            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight, levelFlags, mapKeyState) {
+                var tilemap = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, mapKeyState, windowWidth, windowHeight);
+
+                if (this.shouldSpawnRemoveKonqi) {
+                    tilemap = new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(tilemap);
+                }
+
+                return tilemap;
+            },
+            GetCameraState: function (tuxXMibi, tuxYMibi, tuxTeleportStartingLocation, tuxTeleportInProgressElapsedMicros, tilemap, windowWidth, windowHeight, levelFlags) {
+                return null;
             }
         }
     });
@@ -30470,19 +34381,19 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var dropTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3B_Drop"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var dropTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(dropTilemap, ((startTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth() + Bridge.Int.mul(Bridge.Int.mul(random.DTLibrary$IDTRandom$NextInt(10), 16), 3)) | 0), -1440, false);
+                    var dropTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(dropTilemap, ((startTilemap.GetWidth() + Bridge.Int.mul(Bridge.Int.mul(random.DTLibrary$IDTRandom$NextInt(10), 16), 3)) | 0), -1440, false);
 
                     list.add(dropTilemapWithOffset);
 
                     var cutsceneTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3C_Cutscene"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TELEPORT_CUTSCENE, 384, gameMusic);
 
-                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseTeleport ? new TuxPlanetSpeedrunAnyPercentLibrary.NoCutsceneWrappedTilemap(cutsceneTilemap) : cutsceneTilemap, ((((dropTilemapWithOffset.XOffset + dropTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0) + Bridge.Int.mul(Bridge.Int.mul(random.DTLibrary$IDTRandom$NextInt(10), 16), 3)) | 0), ((dropTilemapWithOffset.YOffset - 1440) | 0), false);
+                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseTeleport ? TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.GetTilemapWithoutCutscene(cutsceneTilemap) : cutsceneTilemap, ((((dropTilemapWithOffset.XOffset + dropTilemap.GetWidth()) | 0) + Bridge.Int.mul(Bridge.Int.mul(random.DTLibrary$IDTRandom$NextInt(10), 16), 3)) | 0), ((dropTilemapWithOffset.YOffset - 1440) | 0), false);
 
                     list.add(cutsceneTilemapWithOffset);
 
                     var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level3D_Finish"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var finishTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, ((cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth()) | 0), ((cutsceneTilemapWithOffset.YOffset - 1392) | 0), false);
+                    var finishTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, ((cutsceneTilemapWithOffset.XOffset + cutsceneTilemap.GetWidth()) | 0), ((cutsceneTilemapWithOffset.YOffset - 1392) | 0), false);
 
                     list.add(finishTilemapWithOffset);
 
@@ -30491,30 +34402,46 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         fields: {
-            normalizedTilemaps: null
+            normalizedTilemaps: null,
+            shouldSpawnRemoveKonqi: false,
+            background: null
         },
         alias: [
+            "GetCustomLevelInfo", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCustomLevelInfo",
             "GetBackground", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground",
-            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap"
+            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap",
+            "GetCameraState", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCameraState"
         ],
         ctors: {
             ctor: function (mapInfo, canAlreadyUseTeleport, random) {
                 this.$initialize();
                 var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level3.ConstructUnnormalizedTilemaps(mapInfo, canAlreadyUseTeleport, random);
 
-                if (canAlreadyUseTeleport) {
-                    unnormalizedTilemaps.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(), 0, 0, true));
-                }
+                this.shouldSpawnRemoveKonqi = canAlreadyUseTeleport;
 
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
+
+                this.background = TuxPlanetSpeedrunAnyPercentLibrary.BackgroundUtil.GetRandomBackground(random);
             }
         },
         methods: {
-            GetBackground: function () {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.Background_Ocean();
+            GetCustomLevelInfo: function () {
+                return new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
             },
-            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight) {
-                return TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, windowWidth, windowHeight);
+            GetBackground: function () {
+                return this.background;
+            },
+            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight, levelFlags, mapKeyState) {
+                var tilemap = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, mapKeyState, windowWidth, windowHeight);
+
+                if (this.shouldSpawnRemoveKonqi) {
+                    tilemap = new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(tilemap);
+                }
+
+                return tilemap;
+            },
+            GetCameraState: function (tuxXMibi, tuxYMibi, tuxTeleportStartingLocation, tuxTeleportInProgressElapsedMicros, tilemap, windowWidth, windowHeight, levelFlags) {
+                return null;
             }
         }
     });
@@ -30540,13 +34467,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var level4bTilemap2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4B_Segment2"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level4bTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? level4bTilemap1 : level4bTilemap2, 0, startTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight(), false);
+                    var level4bTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? level4bTilemap1 : level4bTilemap2, 0, startTilemap.GetHeight(), false);
 
                     list.add(level4bTilemapWithOffset);
 
                     var cutsceneTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4C_Cutscene"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.TIME_SLOWDOWN_CUTSCENE, 384, gameMusic);
 
-                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseTimeSlowdown ? new TuxPlanetSpeedrunAnyPercentLibrary.NoCutsceneWrappedTilemap(cutsceneTilemap) : cutsceneTilemap, 0, ((level4bTilemapWithOffset.YOffset + level4bTilemap1.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var cutsceneTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(canAlreadyUseTimeSlowdown ? TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.GetTilemapWithoutCutscene(cutsceneTilemap) : cutsceneTilemap, 0, ((level4bTilemapWithOffset.YOffset + level4bTilemap1.GetHeight()) | 0), false);
 
                     list.add(cutsceneTilemapWithOffset);
 
@@ -30554,13 +34481,13 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     var level4dTilemap2 = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4D_Segment2"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var level4dTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? level4dTilemap1 : level4dTilemap2, 0, ((cutsceneTilemapWithOffset.YOffset + cutsceneTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var level4dTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(random.DTLibrary$IDTRandom$NextBool() ? level4dTilemap1 : level4dTilemap2, 0, ((cutsceneTilemapWithOffset.YOffset + cutsceneTilemap.GetHeight()) | 0), false);
 
                     list.add(level4dTilemapWithOffset);
 
                     var finishTilemap = TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level4E_Finish"), enemyIdGenerator, null, 384, gameMusic);
 
-                    var finishTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, 0, ((level4dTilemapWithOffset.YOffset + level4dTilemap1.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight()) | 0), false);
+                    var finishTilemapWithOffset = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(finishTilemap, 0, ((level4dTilemapWithOffset.YOffset + level4dTilemap1.GetHeight()) | 0), false);
 
                     list.add(finishTilemapWithOffset);
 
@@ -30569,30 +34496,46 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             }
         },
         fields: {
-            normalizedTilemaps: null
+            normalizedTilemaps: null,
+            shouldSpawnRemoveKonqi: false,
+            background: null
         },
         alias: [
+            "GetCustomLevelInfo", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCustomLevelInfo",
             "GetBackground", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground",
-            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap"
+            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap",
+            "GetCameraState", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCameraState"
         ],
         ctors: {
             ctor: function (mapInfo, canAlreadyUseTimeSlowdown, random) {
                 this.$initialize();
                 var unnormalizedTilemaps = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level4.ConstructUnnormalizedTilemaps(mapInfo, canAlreadyUseTimeSlowdown, random);
 
-                if (canAlreadyUseTimeSlowdown) {
-                    unnormalizedTilemaps.add(new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(), 0, 0, true));
-                }
+                this.shouldSpawnRemoveKonqi = canAlreadyUseTimeSlowdown;
 
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
+
+                this.background = TuxPlanetSpeedrunAnyPercentLibrary.BackgroundUtil.GetRandomBackground(random);
             }
         },
         methods: {
-            GetBackground: function () {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.Background_Ocean();
+            GetCustomLevelInfo: function () {
+                return new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
             },
-            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight) {
-                return TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, windowWidth, windowHeight);
+            GetBackground: function () {
+                return this.background;
+            },
+            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight, levelFlags, mapKeyState) {
+                var tilemap = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, mapKeyState, windowWidth, windowHeight);
+
+                if (this.shouldSpawnRemoveKonqi) {
+                    tilemap = new TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap(tilemap);
+                }
+
+                return tilemap;
+            },
+            GetCameraState: function (tuxXMibi, tuxYMibi, tuxTeleportStartingLocation, tuxTeleportInProgressElapsedMicros, tilemap, windowWidth, windowHeight, levelFlags) {
+                return null;
             }
         }
     });
@@ -30612,7 +34555,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                     list.add(startTilemap);
 
-                    var xOffset = (startTilemap.Tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth() + Bridge.Int.mul(Bridge.Int.mul((((3 + random.DTLibrary$IDTRandom$NextInt(5)) | 0)), 16), 3)) | 0;
+                    var xOffset = (startTilemap.Tilemap.GetWidth() + Bridge.Int.mul(Bridge.Int.mul((((3 + random.DTLibrary$IDTRandom$NextInt(5)) | 0)), 16), 3)) | 0;
 
                     var yOffset = 144;
 
@@ -30630,7 +34573,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
 
                         list.add(fragmentTilemapWithOffset);
 
-                        xOffset = (xOffset + (((fragmentTilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth() + Bridge.Int.mul(Bridge.Int.mul((((3 + random.DTLibrary$IDTRandom$NextInt(5)) | 0)), 16), 3)) | 0))) | 0;
+                        xOffset = (xOffset + (((fragmentTilemap.GetWidth() + Bridge.Int.mul(Bridge.Int.mul((((3 + random.DTLibrary$IDTRandom$NextInt(5)) | 0)), 16), 3)) | 0))) | 0;
 
                         if (yOffset === 480) {
                             yOffset = (yOffset + (Bridge.Int.mul(Bridge.Int.mul((((random.DTLibrary$IDTRandom$NextInt(3) - 2) | 0)), 16), 3))) | 0;
@@ -30663,11 +34606,14 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         },
         fields: {
             normalizedTilemaps: null,
-            endingXMibi: 0
+            endingXMibi: 0,
+            background: null
         },
         alias: [
+            "GetCustomLevelInfo", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCustomLevelInfo",
             "GetBackground", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground",
-            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap"
+            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap",
+            "GetCameraState", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCameraState"
         ],
         ctors: {
             ctor: function (mapInfo, random) {
@@ -30679,16 +34625,160 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                 this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
 
                 this.endingXMibi = result.Item2;
+
+                this.background = TuxPlanetSpeedrunAnyPercentLibrary.BackgroundUtil.GetRandomBackground(random);
             }
         },
         methods: {
-            GetBackground: function () {
-                return new TuxPlanetSpeedrunAnyPercentLibrary.Background_Ocean();
+            GetCustomLevelInfo: function () {
+                return new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
             },
-            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight) {
-                var tilemap = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, windowWidth, windowHeight);
+            GetBackground: function () {
+                return this.background;
+            },
+            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight, levelFlags, mapKeyState) {
+                var tilemap = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, mapKeyState, windowWidth, windowHeight);
 
                 return new TuxPlanetSpeedrunAnyPercentLibrary.Level5Tilemap(tilemap, this.endingXMibi);
+            },
+            GetCameraState: function (tuxXMibi, tuxYMibi, tuxTeleportStartingLocation, tuxTeleportInProgressElapsedMicros, tilemap, windowWidth, windowHeight, levelFlags) {
+                return null;
+            }
+        }
+    });
+
+    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6", {
+        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ILevelConfiguration],
+        statics: {
+            fields: {
+                BOSS_ROOM_X_OFFSET_START: null,
+                BOSS_ROOM_X_OFFSET_END: null,
+                KONQI_BOSS_RNG_SEED: null,
+                BEGIN_BOSS_BATTLE: null,
+                BOSS_DEFEATED: null,
+                DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS: null,
+                BOSS_DEFEATED_RESTORE_DEFAULT_CAMERA: null
+            },
+            ctors: {
+                init: function () {
+                    this.BOSS_ROOM_X_OFFSET_START = "level6_bossRoomXOffsetStart";
+                    this.BOSS_ROOM_X_OFFSET_END = "level6_bossRoomXOffsetEnd";
+                    this.KONQI_BOSS_RNG_SEED = "level6_konqiBossRngSeed";
+                    this.BEGIN_BOSS_BATTLE = "level6_beginBossBattle";
+                    this.BOSS_DEFEATED = "level6_bossDefeated";
+                    this.DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS = "level6_despawnKonqiAndRemoveBossDoors";
+                    this.BOSS_DEFEATED_RESTORE_DEFAULT_CAMERA = "level6_bossDefeatedRestoreDefaultCamera";
+                }
+            },
+            methods: {
+                GetBossRoomCameraState: function (customLevelInfo, tilemap, windowWidth, windowHeight) {
+                    var bossRoomXOffset = DTLibrary.StringUtil.ParseInt(customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START));
+
+                    return TuxPlanetSpeedrunAnyPercentLibrary.CameraState.GetCameraState(((((bossRoomXOffset - 48) | 0) + (windowWidth >> 1)) | 0), windowHeight >> 1);
+                },
+                ConstructUnnormalizedTilemaps: function (mapInfo, random) {
+                    var gameMusic = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetRandomGameMusic(random);
+
+                    var customLevelInfo = new (System.Collections.Generic.Dictionary$2(System.String,System.String))();
+
+                    var enemyIdGenerator = new TuxPlanetSpeedrunAnyPercentLibrary.EnemyIdGenerator();
+
+                    var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).ctor();
+
+                    /* 
+                    				The camera isn't always centered on Tux, and we don't want tilemaps to despawn if they're
+                    				too far from Tux but still in view of the camera.
+                    			*/
+                    var alwaysIncludeTilemap = true;
+
+                    var startTilemap = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level6A_Start"), enemyIdGenerator, TuxPlanetSpeedrunAnyPercentLibrary.CutsceneProcessing.BOSS_CUTSCENE, 384, gameMusic), 0, 0, alwaysIncludeTilemap);
+
+                    list.add(startTilemap);
+
+                    customLevelInfo.set(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START, DTLibrary.StringUtil.ToStringCultureInvariant(startTilemap.Tilemap.GetWidth()));
+
+                    var bossTilemap = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level6B_Boss"), enemyIdGenerator, null, 384, gameMusic), startTilemap.Tilemap.GetWidth(), 0, alwaysIncludeTilemap);
+
+                    list.add(bossTilemap);
+
+                    customLevelInfo.set(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_END, DTLibrary.StringUtil.ToStringCultureInvariant((((bossTilemap.XOffset + bossTilemap.Tilemap.GetWidth()) | 0))));
+
+                    var finishTilemap = new TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset(TuxPlanetSpeedrunAnyPercentLibrary.MapDataTilemapGenerator.GetTilemap(mapInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$TuxPlanetSpeedrunAnyPercentLibrary$MapDataHelper$Map$getItem("Level6C_Finish"), enemyIdGenerator, null, 384, gameMusic), ((bossTilemap.XOffset + bossTilemap.Tilemap.GetWidth()) | 0), 0, alwaysIncludeTilemap);
+
+                    list.add(finishTilemap);
+
+                    var konqiRandom = new DTLibrary.DTDeterministicRandom.ctor();
+                    for (var i = 0; i < 40; i = (i + 1) | 0) {
+                        var jEnd = (random.DTLibrary$IDTRandom$NextInt(3) + 1) | 0;
+                        for (var j = 0; j < jEnd; j = (j + 1) | 0) {
+                            konqiRandom.AddSeed(random.DTLibrary$IDTRandom$NextInt(100));
+                        }
+                    }
+                    customLevelInfo.set(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.KONQI_BOSS_RNG_SEED, konqiRandom.SerializeToString());
+
+                    return { Item1: list, Item2: customLevelInfo };
+                }
+            }
+        },
+        fields: {
+            normalizedTilemaps: null,
+            customLevelInfo: null,
+            background: null
+        },
+        alias: [
+            "GetCustomLevelInfo", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCustomLevelInfo",
+            "GetBackground", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetBackground",
+            "GetTilemap", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetTilemap",
+            "GetCameraState", "TuxPlanetSpeedrunAnyPercentLibrary$ILevelConfiguration$GetCameraState"
+        ],
+        ctors: {
+            ctor: function (mapInfo, random) {
+                this.$initialize();
+                var result = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.ConstructUnnormalizedTilemaps(mapInfo, random);
+
+                var unnormalizedTilemaps = result.Item1;
+
+                this.normalizedTilemaps = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.TilemapWithOffset)).$ctor1(TuxPlanetSpeedrunAnyPercentLibrary.CompositeTilemap.NormalizeTilemaps(unnormalizedTilemaps));
+
+                this.customLevelInfo = new (System.Collections.Generic.Dictionary$2(System.String,System.String))(result.Item2);
+
+                this.background = TuxPlanetSpeedrunAnyPercentLibrary.BackgroundUtil.GetRandomBackground(random);
+            }
+        },
+        methods: {
+            GetCustomLevelInfo: function () {
+                return this.customLevelInfo;
+            },
+            GetBackground: function () {
+                return this.background;
+            },
+            GetTilemap: function (tuxX, tuxY, windowWidth, windowHeight, levelFlags, mapKeyState) {
+                if (!System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BEGIN_BOSS_BATTLE)) {
+                    return TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, mapKeyState, windowWidth, windowHeight);
+                }
+
+                var boundedTilemap = TuxPlanetSpeedrunAnyPercentLibrary.LevelConfigurationHelper.GetTilemap(this.normalizedTilemaps, tuxX, tuxY, mapKeyState, windowWidth, windowHeight);
+
+                if (System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_DEFEATED)) {
+                    return new TuxPlanetSpeedrunAnyPercentLibrary.Level6Tilemap_BossDefeated(boundedTilemap, DTLibrary.StringUtil.ParseAsIntCultureInvariant(this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START)), DTLibrary.StringUtil.ParseAsIntCultureInvariant(this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_END)), !System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS));
+                }
+
+                return new TuxPlanetSpeedrunAnyPercentLibrary.Level6Tilemap_BossBattle(boundedTilemap, DTLibrary.StringUtil.ParseAsIntCultureInvariant(this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START)), DTLibrary.StringUtil.ParseAsIntCultureInvariant(this.customLevelInfo.System$Collections$Generic$IReadOnlyDictionary$2$System$String$System$String$getItem(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_END)));
+            },
+            GetCameraState: function (tuxXMibi, tuxYMibi, tuxTeleportStartingLocation, tuxTeleportInProgressElapsedMicros, tilemap, windowWidth, windowHeight, levelFlags) {
+                if (System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BEGIN_BOSS_BATTLE) && !System.Linq.Enumerable.from(levelFlags).contains(TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.BOSS_DEFEATED_RESTORE_DEFAULT_CAMERA)) {
+                    return TuxPlanetSpeedrunAnyPercentLibrary.LevelConfiguration_Level6.GetBossRoomCameraState(this.GetCustomLevelInfo(), tilemap, windowWidth, windowHeight);
+                }
+
+                var cameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraStateProcessing.ComputeCameraState(tuxXMibi, tuxYMibi, tuxTeleportStartingLocation, tuxTeleportInProgressElapsedMicros, tilemap, windowWidth, windowHeight);
+
+                var maximumCameraX = (((tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth() - (windowWidth >> 1)) | 0) - 96) | 0;
+
+                if (cameraState.X > maximumCameraX) {
+                    cameraState = TuxPlanetSpeedrunAnyPercentLibrary.CameraState.GetCameraState(maximumCameraX, cameraState.Y);
+                }
+
+                return cameraState;
             }
         }
     });
@@ -30708,6 +34798,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
             "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
             "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetMapKeyLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation",
             "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
             "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
             "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
@@ -30747,6 +34838,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetTuxLocation: function (xOffset, yOffset) {
                 return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(xOffset, yOffset);
             },
+            GetMapKeyLocation: function (mapKey, xOffset, yOffset) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation(mapKey, xOffset, yOffset);
+            },
             GetEnemies: function (xOffset, yOffset) {
                 return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies(xOffset, yOffset);
             },
@@ -30765,7 +34859,8 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
     Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.SpawnRemoveKonqiTilemap", {
         inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ITilemap],
         fields: {
-            removeKonqiEnemy: null
+            removeKonqiEnemy: null,
+            tilemap: null
         },
         alias: [
             "IsGround", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround",
@@ -30777,265 +34872,66 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
             "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
             "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation",
+            "GetMapKeyLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation",
             "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
             "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
             "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
             "RenderForegroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles"
         ],
         ctors: {
-            ctor: function () {
+            ctor: function (tilemap) {
                 this.$initialize();
-                this.removeKonqiEnemy = function (_o1) {
-                        _o1.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemyRemoveKonqiCutscene("SpawnRemoveKonqiTilemap_removeKonqi"));
-                        return _o1;
-                    }(new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor());
+                this.removeKonqiEnemy = new TuxPlanetSpeedrunAnyPercentLibrary.EnemyRemoveKonqiCutscene("SpawnRemoveKonqiTilemap_removeKonqi");
+                this.tilemap = tilemap;
             }
         },
         methods: {
             IsGround: function (x, y) {
-                return false;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround(x, y);
             },
             IsKillZone: function (x, y) {
-                return false;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone(x, y);
             },
             IsSpikes: function (x, y) {
-                return false;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes(x, y);
             },
             IsEndOfLevel: function (x, y) {
-                return false;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel(x, y);
             },
             GetCutscene: function (x, y) {
-                return null;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene(x, y);
             },
             GetCheckpoint: function (x, y) {
-                return null;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint(x, y);
             },
             GetWidth: function () {
-                return 100;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth();
             },
             GetHeight: function () {
-                return 100;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight();
             },
             GetTuxLocation: function (xOffset, yOffset) {
-                return null;
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation(xOffset, yOffset);
+            },
+            GetMapKeyLocation: function (mapKey, xOffset, yOffset) {
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetMapKeyLocation(mapKey, xOffset, yOffset);
             },
             GetEnemies: function (xOffset, yOffset) {
-                return this.removeKonqiEnemy;
+                var enemies = this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies(xOffset, yOffset);
+
+                var returnValue = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).$ctor1(enemies);
+                returnValue.add(this.removeKonqiEnemy);
+
+                return returnValue;
             },
             PlayMusic: function () {
-                return null;
-            },
-            RenderBackgroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) { },
-            RenderForegroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) { }
-        }
-    });
-
-    Bridge.define("TuxPlanetSpeedrunAnyPercentLibrary.Tilemap", {
-        inherits: [TuxPlanetSpeedrunAnyPercentLibrary.ITilemap],
-        fields: {
-            backgroundSpritesArray: null,
-            foregroundSpritesArray: null,
-            isGroundArray: null,
-            isKillZoneArray: null,
-            isSpikesArray: null,
-            isEndOfLevelArray: null,
-            isCutsceneArray: null,
-            checkpointArray: null,
-            tileWidth: 0,
-            tileHeight: 0,
-            tilemapWidth: 0,
-            tilemapHeight: 0,
-            enemies: null,
-            cutsceneName: null,
-            tuxLocation: null,
-            gameMusic: 0
-        },
-        alias: [
-            "IsGround", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsGround",
-            "IsSpikes", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsSpikes",
-            "IsKillZone", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsKillZone",
-            "IsEndOfLevel", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$IsEndOfLevel",
-            "GetCutscene", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCutscene",
-            "GetCheckpoint", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetCheckpoint",
-            "GetWidth", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetWidth",
-            "GetHeight", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetHeight",
-            "RenderBackgroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles",
-            "RenderForegroundTiles", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles",
-            "GetEnemies", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetEnemies",
-            "PlayMusic", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic",
-            "GetTuxLocation", "TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$GetTuxLocation"
-        ],
-        ctors: {
-            ctor: function (backgroundSpritesArray, foregroundSpritesArray, isGroundArray, isKillZoneArray, isSpikesArray, isEndOfLevelArray, isCutsceneArray, checkpointArray, tileWidth, tileHeight, enemies, cutsceneName, tuxLocation, gameMusic) {
-                this.$initialize();
-                this.backgroundSpritesArray = TuxPlanetSpeedrunAnyPercentLibrary.SpriteUtil.CopySpriteArray(backgroundSpritesArray);
-                this.foregroundSpritesArray = TuxPlanetSpeedrunAnyPercentLibrary.SpriteUtil.CopySpriteArray(foregroundSpritesArray);
-                this.isGroundArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isGroundArray);
-                this.isKillZoneArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isKillZoneArray);
-                this.isSpikesArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isSpikesArray);
-                this.isEndOfLevelArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isEndOfLevelArray);
-                this.isCutsceneArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.CopyBoolArray(isCutsceneArray);
-                this.checkpointArray = TuxPlanetSpeedrunAnyPercentLibrary.ArrayUtil.ShallowCopyTArray(System.Tuple$2(System.Int32,System.Int32), checkpointArray);
-                this.tileWidth = tileWidth;
-                this.tileHeight = tileHeight;
-                this.tilemapWidth = Bridge.Int.mul(tileWidth, foregroundSpritesArray.length);
-                this.tilemapHeight = Bridge.Int.mul(tileHeight, foregroundSpritesArray[System.Array.index(0, foregroundSpritesArray)].length);
-                this.enemies = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.Tilemap.EnemySpawnLocation)).$ctor1(enemies);
-                this.cutsceneName = cutsceneName;
-                this.tuxLocation = tuxLocation;
-                this.gameMusic = gameMusic;
-            }
-        },
-        methods: {
-            GetArrayValue: function (array, worldX, worldY) {
-                var $t;
-                if (worldX < 0 || worldY < 0) {
-                    return false;
-                }
-
-                var arrayI = (Bridge.Int.div(worldX, this.tileWidth)) | 0;
-                var arrayJ = (Bridge.Int.div(worldY, this.tileHeight)) | 0;
-
-                if (arrayI < array.length) {
-                    if (arrayJ < array[System.Array.index(arrayI, array)].length) {
-                        return ($t = array[System.Array.index(arrayI, array)])[System.Array.index(arrayJ, $t)];
-                    }
-                }
-
-                return false;
-            },
-            IsGround: function (x, y) {
-                return this.GetArrayValue(this.isGroundArray, x, y);
-            },
-            IsSpikes: function (x, y) {
-                return this.GetArrayValue(this.isSpikesArray, x, y);
-            },
-            IsKillZone: function (x, y) {
-                return this.GetArrayValue(this.isKillZoneArray, x, y);
-            },
-            IsEndOfLevel: function (x, y) {
-                return this.GetArrayValue(this.isEndOfLevelArray, x, y);
-            },
-            GetCutscene: function (x, y) {
-                var isCutscene = this.GetArrayValue(this.isCutsceneArray, x, y);
-
-                if (isCutscene) {
-                    return this.cutsceneName;
-                }
-
-                return null;
-            },
-            GetCheckpoint: function (x, y) {
-                var $t;
-                if (x < 0 || y < 0) {
-                    return null;
-                }
-
-                var arrayI = (Bridge.Int.div(x, this.tileWidth)) | 0;
-                var arrayJ = (Bridge.Int.div(y, this.tileHeight)) | 0;
-
-                if (arrayI < this.checkpointArray.length) {
-                    if (arrayJ < this.checkpointArray[System.Array.index(arrayI, this.checkpointArray)].length) {
-                        return ($t = this.checkpointArray[System.Array.index(arrayI, this.checkpointArray)])[System.Array.index(arrayJ, $t)];
-                    }
-                }
-
-                return null;
-            },
-            GetWidth: function () {
-                return this.tilemapWidth;
-            },
-            GetHeight: function () {
-                return this.tilemapHeight;
-            },
-            RenderSprites: function (sprites, cameraX, cameraY, windowWidth, windowHeight, displayOutput) {
-                var $t;
-                var worldX = 0;
-
-                var windowLeft = (cameraX - ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0;
-                var windowRight = (cameraX + ((Bridge.Int.div(windowWidth, 2)) | 0)) | 0;
-                var windowBottom = (cameraY - ((Bridge.Int.div(windowHeight, 2)) | 0)) | 0;
-                var windowTop = (cameraY + ((Bridge.Int.div(windowHeight, 2)) | 0)) | 0;
-
-                for (var i = 0; i < sprites.length; i = (i + 1) | 0) {
-                    if (windowLeft <= ((worldX + this.tileWidth) | 0) && worldX <= windowRight) {
-                        var worldY = 0;
-
-                        for (var j = 0; j < sprites[System.Array.index(i, sprites)].length; j = (j + 1) | 0) {
-                            if (windowBottom <= ((worldY + this.tileHeight) | 0) && worldY <= windowTop) {
-                                var sprite = ($t = sprites[System.Array.index(i, sprites)])[System.Array.index(j, $t)];
-
-                                if (sprite != null) {
-                                    displayOutput.DTLibrary$IDisplayOutput$2$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$DrawImageRotatedClockwise$2(sprite.Image, sprite.X, sprite.Y, sprite.Width, sprite.Height, worldX, worldY, 0, sprite.ScalingFactorScaled);
-                                }
-                            }
-
-                            worldY = (worldY + this.tileHeight) | 0;
-                        }
-                    }
-
-                    worldX = (worldX + this.tileWidth) | 0;
-                }
+                return this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$PlayMusic();
             },
             RenderBackgroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
-                this.RenderSprites(this.backgroundSpritesArray, cameraX, cameraY, windowWidth, windowHeight, displayOutput);
+                this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderBackgroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
             },
             RenderForegroundTiles: function (displayOutput, cameraX, cameraY, windowWidth, windowHeight) {
-                this.RenderSprites(this.foregroundSpritesArray, cameraX, cameraY, windowWidth, windowHeight, displayOutput);
-            },
-            GetEnemies: function (xOffset, yOffset) {
-                var $t;
-                var list = new (System.Collections.Generic.List$1(TuxPlanetSpeedrunAnyPercentLibrary.IEnemy)).ctor();
-
-                var halfTileWidth = this.tileWidth >> 1;
-                var halfTileHeight = this.tileHeight >> 1;
-
-                $t = Bridge.getEnumerator(this.enemies);
-                try {
-                    while ($t.moveNext()) {
-                        var enemy = $t.Current;
-                        if (enemy.ActorId === 13) {
-                            var xMibi = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
-                            var yMibi = (((((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + 3) | 0) + yOffset) | 0)) << 10;
-
-                            var enemySmartcap = TuxPlanetSpeedrunAnyPercentLibrary.EnemySmartcap.GetEnemySmartcap(xMibi, yMibi, true, enemy.EnemyId);
-
-                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemySmartcap, xMibi, yMibi, 48, 54));
-                        } else if (enemy.ActorId === 23) {
-                            var xMibi1 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
-                            var yMibi1 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
-
-                            var konqi = TuxPlanetSpeedrunAnyPercentLibrary.EnemyKonqiCutscene.GetEnemyKonqiCutscene(xMibi1, yMibi1, enemy.EnemyId);
-
-                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(konqi, xMibi1, yMibi1, 96, 96));
-                        } else if (enemy.ActorId === 67) {
-                            var xMibi2 = (((((Bridge.Int.mul(enemy.TileI, this.tileWidth) + halfTileWidth) | 0) + xOffset) | 0)) << 10;
-                            var yMibi2 = (((((Bridge.Int.mul(enemy.TileJ, this.tileHeight) + halfTileHeight) | 0) + yOffset) | 0)) << 10;
-
-                            var enemyBlazeborn = TuxPlanetSpeedrunAnyPercentLibrary.EnemyBlazeborn.GetEnemyBlazeborn(xMibi2, yMibi2, true, enemy.EnemyId);
-
-                            list.add(new TuxPlanetSpeedrunAnyPercentLibrary.EnemySpawnHelper(enemyBlazeborn, xMibi2, yMibi2, 48, 48));
-                        } else {
-                            throw new System.Exception();
-                        }
-                    }
-                } finally {
-                    if (Bridge.is($t, System.IDisposable)) {
-                        $t.System$IDisposable$Dispose();
-                    }
-                }
-
-                return list;
-            },
-            PlayMusic: function () {
-                return this.gameMusic;
-            },
-            GetTuxLocation: function (xOffset, yOffset) {
-                if (this.tuxLocation != null) {
-                    return { Item1: ((this.tuxLocation.Item1 + xOffset) | 0), Item2: ((this.tuxLocation.Item2 + yOffset) | 0) };
-                }
-
-                return null;
+                this.tilemap.TuxPlanetSpeedrunAnyPercentLibrary$ITilemap$RenderForegroundTiles(displayOutput, cameraX, cameraY, windowWidth, windowHeight);
             }
         }
     });
@@ -41398,6 +45294,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
             "RenderMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic"
@@ -41485,6 +45382,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     return "https://github.com/dtsudo";
                 }
 
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             ProcessMusic: function () {
@@ -41590,6 +45490,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
             "RenderMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic"
@@ -41726,6 +45627,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetClickUrl: function () {
                 return null;
             },
+            GetCompletedAchievements: function () {
+                return null;
+            },
             ProcessMusic: function () {
                 this.globalState.ProcessMusic();
             },
@@ -41746,6 +45650,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -41760,6 +45665,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         methods: {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -41827,6 +45735,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -41844,6 +45753,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         methods: {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -41907,6 +45819,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -41931,6 +45844,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
                     return this.newFrame.DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl();
                 }
 
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -42019,6 +45935,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42041,6 +45958,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
                 return null;
+            },
+            GetCompletedAchievements: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.Achievements.GetCompletedAchievements(this.sessionState.Overworld.GetNumCompletedLevels());
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 this.globalState.MusicPlayer.SetMusic(TuxPlanetSpeedrunAnyPercentLibrary.GameMusic.PeaceAtLast, 100);
@@ -42109,6 +46029,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
             "RenderMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$RenderMusic"
@@ -42193,6 +46114,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             GetClickUrl: function () {
                 return null;
             },
+            GetCompletedAchievements: function () {
+                return null;
+            },
             ProcessMusic: function () {
                 this.globalState.ProcessMusic();
             },
@@ -42250,6 +46174,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42265,6 +46190,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         methods: {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -42303,6 +46231,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42318,6 +46247,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         methods: {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -42370,6 +46302,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42388,6 +46321,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         methods: {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -42450,6 +46386,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42470,6 +46407,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         methods: {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -42534,6 +46474,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42551,6 +46492,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         methods: {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -42613,6 +46557,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42632,6 +46577,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         methods: {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
+                return null;
+            },
+            GetCompletedAchievements: function () {
                 return null;
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
@@ -42698,6 +46646,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42733,6 +46682,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
                 return null;
+            },
+            GetCompletedAchievements: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.Achievements.GetCompletedAchievements(this.sessionState.Overworld.GetNumCompletedLevels());
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 this.sessionState.AddRandomSeed(17);
@@ -42862,6 +46814,7 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
         alias: [
             "ProcessExtraTime", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessExtraTime",
             "GetClickUrl", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetClickUrl",
+            "GetCompletedAchievements", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetCompletedAchievements",
             "GetNextFrame", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$GetNextFrame",
             "ProcessMusic", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$ProcessMusic",
             "Render", "DTLibrary$IFrame$4$TuxPlanetSpeedrunAnyPercentLibrary$GameImage$TuxPlanetSpeedrunAnyPercentLibrary$GameFont$TuxPlanetSpeedrunAnyPercentLibrary$GameSound$TuxPlanetSpeedrunAnyPercentLibrary$GameMusic$Render",
@@ -42880,6 +46833,9 @@ Bridge.assembly("TuxPlanetSpeedrunAnyPercent", function ($asm, globals) {
             ProcessExtraTime: function (milliseconds) { },
             GetClickUrl: function () {
                 return null;
+            },
+            GetCompletedAchievements: function () {
+                return TuxPlanetSpeedrunAnyPercentLibrary.Achievements.GetCompletedAchievements(this.sessionState.Overworld.GetNumCompletedLevels());
             },
             GetNextFrame: function (keyboardInput, mouseInput, previousKeyboardInput, previousMouseInput, displayProcessing, soundOutput, musicProcessing) {
                 if (!this.updatedSession) {

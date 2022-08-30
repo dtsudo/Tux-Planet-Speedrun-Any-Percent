@@ -30,11 +30,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public Tuple<int, int> StartingLocation { get; private set; }
 
+		public static IReadOnlyList<Level> GetWaterLevels()
+		{
+			return new List<Level>();
+		}
+
+		public static IReadOnlyList<Level> GetMountainLevels()
+		{
+			return new List<Level>() { Level.Level4 };
+		}
+
+		public static IReadOnlyList<Level> GetFortressLevels()
+		{
+			return new List<Level>() { Level.Level6 };
+		}
+
 		public static OverworldGameMap GenerateOverworldGameMap(int windowWidth, int windowHeight, IDTDeterministicRandom random)
 		{
 			Tile[][] tilemap = OverworldGameMapGenerator.GenerateOverworldGameMapTileArray(
 				windowWidth: windowWidth, 
-				windowHeight: windowHeight, 
+				windowHeight: windowHeight,
+				waterLevels: GetWaterLevels(),
+				mountainLevels: GetMountainLevels(),
+				fortressLevels: GetFortressLevels(),
 				random: random);
 
 			return new OverworldGameMap(

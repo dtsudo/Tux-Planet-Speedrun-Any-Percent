@@ -8,7 +8,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 	public class MapDataTilemapGenerator
 	{
-		public static ITilemap GetTilemap(
+		public static Tilemap GetTilemap(
 			MapDataHelper.Map data,
 			EnemyIdGenerator enemyIdGenerator,
 			string cutsceneName,
@@ -30,6 +30,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int numberOfTileRows = solidLayer.Height;
 
 			Tuple<int, int> tuxLocation = null;
+			Dictionary<MapKey, Tuple<int, int>> keyLocations = new Dictionary<MapKey, Tuple<int, int>>();
+			foreach (MapKey mapKey in Enum.GetValues(typeof(MapKey)))
+			{
+				keyLocations[mapKey] = null;
+			}
 
 			Sprite[][] backgroundSpritesArray = SpriteUtil.EmptySpriteArray(length1: numberOfTileColumns, length2: numberOfTileRows);
 			Sprite[][] foregroundSpritesArray = SpriteUtil.EmptySpriteArray(length1: numberOfTileColumns, length2: numberOfTileRows);
@@ -38,6 +43,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool[][] isSpikesArray = ArrayUtil.EmptyBoolArray(length1: numberOfTileColumns, length2: numberOfTileRows);
 			bool[][] isEndOfLevelArray = ArrayUtil.EmptyBoolArray(length1: numberOfTileColumns, length2: numberOfTileRows);
 			bool[][] isCutsceneArray = ArrayUtil.EmptyBoolArray(length1: numberOfTileColumns, length2: numberOfTileRows);
+			Dictionary<MapKey, bool[][]> isKeyTileArrays = new Dictionary<MapKey, bool[][]>();
+			foreach (MapKey mapKey in Enum.GetValues(typeof(MapKey)))
+			{
+				isKeyTileArrays[mapKey] = ArrayUtil.EmptyBoolArray(length1: numberOfTileColumns, length2: numberOfTileRows);
+			}
 
 			IReadOnlyList<int> solidLayerData = solidLayer.Data;
 			IReadOnlyList<int> foregroundLayerData = foregroundLayer.Data;
@@ -84,6 +94,38 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 								tuxLocation = new Tuple<int, int>(
 									item1: i * solidTileset.TileWidth * (scalingFactorScaled / 128),
 									item2: j * solidTileset.TileHeight * (scalingFactorScaled / 128) + 16 * (scalingFactorScaled / 128));
+							else if (actorGidNormalized == 48)
+							{
+								keyLocations[MapKey.Copper] = new Tuple<int, int>(
+									item1: i * solidTileset.TileWidth * (scalingFactorScaled / 128) + 8 * (scalingFactorScaled / 128),
+									item2: j * solidTileset.TileHeight * (scalingFactorScaled / 128) + 8 * (scalingFactorScaled / 128));
+							}
+							else if (actorGidNormalized == 49)
+							{
+								keyLocations[MapKey.Silver] = new Tuple<int, int>(
+									item1: i * solidTileset.TileWidth * (scalingFactorScaled / 128) + 8 * (scalingFactorScaled / 128),
+									item2: j * solidTileset.TileHeight * (scalingFactorScaled / 128) + 8 * (scalingFactorScaled / 128));
+							}
+							else if (actorGidNormalized == 50)
+							{
+								keyLocations[MapKey.Gold] = new Tuple<int, int>(
+									item1: i * solidTileset.TileWidth * (scalingFactorScaled / 128) + 8 * (scalingFactorScaled / 128),
+									item2: j * solidTileset.TileHeight * (scalingFactorScaled / 128) + 8 * (scalingFactorScaled / 128));
+							}
+							else if (actorGidNormalized == 51)
+							{
+								keyLocations[MapKey.Mythril] = new Tuple<int, int>(
+									item1: i * solidTileset.TileWidth * (scalingFactorScaled / 128) + 8 * (scalingFactorScaled / 128),
+									item2: j * solidTileset.TileHeight * (scalingFactorScaled / 128) + 8 * (scalingFactorScaled / 128));
+							}
+							else if (actorGidNormalized == 52)
+								isKeyTileArrays[MapKey.Copper][i][j] = true;
+							else if (actorGidNormalized == 53)
+								isKeyTileArrays[MapKey.Silver][i][j] = true;
+							else if (actorGidNormalized == 54)
+								isKeyTileArrays[MapKey.Gold][i][j] = true;
+							else if (actorGidNormalized == 55)
+								isKeyTileArrays[MapKey.Mythril][i][j] = true;
 							else
 								enemies.Add(new Tilemap.EnemySpawnLocation(
 									actorId: actorGidNormalized,
@@ -131,11 +173,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					solidTileset: solidTileset,
 					actorsTileset: actorsTileset,
 					scalingFactorScaled: scalingFactorScaled),
+				isKeyTileArrays: isKeyTileArrays,
 				tileWidth: solidTileset.TileWidth * scalingFactorScaled / 128,
 				tileHeight: solidTileset.TileHeight * scalingFactorScaled / 128,
 				enemies: enemies,
 				cutsceneName: cutsceneName,
 				tuxLocation: tuxLocation,
+				keyLocations: keyLocations,
 				gameMusic: gameMusic);
 		}
 
@@ -237,6 +281,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			tilesetToGameImageMapping["Solid"] = GameImage.Solid;
 			tilesetToGameImageMapping["Spikes"] = GameImage.Spikes;
 			tilesetToGameImageMapping["TsSnow"] = GameImage.TilemapSnow;
+			tilesetToGameImageMapping["TsCastle"] = GameImage.TilemapCastle;
 
 			MapDataHelper.Tileset tileset = tilesets.Where(x => x.FirstGid <= gid)
 				.OrderByDescending(x => x.FirstGid)
