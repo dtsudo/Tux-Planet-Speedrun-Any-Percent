@@ -12,6 +12,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		ITilemap GetTilemap(
 			int? tuxX, 
 			int? tuxY, 
+			int? cameraX,
+			int? cameraY,
 			int windowWidth, 
 			int windowHeight, 
 			IReadOnlyList<string> levelFlags,

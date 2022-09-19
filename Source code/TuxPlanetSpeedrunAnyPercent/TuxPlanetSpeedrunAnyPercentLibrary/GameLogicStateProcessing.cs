@@ -43,6 +43,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			ITilemap newTilemap = gameLogicState.LevelConfiguration.GetTilemap(
 				tuxX: gameLogicState.Tux.XMibi >> 10, 
 				tuxY: gameLogicState.Tux.YMibi >> 10,
+				cameraX: gameLogicState.Camera.X,
+				cameraY: gameLogicState.Camera.Y,
 				windowWidth: gameLogicState.WindowWidth,
 				windowHeight: gameLogicState.WindowHeight,
 				levelFlags: newLevelFlags,
@@ -244,6 +246,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				ITilemap restartedTilemap = gameLogicState.LevelConfiguration.GetTilemap(
 					tuxX: null,
 					tuxY: null,
+					cameraX: null,
+					cameraY: null,
 					windowWidth: gameLogicState.WindowWidth,
 					windowHeight: gameLogicState.WindowHeight,
 					levelFlags: gameLogicState.LevelFlagsAtCheckpoint,
@@ -256,14 +260,25 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				else
 					originalTuxState = TuxState.GetDefaultTuxState(x: gameLogicState.CheckpointLocation.Item1, y: gameLogicState.CheckpointLocation.Item2);
 
-				newCamera = CameraStateProcessing.ComputeCameraState(
+				newCamera = gameLogicState.LevelConfiguration.GetCameraState(
 					tuxXMibi: originalTuxState.XMibi,
 					tuxYMibi: originalTuxState.YMibi,
 					tuxTeleportStartingLocation: originalTuxState.TeleportStartingLocation,
 					tuxTeleportInProgressElapsedMicros: originalTuxState.TeleportInProgressElapsedMicros,
 					tilemap: restartedTilemap,
 					windowWidth: gameLogicState.WindowWidth,
-					windowHeight: gameLogicState.WindowHeight);
+					windowHeight: gameLogicState.WindowHeight,
+					levelFlags: gameLogicState.LevelFlagsAtCheckpoint);
+
+				if (newCamera == null)
+					newCamera = CameraStateProcessing.ComputeCameraState(
+						tuxXMibi: originalTuxState.XMibi,
+						tuxYMibi: originalTuxState.YMibi,
+						tuxTeleportStartingLocation: originalTuxState.TeleportStartingLocation,
+						tuxTeleportInProgressElapsedMicros: originalTuxState.TeleportInProgressElapsedMicros,
+						tilemap: restartedTilemap,
+						windowWidth: gameLogicState.WindowWidth,
+						windowHeight: gameLogicState.WindowHeight);
 
 				return new Result(
 					newGameLogicState: new GameLogicState(
@@ -392,6 +407,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				foreach (IEnemy enemy in gameLogicState.Enemies)
 					hitboxes.AddRange(enemy.GetHitboxes());
+
+				foreach (IEnemy enemy in gameLogicState.Enemies)
+					hitboxes.AddRange(enemy.GetDamageBoxes());
 
 				foreach (Hitbox hitbox in hitboxes)
 				{

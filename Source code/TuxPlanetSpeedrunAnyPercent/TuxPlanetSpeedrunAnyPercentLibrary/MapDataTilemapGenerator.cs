@@ -24,6 +24,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			MapDataHelper.Layer solidLayer = layers.Single(x => x.Name.ToUpperCaseCultureInvariant() == "SOLID");
 			MapDataHelper.Layer foregroundLayer = layers.Single(x => x.Name.ToUpperCaseCultureInvariant() == "FOREGROUND");
+			MapDataHelper.Layer midgroundLayer = layers.SingleOrDefault(x => x.Name.ToUpperCaseCultureInvariant() == "MIDGROUND");
 			MapDataHelper.Layer backgroundLayer = layers.Single(x => x.Name.ToUpperCaseCultureInvariant() == "BACKGROUND");
 
 			int numberOfTileColumns = solidLayer.Width;
@@ -37,6 +38,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			Sprite[][] backgroundSpritesArray = SpriteUtil.EmptySpriteArray(length1: numberOfTileColumns, length2: numberOfTileRows);
+			Sprite[][] midgroundSpritesArray = SpriteUtil.EmptySpriteArray(length1: numberOfTileColumns, length2: numberOfTileRows);
 			Sprite[][] foregroundSpritesArray = SpriteUtil.EmptySpriteArray(length1: numberOfTileColumns, length2: numberOfTileRows);
 			bool[][] isGroundArray = ArrayUtil.EmptyBoolArray(length1: numberOfTileColumns, length2: numberOfTileRows);
 			bool[][] isKillZoneArray = ArrayUtil.EmptyBoolArray(length1: numberOfTileColumns, length2: numberOfTileRows);
@@ -51,6 +53,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			IReadOnlyList<int> solidLayerData = solidLayer.Data;
 			IReadOnlyList<int> foregroundLayerData = foregroundLayer.Data;
+			IReadOnlyList<int> midgroundLayerData = midgroundLayer != null ? midgroundLayer.Data : null;
 			IReadOnlyList<int> backgroundLayerData = backgroundLayer.Data;
 
 			List<Tilemap.EnemySpawnLocation> enemies = new List<Tilemap.EnemySpawnLocation>();
@@ -71,6 +74,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				{
 					int solidGid = solidLayerData[dataIndex];
 					int foregroundGid = foregroundLayerData[dataIndex];
+					int midgroundGid = midgroundLayerData != null ? midgroundLayerData[dataIndex] : 0;
 					int backgroundGid = backgroundLayerData[dataIndex];
 					dataIndex++;
 
@@ -82,6 +86,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						{
 							gidToSpriteCache[backgroundGid] = GetSprite(tilesets: tilesets, gid: backgroundGid, scalingFactorScaled: scalingFactorScaled);
 							backgroundSpritesArray[i][j] = gidToSpriteCache[backgroundGid];
+						}
+					}
+
+					if (midgroundGid != 0)
+					{
+						if (gidToSpriteCache.ContainsKey(midgroundGid))
+							midgroundSpritesArray[i][j] = gidToSpriteCache[midgroundGid];
+						else
+						{
+							gidToSpriteCache[midgroundGid] = GetSprite(tilesets: tilesets, gid: midgroundGid, scalingFactorScaled: scalingFactorScaled);
+							midgroundSpritesArray[i][j] = gidToSpriteCache[midgroundGid];
 						}
 					}
 
@@ -158,8 +173,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				}
 			}
 
+			isKeyTileArrays = OptimizeIsKeyTileArrays(isKeyTileArrays: isKeyTileArrays);
+
 			return new Tilemap(
 				backgroundSpritesArray: backgroundSpritesArray,
+				midgroundSpritesArray: midgroundSpritesArray,
 				foregroundSpritesArray: foregroundSpritesArray,
 				isGroundArray: isGroundArray,
 				isKillZoneArray: isKillZoneArray,
@@ -180,7 +198,58 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				cutsceneName: cutsceneName,
 				tuxLocation: tuxLocation,
 				keyLocations: keyLocations,
-				gameMusic: gameMusic);
+				gameMusic: gameMusic,
+				extraEnemiesToSpawn: new List<Tilemap.IExtraEnemyToSpawn>());
+		}
+
+		private static bool[][] OptimizeIsKeyTileArray(bool[][] isKeyTileArray)
+		{
+			bool[][] newArray = new bool[isKeyTileArray.Length][];
+
+			bool containsAtLeastOneNonNullSubArray = false;
+
+			for (int i = 0; i < newArray.Length; i++)
+			{
+				bool containsAtLeastOneTrueValue = false;
+				for (int j = 0; j < isKeyTileArray[i].Length; j++)
+				{
+					if (isKeyTileArray[i][j])
+					{
+						containsAtLeastOneTrueValue = true;
+						break;
+					}
+				}
+
+				if (containsAtLeastOneTrueValue)
+				{
+					containsAtLeastOneNonNullSubArray = true;
+
+					newArray[i] = new bool[isKeyTileArray[i].Length];
+					for (int j = 0; j < isKeyTileArray[i].Length; j++)
+						newArray[i][j] = isKeyTileArray[i][j];
+				}
+				else
+				{
+					newArray[i] = null;
+				}
+			}
+
+			if (!containsAtLeastOneNonNullSubArray)
+				return null;
+
+			return newArray;
+		}
+
+		private static Dictionary<MapKey, bool[][]> OptimizeIsKeyTileArrays(Dictionary<MapKey, bool[][]> isKeyTileArrays)
+		{
+			Dictionary<MapKey, bool[][]> returnValue = new Dictionary<MapKey, bool[][]>();
+
+			foreach (KeyValuePair<MapKey, bool[][]> kvp in isKeyTileArrays)
+			{
+				returnValue[kvp.Key] = OptimizeIsKeyTileArray(isKeyTileArray: kvp.Value);
+			}
+
+			return returnValue;
 		}
 
 		private static Tuple<int, int>[][] ComputeCheckpointArray(

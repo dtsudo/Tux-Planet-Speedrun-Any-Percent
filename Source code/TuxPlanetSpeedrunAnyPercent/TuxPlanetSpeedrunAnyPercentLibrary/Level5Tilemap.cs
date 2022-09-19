@@ -8,13 +8,19 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class Level5Tilemap : ITilemap
 	{
 		private ITilemap mapTilemap;
+		private int startingXMibiOfFirstSpike;
+		private int startingXMibi;
 		private int endingXMibi;
 
 		public Level5Tilemap(
 			ITilemap mapTilemap,
+			int startingXMibiOfFirstSpike,
+			int startingXMibi,
 			int endingXMibi)
 		{
 			this.mapTilemap = mapTilemap;
+			this.startingXMibiOfFirstSpike = startingXMibiOfFirstSpike;
+			this.startingXMibi = startingXMibi;
 			this.endingXMibi = endingXMibi;
 		}
 
@@ -73,11 +79,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			List<IEnemy> enemies = new List<IEnemy>()
 			{
 				EnemyLevel5Spikes.GetEnemyLevel5Spikes(
-					startingXMibi: -3 * 16 * 3 * 1024 + (xOffset << 10),
+					xMibi: this.startingXMibiOfFirstSpike + (xOffset << 10),
+					startingXMibi: this.startingXMibi + (xOffset << 10),
+					endingXMibi:  this.endingXMibi + (xOffset << 10),
 					yMibiBottom: yOffset << 10,
-					heightInTiles: 30,
-					endingXMibi: this.endingXMibi + (xOffset << 10),
-					enemyId: "level5Spikes")
+					heightInTiles: 50,
+					enemyIdPrefix: "level5Spikes_Prefix",
+					enemyId: "level5Spikes_FirstEnemy")
 			};
 
 			IReadOnlyList<IEnemy> mapTilemapEnemies = this.mapTilemap.GetEnemies(xOffset: xOffset, yOffset: yOffset);

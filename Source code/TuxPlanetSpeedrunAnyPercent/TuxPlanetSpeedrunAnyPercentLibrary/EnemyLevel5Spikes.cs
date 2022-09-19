@@ -10,18 +10,30 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private int xMibi;
 		private int yMibiBottom;
 		private int heightInTiles;
+		private int startingXMibi;
 		private int endingXMibi;
+		private bool hasSpawnedNextEnemy;
+		private bool? isVisible;
+		private string enemyIdPrefix;
+		private int enemyGeneratorCounter;
 
 		private List<Hitbox> emptyHitboxList;
 		private List<string> emptyStringList;
 
 		public string EnemyId { get; private set; }
 
+		private const int NUM_PIXELS_BETWEEN_SPIKES = 4000;
+
 		private EnemyLevel5Spikes(
 			int xMibi,
 			int yMibiBottom,
 			int heightInTiles,
+			int startingXMibi,
 			int endingXMibi,
+			bool hasSpawnedNextEnemy,
+			bool? isVisible,
+			string enemyIdPrefix,
+			int enemyGeneratorCounter,
 			List<Hitbox> emptyHitboxList,
 			List<string> emptyStringList,
 			string enemyId)
@@ -29,24 +41,36 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.xMibi = xMibi;
 			this.yMibiBottom = yMibiBottom;
 			this.heightInTiles = heightInTiles;
+			this.startingXMibi = startingXMibi;
 			this.endingXMibi = endingXMibi;
+			this.hasSpawnedNextEnemy = hasSpawnedNextEnemy;
+			this.isVisible = isVisible;
+			this.enemyIdPrefix = enemyIdPrefix;
+			this.enemyGeneratorCounter = enemyGeneratorCounter;
 			this.emptyHitboxList = emptyHitboxList;
 			this.emptyStringList = emptyStringList;
 			this.EnemyId = enemyId;
 		}
 
 		public static EnemyLevel5Spikes GetEnemyLevel5Spikes(
+			int xMibi,
 			int startingXMibi,
+			int endingXMibi,
 			int yMibiBottom,
 			int heightInTiles,
-			int endingXMibi,
+			string enemyIdPrefix,
 			string enemyId)
 		{
 			return new EnemyLevel5Spikes(
-				xMibi: startingXMibi,
+				xMibi: xMibi,
 				yMibiBottom: yMibiBottom,
 				heightInTiles: heightInTiles,
+				startingXMibi: startingXMibi,
 				endingXMibi: endingXMibi,
+				hasSpawnedNextEnemy: false,
+				isVisible: null,
+				enemyIdPrefix: enemyIdPrefix,
+				enemyGeneratorCounter: 1,
 				emptyHitboxList: new List<Hitbox>(),
 				emptyStringList: new List<string>(),
 				enemyId: enemyId);
@@ -70,6 +94,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
+			if (!this.isVisible.HasValue || this.isVisible.Value == false)
+				return this.emptyHitboxList;
+
 			return new List<Hitbox>()
 			{
 				new Hitbox(
@@ -97,40 +124,80 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<string> levelFlags,
 			ISoundOutput<GameSound> soundOutput)
 		{
-			int newXMibi = this.xMibi + elapsedMicrosPerFrame * 400 / 1000;
+			List<IEnemy> list = new List<IEnemy>();
 
-			if (newXMibi > this.endingXMibi)
-				newXMibi = this.endingXMibi;
+			int newXMibi = this.xMibi - elapsedMicrosPerFrame * 400 / 1000;
 
-			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+			bool hasExitedLevel = newXMibi < this.endingXMibi;
+
+			bool? newIsVisible;
+
+			if (this.isVisible.HasValue)
+				newIsVisible = this.isVisible.Value;
+			else
+				newIsVisible = cameraX + (windowWidth >> 1) < (this.xMibi >> 10) - 16 * 3 / 2;
+
+			bool newHasSpawnedNextEnemy = this.hasSpawnedNextEnemy;
+
+			if (!newHasSpawnedNextEnemy)
+			{
+				if (this.startingXMibi - this.xMibi > (NUM_PIXELS_BETWEEN_SPIKES << 10))
 				{
-					new EnemyLevel5Spikes(
-						xMibi: newXMibi,
+					newHasSpawnedNextEnemy = true;
+					list.Add(new EnemyLevel5Spikes(
+						xMibi: this.xMibi + (NUM_PIXELS_BETWEEN_SPIKES << 10),
 						yMibiBottom: this.yMibiBottom,
 						heightInTiles: this.heightInTiles,
+						startingXMibi: this.startingXMibi,
 						endingXMibi: this.endingXMibi,
+						hasSpawnedNextEnemy: false,
+						isVisible: null,
+						enemyIdPrefix: this.enemyIdPrefix,
+						enemyGeneratorCounter: this.enemyGeneratorCounter + 1,
 						emptyHitboxList: this.emptyHitboxList,
 						emptyStringList: this.emptyStringList,
-						enemyId: this.EnemyId)
-				},
+						enemyId: this.enemyIdPrefix + this.enemyGeneratorCounter.ToStringCultureInvariant()));
+				}
+			}
+
+			if (!hasExitedLevel)
+				list.Add(new EnemyLevel5Spikes(
+					xMibi: newXMibi,
+					yMibiBottom: this.yMibiBottom,
+					heightInTiles: this.heightInTiles,
+					startingXMibi: this.startingXMibi,
+					endingXMibi: this.endingXMibi,
+					hasSpawnedNextEnemy: newHasSpawnedNextEnemy,
+					isVisible: newIsVisible,
+					enemyIdPrefix: this.enemyIdPrefix,
+					enemyGeneratorCounter: this.enemyGeneratorCounter,
+					emptyHitboxList: this.emptyHitboxList,
+					emptyStringList: this.emptyStringList,
+					enemyId: this.EnemyId));
+
+			return new EnemyProcessing.Result(
+				enemies: list,
 				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				newlyAddedLevelFlags: new List<string>() { LevelConfiguration_Level5.HAS_SPAWNED_SPIKES });
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)
 		{
+			if (!this.isVisible.HasValue || this.isVisible.Value == false)
+				return;
+
 			int y = this.yMibiBottom >> 10;
+			int x = (this.xMibi >> 10) - 16 * 3 / 2;
 
 			for (int i = 0; i < this.heightInTiles; i++)
 			{
 				displayOutput.DrawImageRotatedClockwise(
 					image: GameImage.Spikes,
-					imageX: 7 * 16,
-					imageY: 16,
+					imageX: 0,
+					imageY: 0,
 					imageWidth: 16,
 					imageHeight: 16,
-					x: (this.xMibi >> 10) - 16 * 3 / 2,
+					x: x,
 					y: y,
 					degreesScaled: 0,
 					scalingFactorScaled: 3 * 128);

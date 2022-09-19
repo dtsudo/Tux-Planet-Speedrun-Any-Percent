@@ -292,15 +292,8 @@ namespace TuxPlanetSpeedrunAnyPercent
 				default:
 					throw new Exception();
 			}
-			
-			/*
-				None of the keycodes need to be escaped
-				(but this would be necessary if we had a key
-				such as backslash)
-			*/
-			var javascriptCode = "window.BridgeKeyboardJavascript.isKeyPressed('" + correspondingKeyCode + "')";
-			
-			bool result = Script.Eval<bool>(javascriptCode);
+						
+			bool result = Script.Call<bool>("window.BridgeKeyboardJavascript.isKeyPressed", correspondingKeyCode);
 			
 			if (result)
 				return true;

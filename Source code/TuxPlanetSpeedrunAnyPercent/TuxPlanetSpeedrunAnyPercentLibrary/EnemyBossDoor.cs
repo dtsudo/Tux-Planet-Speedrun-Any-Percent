@@ -20,6 +20,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private List<string> emptyStringList;
 		private List<Hitbox> emptyHitboxList;
 
+		public const string LEVEL_FLAG_CLOSE_BOSS_DOORS = "closeBossDoors";
+		public const string LEVEL_FLAG_CLOSE_BOSS_DOORS_INSTANTLY = "closeBossDoorsInstantly";
+		public const string LEVEL_FLAG_OPEN_BOSS_DOORS = "openBossDoors";
+
 		public string EnemyId { get; private set; }
 
 		private EnemyBossDoor(
@@ -97,13 +101,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (newElapsedMicrosClosing <= DOOR_ANIMATION_DURATION)
 			{
-				if (levelFlags.Contains(LevelConfiguration_Level6.BEGIN_BOSS_BATTLE))
+				if (levelFlags.Contains(LEVEL_FLAG_CLOSE_BOSS_DOORS_INSTANTLY))
+					newElapsedMicrosClosing = DOOR_ANIMATION_DURATION + 1;
+				else if (levelFlags.Contains(LEVEL_FLAG_CLOSE_BOSS_DOORS))
 					newElapsedMicrosClosing += elapsedMicrosPerFrame;
 			}
 
 			if (newElapsedMicrosOpening <= DOOR_ANIMATION_DURATION)
 			{
-				if (levelFlags.Contains(LevelConfiguration_Level6.DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS))
+				if (levelFlags.Contains(LEVEL_FLAG_OPEN_BOSS_DOORS))
 					newElapsedMicrosOpening += elapsedMicrosPerFrame;
 			}
 
@@ -111,7 +117,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			{
 				return new EnemyProcessing.Result(
 					enemies: new List<IEnemy>(),
-					newlyKilledEnemies: this.emptyStringList,
+					newlyKilledEnemies: new List<string>() { this.EnemyId },
 					newlyAddedLevelFlags: null);
 			}
 

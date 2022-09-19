@@ -16,6 +16,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public string EnemyId { get; private set; }
 
+		public const string LEVEL_FLAG_DESPAWN_KONQI_FIREBALLS = "despawnKonqiFireballs";
+
 		public static EnemyKonqiFireball GetEnemyKonqiFireball(
 			int xMibi,
 			int yMibi,
@@ -88,6 +90,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<string> levelFlags,
 			ISoundOutput<GameSound> soundOutput)
 		{
+			bool shouldDespawn = false;
+			for (int i = 0; i < levelFlags.Count; i++)
+			{
+				if (levelFlags[i] == LEVEL_FLAG_DESPAWN_KONQI_FIREBALLS)
+				{
+					shouldDespawn = true;
+					break;
+				}
+			}
+			if (shouldDespawn)
+			{
+				return new EnemyProcessing.Result(
+					enemies: new List<IEnemy>()
+					{
+						EnemyDeadPoof.SpawnEnemyDeadPoof(
+							xMibi: this.xMibi,
+							yMibi: this.yMibi,
+							enemyId: this.EnemyId + "_poof")
+					},
+					newlyKilledEnemies: new List<string>(),
+					newlyAddedLevelFlags: null);
+			}
+
 			int newXMibi = this.xMibi;
 			int newYMibi = this.yMibi;
 			int newYSpeedInMibipixelsPerSecond = this.ySpeedInMibipixelsPerSecond;

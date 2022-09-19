@@ -3,6 +3,7 @@ The files in this folder are from the "8-Bit Sound Effects Library" by Little Ro
 No changes were made to these files, with the following exception:
 
 * Jingle_Win_01.ogg was created by converting Jingle_Win_01.wav to ogg format.
+* Explosion_00_modified.wav was created by modifying Explosion_00.wav
 
 --------------------------------------------------------------------------------------------
 

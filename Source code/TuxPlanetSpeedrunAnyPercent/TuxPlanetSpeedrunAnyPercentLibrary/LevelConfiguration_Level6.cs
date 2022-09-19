@@ -4,135 +4,187 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	using DTLibrary;
 	using System;
 	using System.Collections.Generic;
-	using System.Linq;
 
 	public class LevelConfiguration_Level6 : ILevelConfiguration
 	{
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
-
-		private IReadOnlyDictionary<string, string> customLevelInfo;
-
+		private bool shouldSpawnRemoveKonqi;
 		private IBackground background;
 
+		private CompositeTilemap.TilemapWithOffset tilemapA;
+
+		private const string LEVEL_SUBFOLDER = "Level6/";
+
 		public LevelConfiguration_Level6(
-			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
+			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
+			bool canAlreadyUseTimeSlowdown,
 			IDTDeterministicRandom random)
 		{
-			Tuple<List<CompositeTilemap.TilemapWithOffset>, IReadOnlyDictionary<string, string>> result = ConstructUnnormalizedTilemaps(
+			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(
 				mapInfo: mapInfo,
+				canAlreadyUseTimeSlowdown: canAlreadyUseTimeSlowdown,
 				random: random);
 
-			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = result.Item1;
+			this.shouldSpawnRemoveKonqi = canAlreadyUseTimeSlowdown;
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 
-			this.customLevelInfo = new Dictionary<string, string>(result.Item2);
+			this.tilemapA = this.normalizedTilemaps[0];
 
-			this.background = BackgroundUtil.GetRandomBackground(random: random);
+			this.background = new Background_Cave();
 		}
 
-		// custom level info
-		public const string BOSS_ROOM_X_OFFSET_START = "level6_bossRoomXOffsetStart";
-		public const string BOSS_ROOM_X_OFFSET_END = "level6_bossRoomXOffsetEnd";
-		public const string KONQI_BOSS_RNG_SEED = "level6_konqiBossRngSeed";
-
-		// level flags
-		public const string BEGIN_BOSS_BATTLE = "level6_beginBossBattle";
-		public const string BOSS_DEFEATED = "level6_bossDefeated";
-		public const string DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS = "level6_despawnKonqiAndRemoveBossDoors";
-		public const string BOSS_DEFEATED_RESTORE_DEFAULT_CAMERA = "level6_bossDefeatedRestoreDefaultCamera";
-
-		public static CameraState GetBossRoomCameraState(
-			IReadOnlyDictionary<string, string> customLevelInfo,
-			ITilemap tilemap,
-			int windowWidth,
-			int windowHeight)
-		{
-			int bossRoomXOffset = StringUtil.ParseInt(customLevelInfo[BOSS_ROOM_X_OFFSET_START]);
-
-			return CameraState.GetCameraState(
-				x: bossRoomXOffset - 48 + (windowWidth >> 1),
-				y: windowHeight >> 1);
-		}
-
-		private static Tuple<List<CompositeTilemap.TilemapWithOffset>, IReadOnlyDictionary<string, string>> ConstructUnnormalizedTilemaps(
+		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
+			bool canAlreadyUseTimeSlowdown,
 			IDTDeterministicRandom random)
 		{
 			GameMusic gameMusic = LevelConfigurationHelper.GetRandomGameMusic(random: random);
-
-			Dictionary<string, string> customLevelInfo = new Dictionary<string, string>();
 
 			EnemyIdGenerator enemyIdGenerator = new EnemyIdGenerator();
 
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
 
-			/*
-				The camera isn't always centered on Tux, and we don't want tilemaps to despawn if they're
-				too far from Tux but still in view of the camera.
-			*/
-			bool alwaysIncludeTilemap = true;
-
-			CompositeTilemap.TilemapWithOffset startTilemap = new CompositeTilemap.TilemapWithOffset(
+			CompositeTilemap.TilemapWithOffset tilemapA = new CompositeTilemap.TilemapWithOffset(
 				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo["Level6A_Start"],
+					data: mapInfo[LEVEL_SUBFOLDER + "A_Start"],
 					enemyIdGenerator: enemyIdGenerator,
-					cutsceneName: CutsceneProcessing.BOSS_CUTSCENE,
-					scalingFactorScaled: 3 * 128,
+					cutsceneName: null,
+					scalingFactorScaled: 128 * 3,
 					gameMusic: gameMusic),
 				xOffset: 0,
 				yOffset: 0,
-				alwaysIncludeTilemap: alwaysIncludeTilemap);
+				alwaysIncludeTilemap: false);
 
-			list.Add(startTilemap);
+			list.Add(tilemapA);
 
-			customLevelInfo[BOSS_ROOM_X_OFFSET_START] = startTilemap.Tilemap.GetWidth().ToStringCultureInvariant();
+			int xOffsetInTiles = 7;
+			bool lastChangeWasToTheRight = false;
+			int changeXOffsetCooldown = 4;
 
-			CompositeTilemap.TilemapWithOffset bossTilemap = new CompositeTilemap.TilemapWithOffset(
-				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo["Level6B_Boss"],
-					enemyIdGenerator: enemyIdGenerator,
-					cutsceneName: null,
-					scalingFactorScaled: 3 * 128,
-					gameMusic: gameMusic),
-				xOffset: startTilemap.Tilemap.GetWidth(),
-				yOffset: 0,
-				alwaysIncludeTilemap: alwaysIncludeTilemap);
-
-			list.Add(bossTilemap);
-
-			customLevelInfo[BOSS_ROOM_X_OFFSET_END] = (bossTilemap.XOffset + bossTilemap.Tilemap.GetWidth()).ToStringCultureInvariant();
-
-			CompositeTilemap.TilemapWithOffset finishTilemap = new CompositeTilemap.TilemapWithOffset(
-				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo["Level6C_Finish"],
-					enemyIdGenerator: enemyIdGenerator,
-					cutsceneName: null,
-					scalingFactorScaled: 3 * 128,
-					gameMusic: gameMusic),
-				xOffset: bossTilemap.XOffset + bossTilemap.Tilemap.GetWidth(),
-				yOffset: 0,
-				alwaysIncludeTilemap: alwaysIncludeTilemap);
-
-			list.Add(finishTilemap);
-
-			DTDeterministicRandom konqiRandom = new DTDeterministicRandom();
-			for (int i = 0; i < 40; i++)
+			for (int i = 0; i < 400; i++)
 			{
-				int jEnd = random.NextInt(3) + 1;
-				for (int j = 0; j < jEnd; j++)
-					konqiRandom.AddSeed(random.NextInt(100));
-			}
-			customLevelInfo[KONQI_BOSS_RNG_SEED] = konqiRandom.SerializeToString();
+				changeXOffsetCooldown--;
+				if (changeXOffsetCooldown <= 0)
+				{
+					changeXOffsetCooldown = 4;
 
-			return new Tuple<List<CompositeTilemap.TilemapWithOffset>, IReadOnlyDictionary<string, string>>(
-				item1: list,
-				item2: customLevelInfo);
+					int delta;
+
+					if (random.NextInt(3) == 0)
+						delta = 0;
+					else if (random.NextInt(4) != 0)
+						delta = lastChangeWasToTheRight ? 1 : -1;
+					else
+						delta = lastChangeWasToTheRight ? -1 : 1;
+
+					xOffsetInTiles = xOffsetInTiles + delta;
+
+					if (delta == -1)
+						lastChangeWasToTheRight = false;
+					if (delta == 1)
+						lastChangeWasToTheRight = true;
+				}
+
+				list.Add(new CompositeTilemap.TilemapWithOffset(
+					tilemap: MapDataTilemapGenerator.GetTilemap(
+						data: mapInfo[LEVEL_SUBFOLDER + "B_Descent"],
+						enemyIdGenerator: enemyIdGenerator,
+						cutsceneName: null,
+						scalingFactorScaled: 128 * 3,
+						gameMusic: gameMusic),
+					xOffset: tilemapA.XOffset + xOffsetInTiles * 48,
+					yOffset: list[list.Count - 1].YOffset - 48,
+					alwaysIncludeTilemap: false));
+			}
+
+			Tilemap cutsceneTilemap = MapDataTilemapGenerator.GetTilemap(
+					data: mapInfo[LEVEL_SUBFOLDER + "C_Cutscene"],
+					enemyIdGenerator: enemyIdGenerator,
+					cutsceneName: CutsceneProcessing.TIME_SLOWDOWN_CUTSCENE,
+					scalingFactorScaled: 128 * 3,
+					gameMusic: gameMusic);
+
+			list.Add(new CompositeTilemap.TilemapWithOffset(
+				tilemap: canAlreadyUseTimeSlowdown ? Tilemap.GetTilemapWithoutCutscene(tilemap: cutsceneTilemap) : cutsceneTilemap,
+				xOffset: tilemapA.XOffset + xOffsetInTiles * 48,
+				yOffset: list[list.Count - 1].YOffset - cutsceneTilemap.GetHeight(),
+				alwaysIncludeTilemap: false));
+
+			Tilemap tilemapD = MapDataTilemapGenerator.GetTilemap(
+					data: mapInfo[LEVEL_SUBFOLDER + "D_SecondDrop"],
+					enemyIdGenerator: enemyIdGenerator,
+					cutsceneName: null,
+					scalingFactorScaled: 128 * 3,
+					gameMusic: gameMusic);
+
+			CompositeTilemap.TilemapWithOffset tilemapDWithOffset = new CompositeTilemap.TilemapWithOffset(
+				tilemap: tilemapD,
+				xOffset: list[list.Count - 1].XOffset + list[list.Count - 1].Tilemap.GetWidth(),
+				yOffset: list[list.Count - 1].YOffset - 48,
+				alwaysIncludeTilemap: false);
+
+			list.Add(tilemapDWithOffset);
+
+			xOffsetInTiles = 0;
+			lastChangeWasToTheRight = false;
+			changeXOffsetCooldown = 4;
+
+			for (int i = 0; i < 400; i++)
+			{
+				changeXOffsetCooldown--;
+				if (changeXOffsetCooldown <= 0)
+				{
+					changeXOffsetCooldown = 4;
+
+					int delta;
+
+					if (random.NextInt(3) == 0)
+						delta = 0;
+					else if (random.NextInt(4) != 0)
+						delta = lastChangeWasToTheRight ? 1 : -1;
+					else
+						delta = lastChangeWasToTheRight ? -1 : 1;
+
+					xOffsetInTiles = xOffsetInTiles + delta;
+
+					if (delta == -1)
+						lastChangeWasToTheRight = false;
+					if (delta == 1)
+						lastChangeWasToTheRight = true;
+				}
+
+				list.Add(new CompositeTilemap.TilemapWithOffset(
+					tilemap: MapDataTilemapGenerator.GetTilemap(
+						data: mapInfo[LEVEL_SUBFOLDER + "E_Descent"],
+						enemyIdGenerator: enemyIdGenerator,
+						cutsceneName: null,
+						scalingFactorScaled: 128 * 3,
+						gameMusic: gameMusic),
+					xOffset: tilemapDWithOffset.XOffset + xOffsetInTiles * 48,
+					yOffset: list[list.Count - 1].YOffset - 48,
+					alwaysIncludeTilemap: false));
+			}
+
+			Tilemap tilemapF = MapDataTilemapGenerator.GetTilemap(
+					data: mapInfo[LEVEL_SUBFOLDER + "F_Finish"],
+					enemyIdGenerator: enemyIdGenerator,
+					cutsceneName: null,
+					scalingFactorScaled: 128 * 3,
+					gameMusic: gameMusic);
+
+			list.Add(new CompositeTilemap.TilemapWithOffset(
+				tilemap: tilemapF,
+				xOffset: tilemapDWithOffset.XOffset + xOffsetInTiles * 48,
+				yOffset: list[list.Count - 1].YOffset - tilemapF.GetHeight(),
+				alwaysIncludeTilemap: false));
+
+			return list;
 		}
 
 		public IReadOnlyDictionary<string, string> GetCustomLevelInfo()
 		{
-			return this.customLevelInfo;
+			return new Dictionary<string, string>();
 		}
 
 		public IBackground GetBackground()
@@ -140,36 +192,22 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return this.background;
 		}
 
-		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight, IReadOnlyList<string> levelFlags, MapKeyState mapKeyState)
+		public ITilemap GetTilemap(int? tuxX, int? tuxY, int? cameraX, int? cameraY, int windowWidth, int windowHeight, IReadOnlyList<string> levelFlags, MapKeyState mapKeyState)
 		{
-			if (!levelFlags.Contains(BEGIN_BOSS_BATTLE))
-				return LevelConfigurationHelper.GetTilemap(
-					normalizedTilemaps: this.normalizedTilemaps,
-					tuxX: tuxX,
-					tuxY: tuxY,
-					mapKeyState: mapKeyState,
-					windowWidth: windowWidth,
-					windowHeight: windowHeight);
-
-			ITilemap boundedTilemap = LevelConfigurationHelper.GetTilemap(
+			ITilemap tilemap = LevelConfigurationHelper.GetTilemap(
 				normalizedTilemaps: this.normalizedTilemaps,
 				tuxX: tuxX,
 				tuxY: tuxY,
+				cameraX: cameraX,
+				cameraY: cameraY,
 				mapKeyState: mapKeyState,
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
 
-			if (levelFlags.Contains(BOSS_DEFEATED))
-				return new Level6Tilemap_BossDefeated(
-					mapTilemap: boundedTilemap,
-					bossRoomXOffsetStart: this.customLevelInfo[BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant(),
-					bossRoomXOffsetEnd: this.customLevelInfo[BOSS_ROOM_X_OFFSET_END].ParseAsIntCultureInvariant(),
-					shouldRestrictToBossRoom: !levelFlags.Contains(DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS));
+			if (this.shouldSpawnRemoveKonqi)
+				tilemap = new SpawnRemoveKonqiTilemap(tilemap: tilemap);
 
-			return new Level6Tilemap_BossBattle(
-				mapTilemap: boundedTilemap,
-				bossRoomXOffsetStart: this.customLevelInfo[BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant(),
-				bossRoomXOffsetEnd: this.customLevelInfo[BOSS_ROOM_X_OFFSET_END].ParseAsIntCultureInvariant());
+			return tilemap;
 		}
 
 		public CameraState GetCameraState(
@@ -182,30 +220,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowHeight,
 			IReadOnlyList<string> levelFlags)
 		{
-			if (levelFlags.Contains(BEGIN_BOSS_BATTLE) && !levelFlags.Contains(BOSS_DEFEATED_RESTORE_DEFAULT_CAMERA))
+			int tuxX = tuxXMibi >> 10;
+			int tuxY = tuxYMibi >> 10;
+
+			if (this.tilemapA.XOffset <= tuxX
+				&& tuxX <= this.tilemapA.XOffset + this.tilemapA.Tilemap.GetWidth()
+				&& this.tilemapA.YOffset <= tuxY
+				&& tuxY <= this.tilemapA.YOffset + this.tilemapA.Tilemap.GetHeight())
 			{
-				return GetBossRoomCameraState(
-					customLevelInfo: this.GetCustomLevelInfo(),
+				CameraState cameraState = CameraStateProcessing.ComputeCameraState(
+					tuxXMibi: tuxXMibi,
+					tuxYMibi: tuxYMibi,
+					tuxTeleportStartingLocation: tuxTeleportStartingLocation,
+					tuxTeleportInProgressElapsedMicros: tuxTeleportInProgressElapsedMicros,
 					tilemap: tilemap,
 					windowWidth: windowWidth,
 					windowHeight: windowHeight);
+
+				return CameraState.GetCameraState(
+					x: Math.Max(cameraState.X, this.tilemapA.XOffset + 7 * 48 + (windowWidth >> 1)),
+					y: cameraState.Y);
 			}
 
-			CameraState cameraState = CameraStateProcessing.ComputeCameraState(
-				tuxXMibi: tuxXMibi,
-				tuxYMibi: tuxYMibi,
-				tuxTeleportStartingLocation: tuxTeleportStartingLocation,
-				tuxTeleportInProgressElapsedMicros: tuxTeleportInProgressElapsedMicros,
-				tilemap: tilemap,
-				windowWidth: windowWidth,
-				windowHeight: windowHeight);
-
-			int maximumCameraX = tilemap.GetWidth() - (windowWidth >> 1) - 48 * 2;
-
-			if (cameraState.X > maximumCameraX)
-				cameraState = CameraState.GetCameraState(x: maximumCameraX, y: cameraState.Y);
-
-			return cameraState;
+			return null;
 		}
 	}
 }

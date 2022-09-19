@@ -8,6 +8,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 	public class Tilemap
 	{
+		public interface IExtraEnemyToSpawn
+		{
+			IEnemy GetEnemy(int xOffset, int yOffset);
+		}
+
 		public class EnemySpawnLocation
 		{
 			public EnemySpawnLocation(
@@ -29,6 +34,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		private Sprite[][] backgroundSpritesArray;
+		private Sprite[][] midgroundSpritesArray;
 		private Sprite[][] foregroundSpritesArray;
 		private bool[][] isGroundArray;
 		private bool[][] isKillZoneArray;
@@ -53,10 +59,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private GameMusic gameMusic;
 
+		private List<IExtraEnemyToSpawn> extraEnemiesToSpawn;
+
 		public static Tilemap GetTilemapWithoutCutscene(Tilemap tilemap)
 		{
 			return new Tilemap(
 				backgroundSpritesArray: tilemap.backgroundSpritesArray,
+				midgroundSpritesArray: tilemap.midgroundSpritesArray,
 				foregroundSpritesArray: tilemap.foregroundSpritesArray,
 				isGroundArray: tilemap.isGroundArray,
 				isKillZoneArray: tilemap.isKillZoneArray,
@@ -71,11 +80,43 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				cutsceneName: null,
 				tuxLocation: tilemap.tuxLocation,
 				keyLocations: tilemap.keyLocations,
-				gameMusic: tilemap.gameMusic);
+				gameMusic: tilemap.gameMusic,
+				extraEnemiesToSpawn: tilemap.extraEnemiesToSpawn);
+		}
+
+		public static Tilemap GetTilemapWithExtraEnemiesToSpawn(
+			Tilemap tilemap,
+			List<IExtraEnemyToSpawn> extraEnemiesToSpawn)
+		{
+			List<IExtraEnemyToSpawn> extraEnemies = new List<IExtraEnemyToSpawn>(tilemap.extraEnemiesToSpawn);
+
+			for (int i = 0; i < extraEnemiesToSpawn.Count; i++)
+				extraEnemies.Add(extraEnemiesToSpawn[i]);
+
+			return new Tilemap(
+				backgroundSpritesArray: tilemap.backgroundSpritesArray,
+				midgroundSpritesArray: tilemap.midgroundSpritesArray,
+				foregroundSpritesArray: tilemap.foregroundSpritesArray,
+				isGroundArray: tilemap.isGroundArray,
+				isKillZoneArray: tilemap.isKillZoneArray,
+				isSpikesArray: tilemap.isSpikesArray,
+				isEndOfLevelArray: tilemap.isEndOfLevelArray,
+				isCutsceneArray: tilemap.isCutsceneArray,
+				isKeyTileArrays: tilemap.isKeyTileArrays,
+				checkpointArray: tilemap.checkpointArray,
+				tileWidth: tilemap.tileWidth,
+				tileHeight: tilemap.tileHeight,
+				enemies: tilemap.enemies,
+				cutsceneName: tilemap.cutsceneName,
+				tuxLocation: tilemap.tuxLocation,
+				keyLocations: tilemap.keyLocations,
+				gameMusic: tilemap.gameMusic,
+				extraEnemiesToSpawn: extraEnemies);
 		}
 
 		public Tilemap(
 			Sprite[][] backgroundSpritesArray,
+			Sprite[][] midgroundSpritesArray,
 			Sprite[][] foregroundSpritesArray,
 			bool[][] isGroundArray,
 			bool[][] isKillZoneArray,
@@ -90,9 +131,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			string cutsceneName,
 			Tuple<int, int> tuxLocation,
 			Dictionary<MapKey, Tuple<int, int>> keyLocations,
-			GameMusic gameMusic)
+			GameMusic gameMusic,
+			List<IExtraEnemyToSpawn> extraEnemiesToSpawn)
 		{
 			this.backgroundSpritesArray = SpriteUtil.CopySpriteArray(array: backgroundSpritesArray);
+			this.midgroundSpritesArray = SpriteUtil.CopySpriteArray(array: midgroundSpritesArray);
 			this.foregroundSpritesArray = SpriteUtil.CopySpriteArray(array: foregroundSpritesArray);
 			this.isGroundArray = ArrayUtil.CopyBoolArray(array: isGroundArray);
 			this.isKillZoneArray = ArrayUtil.CopyBoolArray(array: isKillZoneArray);
@@ -104,7 +147,25 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.isKeyTileArrays = new Dictionary<MapKey, bool[][]>();
 			foreach (KeyValuePair<MapKey, bool[][]> kvp in isKeyTileArrays)
 			{
-				this.isKeyTileArrays[kvp.Key] = ArrayUtil.CopyBoolArray(kvp.Value);
+				if (kvp.Value == null)
+					this.isKeyTileArrays[kvp.Key] = null;
+				else
+				{
+					bool[][] copiedArray = new bool[kvp.Value.Length][];
+					for (int i = 0; i < kvp.Value.Length; i++)
+					{
+						if (kvp.Value[i] == null)
+							copiedArray[i] = null;
+						else
+						{
+							copiedArray[i] = new bool[kvp.Value[i].Length];
+							for (int j = 0; j < kvp.Value[i].Length; j++)
+								copiedArray[i][j] = kvp.Value[i][j];
+						}
+					}
+
+					this.isKeyTileArrays[kvp.Key] = copiedArray;
+				}
 			}
 
 			this.tileWidth = tileWidth;
@@ -122,6 +183,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			this.gameMusic = gameMusic;
+
+			this.extraEnemiesToSpawn = new List<IExtraEnemyToSpawn>(extraEnemiesToSpawn);
 		}
 
 		private bool GetArrayValue(bool[][] array, int worldX, int worldY)
@@ -163,7 +226,27 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public bool IsKeyTile(MapKey key, int x, int y)
 		{
-			return this.GetArrayValue(array: this.isKeyTileArrays[key], worldX: x, worldY: y);
+			bool[][] array = this.isKeyTileArrays[key];
+
+			if (array == null)
+				return false;
+
+			if (x < 0 || y < 0)
+				return false;
+
+			int arrayI = x / this.tileWidth;
+			int arrayJ = y / this.tileHeight;
+
+			if (arrayI < array.Length)
+			{
+				if (array[arrayI] == null)
+					return false;
+
+				if (arrayJ < array[arrayI].Length)
+					return array[arrayI][arrayJ];
+			}
+
+			return false;
 		}
 
 		public string GetCutscene(int x, int y)
@@ -222,6 +305,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowBottom = cameraY - windowHeight / 2;
 			int windowTop = cameraY + windowHeight / 2;
 
+			bool[][] copperKeyTileArray = this.isKeyTileArrays[MapKey.Copper];
+			bool[][] silverKeyTileArray = this.isKeyTileArrays[MapKey.Silver];
+			bool[][] goldKeyTileArray = this.isKeyTileArrays[MapKey.Gold];
+			bool[][] mythrilKeyTileArray = this.isKeyTileArrays[MapKey.Mythril];
+
 			for (int i = 0; i < sprites.Length; i++)
 			{
 				if (windowLeft <= worldX + this.tileWidth && worldX <= windowRight)
@@ -250,62 +338,64 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 							if (renderKeyTiles)
 							{
-								bool isTuxInRange;
+								int? imageX;
+								MapKey? mapKey;
 
-								if (tuxX == null || tuxY == null)
-									isTuxInRange = false;
+								if (copperKeyTileArray != null && copperKeyTileArray[i] != null && copperKeyTileArray[i][j])
+								{
+									imageX = 0;
+									mapKey = MapKey.Copper;
+								}
+								else if (silverKeyTileArray != null && silverKeyTileArray[i] != null && silverKeyTileArray[i][j])
+								{
+									imageX = 16;
+									mapKey = MapKey.Silver;
+								}
+								else if (goldKeyTileArray != null && goldKeyTileArray[i] != null && goldKeyTileArray[i][j])
+								{
+									imageX = 32;
+									mapKey = MapKey.Gold;
+								}
+								else if (mythrilKeyTileArray != null && mythrilKeyTileArray[i] != null && mythrilKeyTileArray[i][j])
+								{
+									imageX = 48;
+									mapKey = MapKey.Mythril;
+								}
 								else
 								{
-									int deltaX = Math.Abs(tuxX.Value - worldX);
-									int deltaY = Math.Abs(tuxY.Value - worldY);
-
-									isTuxInRange = deltaX * deltaX + deltaY * deltaY <= MapKeyState.MAP_KEY_ACTIVATION_RADIUS_IN_PIXELS * MapKeyState.MAP_KEY_ACTIVATION_RADIUS_IN_PIXELS;
+									imageX = null;
+									mapKey = null;
 								}
 
-								if (this.isKeyTileArrays[MapKey.Copper][i][j] && (!collectedKeys.Contains(MapKey.Copper) || !isTuxInRange))
-									displayOutput.DrawImageRotatedClockwise(
-										image: GameImage.Lock,
-										imageX: 0,
-										imageY: 0,
-										imageWidth: 16,
-										imageHeight: 16,
-										x: worldX,
-										y: worldY,
-										degreesScaled: 0,
-										scalingFactorScaled: 128 * 3);
-								if (this.isKeyTileArrays[MapKey.Silver][i][j] && (!collectedKeys.Contains(MapKey.Silver) || !isTuxInRange))
-									displayOutput.DrawImageRotatedClockwise(
-										image: GameImage.Lock,
-										imageX: 16,
-										imageY: 0,
-										imageWidth: 16,
-										imageHeight: 16,
-										x: worldX,
-										y: worldY,
-										degreesScaled: 0,
-										scalingFactorScaled: 128 * 3);
-								if (this.isKeyTileArrays[MapKey.Gold][i][j] && (!collectedKeys.Contains(MapKey.Gold) || !isTuxInRange))
-									displayOutput.DrawImageRotatedClockwise(
-										image: GameImage.Lock,
-										imageX: 32,
-										imageY: 0,
-										imageWidth: 16,
-										imageHeight: 16,
-										x: worldX,
-										y: worldY,
-										degreesScaled: 0,
-										scalingFactorScaled: 128 * 3);
-								if (this.isKeyTileArrays[MapKey.Mythril][i][j] && (!collectedKeys.Contains(MapKey.Mythril) || !isTuxInRange))
-									displayOutput.DrawImageRotatedClockwise(
-										image: GameImage.Lock,
-										imageX: 48,
-										imageY: 0,
-										imageWidth: 16,
-										imageHeight: 16,
-										x: worldX,
-										y: worldY,
-										degreesScaled: 0,
-										scalingFactorScaled: 128 * 3);
+								if (imageX != null)
+								{
+									bool isTuxInRange;
+
+									if (tuxX == null || tuxY == null)
+										isTuxInRange = false;
+									else
+									{
+										// Math.Abs isn't necessary since we square deltaX and deltaY
+										int deltaX = tuxX.Value - worldX;
+										int deltaY = tuxY.Value - worldY;
+
+										isTuxInRange = deltaX * deltaX + deltaY * deltaY <= MapKeyState.MAP_KEY_ACTIVATION_RADIUS_IN_PIXELS * MapKeyState.MAP_KEY_ACTIVATION_RADIUS_IN_PIXELS;
+									}
+
+									if (!collectedKeys.Contains(mapKey.Value) || !isTuxInRange)
+									{
+										displayOutput.DrawImageRotatedClockwise(
+											image: GameImage.Lock,
+											imageX: imageX.Value,
+											imageY: 0,
+											imageWidth: 16,
+											imageHeight: 16,
+											x: worldX,
+											y: worldY,
+											degreesScaled: 0,
+											scalingFactorScaled: 128 * 3);
+									}
+								}
 							}
 						}
 
@@ -329,6 +419,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			this.RenderSprites(
 				sprites: this.backgroundSpritesArray,
+				renderKeyTiles: false,
+				tuxX: tuxX,
+				tuxY: tuxY,
+				collectedKeys: collectedKeys,
+				cameraX: cameraX,
+				cameraY: cameraY,
+				windowWidth: windowWidth,
+				windowHeight: windowHeight,
+				displayOutput: displayOutput);
+
+			this.RenderSprites(
+				sprites: this.midgroundSpritesArray,
 				renderKeyTiles: false,
 				tuxX: tuxX,
 				tuxY: tuxY,
@@ -367,6 +469,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			List<IEnemy> list = new List<IEnemy>();
 
+			for (int i = 0; i < this.extraEnemiesToSpawn.Count; i++)
+				list.Add(this.extraEnemiesToSpawn[i].GetEnemy(xOffset: xOffset, yOffset: yOffset));
+
 			int halfTileWidth = this.tileWidth >> 1;
 			int halfTileHeight = this.tileHeight >> 1;
 
@@ -398,6 +503,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					EnemyKonqiCutscene konqi = EnemyKonqiCutscene.GetEnemyKonqiCutscene(
 						xMibi: xMibi,
 						yMibi: yMibi,
+						isFireKonqi: false,
+						shouldTeleportOutLevelFlag: null,
 						enemyId: enemy.EnemyId);
 
 					list.Add(new EnemySpawnHelper(

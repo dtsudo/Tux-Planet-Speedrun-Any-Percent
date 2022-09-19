@@ -54,6 +54,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private Dictionary<Level, string> randomValuesUsedForGeneratingLevels;
 
+		public const int SIMPLE_DATA_VERSION_NUMBER = 1;
+
 		public void ClearData(int windowWidth, int windowHeight)
 		{
 			this.random.NextBool();
@@ -87,6 +89,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public void AddElapsedMillis(int elapsedMillis)
 		{
 			this.ElapsedMillis += elapsedMillis;
+
+			if (this.ElapsedMillis > 2 * 1000 * 1000 * 1000)
+				this.ElapsedMillis = 2 * 1000 * 1000 * 1000;
 		}
 
 		public void SetOverworld(Overworld overworld)
@@ -148,6 +153,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public void SerializeEverythingExceptGameLogic(ByteList.Builder list)
 		{
+			string currentVersion = VersionInfo.GetVersionInfo().Version;
+			list.AddString(currentVersion);
+
 			this.Overworld.Serialize(list);
 
 			list.AddBool(this.CanUseSaveStates);
@@ -174,6 +182,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		/// </summary>
 		public void TryDeserializeEverythingExceptGameLogic(ByteList.Iterator iterator)
 		{
+			string currentVersion = VersionInfo.GetVersionInfo().Version;
+			string savedDataVersion = iterator.TryPopString();
+			if (currentVersion != savedDataVersion)
+				throw new DTDeserializationException();
+
 			this.Overworld = Overworld.TryDeserialize(iterator: iterator);
 
 			this.CanUseSaveStates = iterator.TryPopBool();
@@ -196,6 +209,63 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				this.randomValuesUsedForGeneratingLevels[LevelUtil.FromSerializableInt(level)] = rngValue;
 			}
+		}
+
+		/// <summary>
+		/// Serializes only a subset of data that's likely to remain valid across different versions of the game
+		/// </summary>
+		public void SerializeSimpleData(ByteList.Builder list)
+		{
+			list.AddInt(SIMPLE_DATA_VERSION_NUMBER);
+			int numCompletedLevels = this.Overworld.GetNumCompletedLevels();
+			list.AddInt(numCompletedLevels);
+			list.AddBool(this.CanUseSaveStates);
+			list.AddBool(this.CanUseTimeSlowdown);
+			list.AddBool(this.CanUseTeleport);
+			list.AddInt(this.ElapsedMillis);
+		}
+
+		/// <summary>
+		/// Can possibly throw DTDeserializationException
+		/// </summary>
+		public void TryDeserializeFromSimpleData(ByteList.Iterator iterator)
+		{
+			int simpleDataFormattingVersion = iterator.TryPopInt();
+
+			if (simpleDataFormattingVersion != SIMPLE_DATA_VERSION_NUMBER)
+				throw new DTDeserializationException();
+
+			int numCompletedLevels = iterator.TryPopInt();
+
+			if (numCompletedLevels >= 1)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level1);
+			if (numCompletedLevels >= 2)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level2);
+			if (numCompletedLevels >= 3)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level3);
+			if (numCompletedLevels >= 4)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level4);
+			if (numCompletedLevels >= 5)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level5);
+			if (numCompletedLevels >= 6)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level6);
+			if (numCompletedLevels >= 7)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level7);
+			if (numCompletedLevels >= 8)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level8);
+			if (numCompletedLevels >= 9)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level9);
+			if (numCompletedLevels >= 10)
+				this.Overworld = this.Overworld.CompleteLevel(level: Level.Level10);
+
+			this.CanUseSaveStates = iterator.TryPopBool();
+			this.CanUseTimeSlowdown = iterator.TryPopBool();
+			this.CanUseTeleport = iterator.TryPopBool();
+
+			this.ElapsedMillis = iterator.TryPopInt();
+
+			this.HasWon = numCompletedLevels >= 10;
+			this.GameLogic = null;
 		}
 	}
 }

@@ -10,6 +10,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
 		private IBackground background;
 
+		private const string LEVEL_SUBFOLDER = "Level1";
+
 		public LevelConfiguration_Level1(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			IDTDeterministicRandom random)
@@ -23,7 +25,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, IDTDeterministicRandom random)
 		{
-			GameMusic gameMusic = LevelConfigurationHelper.GetRandomGameMusic(random: random);
+			GameMusic gameMusic = GameMusic.Chipdisko;
 
 			EnemyIdGenerator enemyIdGenerator = new EnemyIdGenerator();
 
@@ -31,7 +33,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			CompositeTilemap.TilemapWithOffset level1TilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo["Level1"],
+					data: mapInfo[LEVEL_SUBFOLDER + "/" + "Level1"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 3 * 128,
@@ -55,12 +57,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return this.background;
 		}
 
-		public ITilemap GetTilemap(int? tuxX, int? tuxY, int windowWidth, int windowHeight, IReadOnlyList<string> levelFlags, MapKeyState mapKeyState)
+		public ITilemap GetTilemap(int? tuxX, int? tuxY, int? cameraX, int? cameraY, int windowWidth, int windowHeight, IReadOnlyList<string> levelFlags, MapKeyState mapKeyState)
 		{
 			return LevelConfigurationHelper.GetTilemap(
 				normalizedTilemaps: this.normalizedTilemaps,
 				tuxX: tuxX,
 				tuxY: tuxY,
+				cameraX: cameraX,
+				cameraY: cameraY,
 				mapKeyState: mapKeyState,
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
@@ -76,7 +80,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowHeight,
 			IReadOnlyList<string> levelFlags)
 		{
-			return null;
+			CameraState cameraState = CameraStateProcessing.ComputeCameraState(
+				tuxXMibi: tuxXMibi,
+				tuxYMibi: tuxYMibi,
+				tuxTeleportStartingLocation: tuxTeleportStartingLocation,
+				tuxTeleportInProgressElapsedMicros: tuxTeleportInProgressElapsedMicros,
+				tilemap: tilemap,
+				windowWidth: windowWidth,
+				windowHeight: windowHeight);
+
+			return CameraState.GetCameraState(
+				x: cameraState.X,
+				y: windowHeight >> 1);
 		}
 	}
 }

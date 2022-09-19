@@ -18,6 +18,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private int currentAttackCooldown;
 
+		private int blueFlameCooldown;
+		private bool wasLastBlueFlameAttackClockwise;
+
 		private int enemyIdCounter;
 
 		private string rngSeed;
@@ -37,6 +40,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int numTimesHit,
 			int? invulnerabilityElapsedMicros,
 			int currentAttackCooldown,
+			int blueFlameCooldown,
+			bool wasLastBlueFlameAttackClockwise,
 			int enemyIdCounter,
 			string rngSeed,
 			List<string> emptyStringList,
@@ -50,6 +55,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.numTimesHit = numTimesHit;
 			this.invulnerabilityElapsedMicros = invulnerabilityElapsedMicros;
 			this.currentAttackCooldown = currentAttackCooldown;
+			this.blueFlameCooldown = blueFlameCooldown;
+			this.wasLastBlueFlameAttackClockwise = wasLastBlueFlameAttackClockwise;
 			this.enemyIdCounter = enemyIdCounter;
 			this.rngSeed = rngSeed;
 			this.emptyStringList = emptyStringList;
@@ -71,6 +78,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				numTimesHit: 0,
 				invulnerabilityElapsedMicros: null,
 				currentAttackCooldown: 1000 * 1000,
+				blueFlameCooldown: 0,
+				wasLastBlueFlameAttackClockwise: false,
 				enemyIdCounter: 0,
 				rngSeed: rngSeed,
 				emptyStringList: new List<string>(),
@@ -131,15 +140,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<string> levelFlags,
 			ISoundOutput<GameSound> soundOutput)
 		{
-			if (levelFlags.Contains(LevelConfiguration_Level6.DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS))
+			if (levelFlags.Contains(LevelConfiguration_Level10.SPAWN_KONQI_BOSS_DEFEAT))
 			{
 				return new EnemyProcessing.Result(
 					enemies: new List<IEnemy>()
 					{
-						EnemyKonqiDisappear.GetEnemyKonqiDisappear(
+						EnemyKonqiBossDefeat.GetEnemyKonqiBossDefeat(
 							xMibi: this.xMibi,
 							yMibi: this.yMibi,
-							enemyId: this.EnemyId + "_konqiDisappear" + this.enemyIdCounter.ToStringCultureInvariant())
+							elapsedMicros: this.elapsedMicros,
+							enemyId: this.EnemyId + "_EnemyKonqiBossDefeat")
 					},
 					newlyKilledEnemies: this.emptyStringList,
 					newlyAddedLevelFlags: null);
@@ -150,6 +160,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int? newInvulnerabilityElapsedMicros = this.invulnerabilityElapsedMicros;
 			string newRngSeed = this.rngSeed;
 			int newCurrentAttackCooldown = this.currentAttackCooldown;
+			int newBlueFlameCooldown = this.blueFlameCooldown;
+			bool newWasLastBlueFlameAttackClockwise = this.wasLastBlueFlameAttackClockwise;
 			int newEnemyIdCounter = this.enemyIdCounter;
 
 			List<IEnemy> newEnemies = new List<IEnemy>();
@@ -191,18 +203,57 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				DTDeterministicRandom rng = new DTDeterministicRandom();
 				rng.DeserializeFromString(newRngSeed);
 				newCurrentAttackCooldown = 300 * 1000 + rng.NextInt(500 * 1000);
-				int fireballYSpeed = 300 * 1000 + rng.NextInt(1500 * 1000);
+				int fireballYSpeed1 = 300 * 1000 + rng.NextInt(1500 * 1000);
+				int fireballYSpeed2 = 300 * 1000 + rng.NextInt(1500 * 1000);
 				newRngSeed = rng.SerializeToString();
 
-				if (this.numTimesHit < 4)
+				if (this.numTimesHit < 6)
 				{
 					newEnemies.Add(EnemyKonqiFireball.GetEnemyKonqiFireball(
 						xMibi: newXMibi + (this.IsFacingRight() ? 5 * 1024 : -5 * 1024),
 						yMibi: newYMibi + 24 * 1024,
 						xSpeedInMibipixelsPerSecond: this.IsFacingRight() ? 700 * 1000 : -700 * 1000,
-						ySpeedInMibipixelsPerSecond: fireballYSpeed,
+						ySpeedInMibipixelsPerSecond: fireballYSpeed1,
 						enemyId: this.EnemyId + "_fireball" + newEnemyIdCounter.ToStringCultureInvariant()));
 					newEnemyIdCounter++;
+
+					if (this.numTimesHit == 2 || this.numTimesHit == 3)
+					{
+						newEnemies.Add(EnemyKonqiFireball.GetEnemyKonqiFireball(
+							xMibi: newXMibi + (this.IsFacingRight() ? 5 * 1024 : -5 * 1024),
+							yMibi: newYMibi + 24 * 1024,
+							xSpeedInMibipixelsPerSecond: this.IsFacingRight() ? 700 * 1000 : -700 * 1000,
+							ySpeedInMibipixelsPerSecond: fireballYSpeed2,
+							enemyId: this.EnemyId + "_fireball" + newEnemyIdCounter.ToStringCultureInvariant()));
+						newEnemyIdCounter++;
+					}
+				}
+			}
+
+			if (this.numTimesHit == 4 || this.numTimesHit == 5)
+			{
+				newBlueFlameCooldown -= elapsedMicrosPerFrame;
+				if (newBlueFlameCooldown <= 0)
+				{
+					newBlueFlameCooldown += 1000 * 1000;
+
+					DTDeterministicRandom rng = new DTDeterministicRandom();
+					rng.DeserializeFromString(newRngSeed);
+					int baseAngleScaled = rng.NextInt(360 * 128);
+					newRngSeed = rng.SerializeToString();
+
+					for (int i = 0; i < 6; i++)
+					{
+						newEnemies.Add(EnemyKonqiFireballBlue.GetEnemyKonqiFireballBlue(
+							xMibi: newXMibi + (this.IsFacingRight() ? 5 * 1024 : -5 * 1024),
+							yMibi: newYMibi + 24 * 1024,
+							angleScaled: baseAngleScaled + i * (60 * 128),
+							isRotatingClockwise: !newWasLastBlueFlameAttackClockwise,
+							enemyId: this.EnemyId + "_fireballBlue1_" + newEnemyIdCounter.ToStringCultureInvariant()));
+						newEnemyIdCounter++;
+					}
+
+					newWasLastBlueFlameAttackClockwise = !newWasLastBlueFlameAttackClockwise;
 				}
 			}
 
@@ -220,6 +271,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				numTimesHit: this.numTimesHit,
 				invulnerabilityElapsedMicros: newInvulnerabilityElapsedMicros,
 				currentAttackCooldown: newCurrentAttackCooldown,
+				blueFlameCooldown: newBlueFlameCooldown,
+				wasLastBlueFlameAttackClockwise: newWasLastBlueFlameAttackClockwise,
 				enemyIdCounter: newEnemyIdCounter,
 				rngSeed: newRngSeed,
 				emptyStringList: this.emptyStringList,
@@ -229,8 +282,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<string> newlyAddedLevelFlags;
 
-			if (this.numTimesHit == 4)
-				newlyAddedLevelFlags = new List<string>() { LevelConfiguration_Level6.BOSS_DEFEATED };
+			if (this.numTimesHit == 6)
+				newlyAddedLevelFlags = new List<string>() { LevelConfiguration_Level10.BEGIN_KONQI_DEFEATED_CUTSCENE, EnemyKonqiFireball.LEVEL_FLAG_DESPAWN_KONQI_FIREBALLS, EnemyKonqiFireballBlue.LEVEL_FLAG_DESPAWN_KONQI_FIREBALLS_BLUE };
 			else
 				newlyAddedLevelFlags = null;
 
@@ -273,6 +326,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				numTimesHit: this.numTimesHit + 1,
 				invulnerabilityElapsedMicros: 0,
 				currentAttackCooldown: this.currentAttackCooldown,
+				blueFlameCooldown: this.blueFlameCooldown,
+				wasLastBlueFlameAttackClockwise: this.wasLastBlueFlameAttackClockwise,
 				enemyIdCounter: this.enemyIdCounter,
 				rngSeed: this.rngSeed,
 				emptyStringList: this.emptyStringList,

@@ -12,6 +12,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private SoundAndMusicVolumePicker volumePicker;
 
+		private Button clearDataButton;
 		private Button creditsButton;
 
 		private string versionString;
@@ -35,6 +36,19 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			this.versionString = VersionInfo.GetVersionInfo().Version;
 
+			this.clearDataButton = new Button(
+				x: 160,
+				y: 10,
+				width: 200,
+				height: 31,
+				backgroundColor: Button.GetStandardSecondaryBackgroundColor(),
+				hoverColor: Button.GetStandardHoverColor(),
+				clickColor: Button.GetStandardClickColor(),
+				text: "Reset data",
+				textXOffset: 40,
+				textYOffset: 6,
+				font: GameFont.DTSimpleFont16Pt);
+
 			this.creditsButton = new Button(
 				x: globalState.WindowWidth - 105,
 				y: 5,
@@ -54,8 +68,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (CanContinueCurrentGame(sessionState: sessionState))
 				this.options.Add(Option.ContinueGame);
-
-			this.options.Add(Option.NewGame);
+			else
+				this.options.Add(Option.NewGame);
 
 			if (!globalState.IsWebBrowserVersion)
 				this.options.Add(Option.Quit);
@@ -105,6 +119,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.globalState.MusicVolume = this.volumePicker.GetCurrentMusicVolume();
 
 			this.globalState.MusicPlayer.SetMusic(GameMusic.Theme, volume: 100);
+
+			if (CanContinueCurrentGame(this.sessionState))
+			{
+				bool clickedClearDataButton = this.clearDataButton.ProcessFrame(mouseInput: mouseInput, previousMouseInput: previousMouseInput);
+				if (clickedClearDataButton)
+				{
+					this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
+					soundOutput.PlaySound(GameSound.Click);
+					return new ClearDataConfirmationFrame(globalState: this.globalState, sessionState: this.sessionState, underlyingFrame: this);
+				}
+			}
 
 			if (this.globalState.DebugMode)
 			{
@@ -219,13 +244,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				switch (this.options[i])
 				{
 					case Option.ContinueGame:
-						text = "Continue";
+						text = this.options.Count == 1 ? "Continue (press enter)" : "Continue";
 						break;
 					case Option.NewGame:
-						if (CanContinueCurrentGame(sessionState: this.sessionState))
-							text = "Start new game";
-						else
-							text = this.options.Count == 1 ? "Start (press enter)" : "Start";
+						text = this.options.Count == 1 ? "Start (press enter)" : "Start";
 						break;
 					case Option.Quit:
 						text = "Quit";
@@ -241,6 +263,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					font: i == this.selectedOption ? GameFont.DTSimpleFont20Pt : GameFont.DTSimpleFont14Pt,
 					color: i == this.selectedOption ? new DTColor(0, 0, 0) : new DTColor(64, 64, 64));
 			}
+
+			if (CanContinueCurrentGame(this.sessionState))
+				this.clearDataButton.Render(displayOutput: displayOutput);
 		}
 
 		public void RenderMusic(IMusicOutput<GameMusic> musicOutput)

@@ -57,6 +57,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.sessionStateByteList = byteList;
 
 			this.fileIO.PersistData(fileId: TuxPlanetSpeedrunAnyPercent.FILE_ID_FOR_SESSION_STATE, data: this.sessionStateByteList);
+
+			ByteList.Builder simpleDataListBuilder = new ByteList.Builder();
+			sessionState.SerializeSimpleData(list: simpleDataListBuilder);
+			this.fileIO.PersistVersionedData(
+				fileId: TuxPlanetSpeedrunAnyPercent.FILE_ID_FOR_SIMPLE_DATA_SESSION_STATE,
+				version: SessionState.SIMPLE_DATA_VERSION_NUMBER,
+				data: simpleDataListBuilder.ToByteList());
 		}
 
 		public void LoadSessionState(SessionState sessionState, int windowWidth, int windowHeight, IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo)
@@ -65,7 +72,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (list == null)
 			{
-				sessionState.ClearData(windowWidth: windowWidth, windowHeight: windowHeight);
+				this.LoadSessionStateFromSimpleData(sessionState: sessionState, windowWidth: windowWidth, windowHeight: windowHeight, mapInfo: mapInfo);
 				return;
 			}
 			
@@ -73,6 +80,30 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			{
 				ByteList.Iterator iterator = list.GetIterator();
 				sessionState.TryDeserializeEverythingExceptGameLogic(iterator: iterator);
+
+				if (iterator.HasNextByte())
+					throw new DTDeserializationException();
+			}
+			catch (DTDeserializationException)
+			{
+				this.LoadSessionStateFromSimpleData(sessionState: sessionState, windowWidth: windowWidth, windowHeight: windowHeight, mapInfo: mapInfo);
+			}
+		}
+
+		private void LoadSessionStateFromSimpleData(SessionState sessionState, int windowWidth, int windowHeight, IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo)
+		{
+			ByteList list = this.fileIO.FetchVersionedData(fileId: TuxPlanetSpeedrunAnyPercent.FILE_ID_FOR_SIMPLE_DATA_SESSION_STATE, version: SessionState.SIMPLE_DATA_VERSION_NUMBER);
+
+			if (list == null)
+			{
+				sessionState.ClearData(windowWidth: windowWidth, windowHeight: windowHeight);
+				return;
+			}
+
+			try
+			{
+				ByteList.Iterator iterator = list.GetIterator();
+				sessionState.TryDeserializeFromSimpleData(iterator: iterator);
 
 				if (iterator.HasNextByte())
 					throw new DTDeserializationException();

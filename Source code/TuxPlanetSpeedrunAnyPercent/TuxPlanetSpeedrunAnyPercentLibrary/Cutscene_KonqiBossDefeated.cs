@@ -10,29 +10,23 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private enum Status
 		{
 			A_Dialogue,
-			B_KonqiDisappear,
-			C_Camera
+			B_KonqiTeleportsOut
 		}
 
 		private Status status;
 		private DialogueList dialogueList;
-		private int konqiDisappearElapsedMicros;
 		private bool isFirstFrame;
-
-		private const int KONQI_DISAPPEAR_WAIT_TIME = 500 * 1000;
 
 		private IReadOnlyDictionary<string, string> customLevelInfo;
 
 		private Cutscene_KonqiBossDefeated(
 			Status status,
 			DialogueList dialogueList,
-			int konqiDisappearElapsedMicros,
 			bool isFirstFrame,
 			IReadOnlyDictionary<string, string> customLevelInfo)
 		{
 			this.status = status;
 			this.dialogueList = dialogueList;
-			this.konqiDisappearElapsedMicros = konqiDisappearElapsedMicros;
 			this.isFirstFrame = isFirstFrame;
 			this.customLevelInfo = customLevelInfo;
 		}
@@ -53,14 +47,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return new Cutscene_KonqiBossDefeated(
 				status: Status.A_Dialogue,
 				dialogueList: dialogueList,
-				konqiDisappearElapsedMicros: 0,
 				isFirstFrame: true,
 				customLevelInfo: new Dictionary<string, string>(customLevelInfo));
 		}
 
 		public string GetCutsceneName()
 		{
-			return CutsceneProcessing.BOSS_DEFEATED_CUTSCENE;
+			return CutsceneProcessing.KONQI_BOSS_DEFEATED_CUTSCENE;
 		}
 
 		public CutsceneProcessing.Result ProcessFrame(
@@ -80,25 +73,33 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			Status newStatus;
 			List<IEnemy> newEnemies = new List<IEnemy>(enemies);
 			List<string> newLevelFlags = new List<string>();
-			int newKonqiDisappearElapsedMicros = this.konqiDisappearElapsedMicros;
 
 			switch (this.status)
 			{
 				case Status.A_Dialogue:
 					{
-						newLevelFlags.Add(LevelConfiguration_Level6.BOSS_DEFEATED_RESTORE_DEFAULT_CAMERA);
+						newLevelFlags.Add(LevelConfiguration_Level10.STOP_LOCKING_CAMERA_ON_KONQI_BOSS_ROOM);
+						newLevelFlags.Add(LevelConfiguration_Level10.LOCK_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM);
+						newLevelFlags.Add(LevelConfiguration_Level10.STOP_PLAYING_KONQI_BOSS_MUSIC);
+						newLevelFlags.Add(EnemyBossDoor.LEVEL_FLAG_CLOSE_BOSS_DOORS_INSTANTLY);
 
 						DialogueList.Result dialogueListResult = this.dialogueList.ProcessFrame(
 							move: move,
 							elapsedMicrosPerFrame: elapsedMicrosPerFrame);
 
-						newCameraState = cameraState;
 						newDialogueList = dialogueListResult.DialogueList;
+
+						newCameraState = LevelConfiguration_Level10.GetKonqiBossRoomCameraState(
+							customLevelInfo: this.customLevelInfo,
+							tilemap: tilemap,
+							windowWidth: windowWidth,
+							windowHeight: windowHeight);
 
 						if (dialogueListResult.IsDone)
 						{
-							newStatus = Status.B_KonqiDisappear;
-							newLevelFlags.Add(LevelConfiguration_Level6.DESPAWN_KONQI_AND_REMOVE_BOSS_DOORS);
+							newStatus = Status.B_KonqiTeleportsOut;
+							newLevelFlags.Add(LevelConfiguration_Level10.SPAWN_KONQI_BOSS_DEFEAT);
+							newLevelFlags.Add(LevelConfiguration_Level10.SPAWN_MYTHRIL_KEY);
 						}
 						else
 						{
@@ -107,36 +108,23 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 						break;
 					}
-				case Status.B_KonqiDisappear:
+				case Status.B_KonqiTeleportsOut:
 					{
-						newKonqiDisappearElapsedMicros += elapsedMicrosPerFrame;
-
-						newCameraState = cameraState;
-						newDialogueList = this.dialogueList;
-
-						if (newKonqiDisappearElapsedMicros >= KONQI_DISAPPEAR_WAIT_TIME)
-							newStatus = Status.C_Camera;
-						else
-							newStatus = Status.B_KonqiDisappear;
-
-						break;
-					}
-				case Status.C_Camera:
-					{
-						CameraState destinationCameraState = CameraStateProcessing.ComputeCameraState(
-							tuxXMibi: tuxXMibi,
-							tuxYMibi: tuxYMibi,
-							tuxTeleportStartingLocation: null,
-							tuxTeleportInProgressElapsedMicros: null,
+						CameraState destinationCameraState = LevelConfiguration_Level10.GetKonqiDefeatedCameraState(
+							customLevelInfo: this.customLevelInfo,
 							tilemap: tilemap,
 							windowWidth: windowWidth,
 							windowHeight: windowHeight);
 
-						newDialogueList = this.dialogueList;
-						newStatus = Status.C_Camera;
+						newCameraState = CameraState.SmoothCameraState(
+							currentCamera: cameraState,
+							destinationCamera: destinationCameraState,
+							elapsedMicrosPerFrame: elapsedMicrosPerFrame,
+							cameraSpeedInPixelsPerSecond: CameraState.CUTSCENE_CAMERA_SPEED);
 
 						if (cameraState.X == destinationCameraState.X && cameraState.Y == destinationCameraState.Y)
 						{
+							newLevelFlags.Add(LevelConfiguration_Level10.CREATE_CHECKPOINT_AFTER_DEFEATING_KONQI);
 							return new CutsceneProcessing.Result(
 								move: Move.EmptyMove(),
 								cameraState: cameraState,
@@ -147,14 +135,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 								shouldGrantTimeSlowdownPower: false,
 								shouldGrantTeleportPower: false);
 						}
-						else
-						{
-							newCameraState = CameraState.SmoothCameraState(
-								currentCamera: cameraState,
-								destinationCamera: destinationCameraState,
-								elapsedMicrosPerFrame: elapsedMicrosPerFrame,
-								cameraSpeedInPixelsPerSecond: CameraState.CUTSCENE_CAMERA_SPEED);
-						}
+
+						newStatus = Status.B_KonqiTeleportsOut;
+						newDialogueList = this.dialogueList;
 
 						break;
 					}
@@ -177,7 +160,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				cutscene: new Cutscene_KonqiBossDefeated(
 					status: newStatus, 
 					dialogueList: newDialogueList,
-					konqiDisappearElapsedMicros: newKonqiDisappearElapsedMicros,
 					isFirstFrame: false,
 					customLevelInfo: this.customLevelInfo),
 				shouldGrantSaveStatePower: false,

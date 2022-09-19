@@ -8,23 +8,32 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class CutsceneProcessing
 	{
 		public const string SAVESTATE_CUTSCENE = "savestate_cutscene";
-		public const string TIME_SLOWDOWN_CUTSCENE = "time_slowdown_cutscene";
 		public const string TELEPORT_CUTSCENE = "teleport_cutscene";
-		public const string BOSS_CUTSCENE = "boss_cutscene";
-		public const string BOSS_DEFEATED_CUTSCENE = "boss_defeated_cutscene";
+		public const string TIME_SLOWDOWN_CUTSCENE = "time_slowdown_cutscene";
+		public const string LEVEL_8_CUTSCENE = "level_8_cutscene";
+		public const string KONQI_BOSS_INTRO_CUTSCENE = "konqi_boss_intro_cutscene";
+		public const string KONQI_BOSS_DEFEATED_CUTSCENE = "konqi_boss_defeated_cutscene";
+		public const string YETI_BOSS_INTRO_CUTSCENE = "yeti_boss_intro_cutscene";
+		public const string YETI_BOSS_DEFEATED_CUTSCENE = "yeti_boss_defeated_cutscene";
 
 		public static ICutscene GetCutscene(string cutsceneName, IReadOnlyDictionary<string, string> customLevelInfo)
 		{
 			if (cutsceneName == SAVESTATE_CUTSCENE)
 				return Cutscene_SaveState.GetCutscene();
-			else if (cutsceneName == TIME_SLOWDOWN_CUTSCENE)
-				return Cutscene_TimeSlowdown.GetCutscene();
 			else if (cutsceneName == TELEPORT_CUTSCENE)
 				return Cutscene_Teleport.GetCutscene();
-			else if (cutsceneName == BOSS_CUTSCENE)
+			else if (cutsceneName == TIME_SLOWDOWN_CUTSCENE)
+				return Cutscene_TimeSlowdown.GetCutscene();
+			else if (cutsceneName == LEVEL_8_CUTSCENE)
+				return Cutscene_Level8.GetCutscene();
+			else if (cutsceneName == KONQI_BOSS_INTRO_CUTSCENE)
 				return Cutscene_KonqiBossIntro.GetCutscene(customLevelInfo: customLevelInfo);
-			else if (cutsceneName == BOSS_DEFEATED_CUTSCENE)
+			else if (cutsceneName == KONQI_BOSS_DEFEATED_CUTSCENE)
 				return Cutscene_KonqiBossDefeated.GetCutscene(customLevelInfo: customLevelInfo);
+			else if (cutsceneName == YETI_BOSS_INTRO_CUTSCENE)
+				return Cutscene_YetiBossIntro.GetCutscene(customLevelInfo: customLevelInfo);
+			else if (cutsceneName == YETI_BOSS_DEFEATED_CUTSCENE)
+				return Cutscene_YetiBossDefeated.GetCutscene(customLevelInfo: customLevelInfo);
 			else
 				throw new Exception();
 		}

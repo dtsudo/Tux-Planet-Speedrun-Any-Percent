@@ -36,17 +36,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<Level> fortressLevels,
 			IDTDeterministicRandom random)
 		{
-			int pathLength = 60;
-
 			int level1Index = 0;
-			int level2Index = 10 + random.NextInt(4);
+			int level2Index = level1Index + 10 + random.NextInt(4);
+			int level3Index = level2Index + 10 + random.NextInt(4);
+			int level4Index = level3Index + 10 + random.NextInt(4);
+			int level5Index = level4Index + 10 + random.NextInt(4);
+			int level6Index = level5Index + 10 + random.NextInt(4);
+			int level7Index = level6Index + 10 + random.NextInt(4);
+			int level8Index = level7Index + 10 + random.NextInt(4);
+			int level9Index = level8Index + 10 + random.NextInt(4);
+			int level10Index = level9Index + 10 + random.NextInt(4);
 
-			int level5Index = 49;
-			int level4Index = 35 + random.NextInt(4);
-
-			int level3Index = (level2Index + level4Index) / 2 + random.NextInt(4) - 2;
-
-			int level6Index = 59;
+			int pathLength = level10Index + 1;
 
 			Dictionary<Level, int> levelToPathIndexMapping = new Dictionary<Level, int>();
 			levelToPathIndexMapping[Level.Level1] = level1Index;
@@ -55,6 +56,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			levelToPathIndexMapping[Level.Level4] = level4Index;
 			levelToPathIndexMapping[Level.Level5] = level5Index;
 			levelToPathIndexMapping[Level.Level6] = level6Index;
+			levelToPathIndexMapping[Level.Level7] = level7Index;
+			levelToPathIndexMapping[Level.Level8] = level8Index;
+			levelToPathIndexMapping[Level.Level9] = level9Index;
+			levelToPathIndexMapping[Level.Level10] = level10Index;
 
 			List<Tuple<int, int>> path = GeneratePath(
 					pathLength: pathLength,
@@ -105,6 +110,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			tilemap[path[level4Index].Item1][path[level4Index].Item2] = new OverworldGameMap.Tile(type: OverworldGameMap.TileType.Level, level: Level.Level4);
 			tilemap[path[level5Index].Item1][path[level5Index].Item2] = new OverworldGameMap.Tile(type: OverworldGameMap.TileType.Level, level: Level.Level5);
 			tilemap[path[level6Index].Item1][path[level6Index].Item2] = new OverworldGameMap.Tile(type: OverworldGameMap.TileType.Level, level: Level.Level6);
+			tilemap[path[level7Index].Item1][path[level7Index].Item2] = new OverworldGameMap.Tile(type: OverworldGameMap.TileType.Level, level: Level.Level7);
+			tilemap[path[level8Index].Item1][path[level8Index].Item2] = new OverworldGameMap.Tile(type: OverworldGameMap.TileType.Level, level: Level.Level8);
+			tilemap[path[level9Index].Item1][path[level9Index].Item2] = new OverworldGameMap.Tile(type: OverworldGameMap.TileType.Level, level: Level.Level9);
+			tilemap[path[level10Index].Item1][path[level10Index].Item2] = new OverworldGameMap.Tile(type: OverworldGameMap.TileType.Level, level: Level.Level10);
 
 			return tilemap;
 		}

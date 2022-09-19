@@ -32,17 +32,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public static IReadOnlyList<Level> GetWaterLevels()
 		{
-			return new List<Level>();
+			return new List<Level>() { Level.Level8 };
 		}
 
 		public static IReadOnlyList<Level> GetMountainLevels()
 		{
-			return new List<Level>() { Level.Level4 };
+			return new List<Level>() { Level.Level4, Level.Level7 };
 		}
 
 		public static IReadOnlyList<Level> GetFortressLevels()
 		{
-			return new List<Level>() { Level.Level6 };
+			return new List<Level>() { Level.Level10 };
 		}
 
 		public static OverworldGameMap GenerateOverworldGameMap(int windowWidth, int windowHeight, IDTDeterministicRandom random)

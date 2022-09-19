@@ -137,13 +137,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			else if (level == Level.Level2)
 				levelConfig = new LevelConfiguration_Level2(mapInfo: mapInfo, canAlreadyUseSaveStates: canUseSaveStates, random: random);
 			else if (level == Level.Level3)
-				levelConfig = new LevelConfiguration_Level3(mapInfo: mapInfo, canAlreadyUseTeleport: canUseTeleport, random: random);
+				levelConfig = new LevelConfiguration_Level3(mapInfo: mapInfo, random: random);
 			else if (level == Level.Level4)
-				levelConfig = new LevelConfiguration_Level4(mapInfo: mapInfo, canAlreadyUseTimeSlowdown: canUseTimeSlowdown, random: random);
+				levelConfig = new LevelConfiguration_Level4(mapInfo: mapInfo, canAlreadyUseTeleport: canUseTeleport, random: random);
 			else if (level == Level.Level5)
 				levelConfig = new LevelConfiguration_Level5(mapInfo: mapInfo, random: random);
 			else if (level == Level.Level6)
-				levelConfig = new LevelConfiguration_Level6(mapInfo: mapInfo, random: random);
+				levelConfig = new LevelConfiguration_Level6(mapInfo: mapInfo, canAlreadyUseTimeSlowdown: canUseTimeSlowdown, random: random);
+			else if (level == Level.Level7)
+				levelConfig = new LevelConfiguration_Level7(mapInfo: mapInfo, random: random);
+			else if (level == Level.Level8)
+				levelConfig = new LevelConfiguration_Level8(mapInfo: mapInfo, random: random);
+			else if (level == Level.Level9)
+				levelConfig = new LevelConfiguration_Level9(mapInfo: mapInfo, random: random);
+			else if (level == Level.Level10)
+				levelConfig = new LevelConfiguration_Level10(mapInfo: mapInfo, random: random);
 			else
 				throw new Exception();
 
@@ -151,7 +159,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			this.LevelConfiguration = levelConfig;
 			this.Background = this.LevelConfiguration.GetBackground();
-			this.Tilemap = this.LevelConfiguration.GetTilemap(tuxX: null, tuxY: null, windowWidth: windowWidth, windowHeight: windowHeight, levelFlags: new List<string>(), mapKeyState: MapKeyState.EmptyMapKeyState());
+			this.Tilemap = this.LevelConfiguration.GetTilemap(tuxX: null, tuxY: null, cameraX: null, cameraY: null, windowWidth: windowWidth, windowHeight: windowHeight, levelFlags: new List<string>(), mapKeyState: MapKeyState.EmptyMapKeyState());
 			this.Tux = TuxState.GetDefaultTuxState(x: this.Tilemap.GetTuxLocation(xOffset: 0, yOffset: 0).Item1, y: this.Tilemap.GetTuxLocation(xOffset: 0, yOffset: 0).Item2);
 			this.Camera = CameraStateProcessing.ComputeCameraState(
 				tuxXMibi: this.Tux.XMibi,

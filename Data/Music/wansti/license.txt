@@ -1,8 +1,9 @@
-theme.ogg was created by wansti and is licensed under CC-by-sa.
+theme.ogg and bossattack.ogg were created by wansti and are licensed under CC-by-sa.
 
-This file was copied from the SuperTux codebase ( https://github.com/SuperTux/supertux/blob/465ca1d187a88152d9b4317d3e240625a01f6478/data/music/misc/theme.ogg ).
+These files were copied from the SuperTux codebase ( https://github.com/SuperTux/supertux/blob/465ca1d187a88152d9b4317d3e240625a01f6478/data/music/misc/theme.ogg ,
+https://github.com/SuperTux/supertux/blob/bd05cbe3e2f9ea8f6295785dd58387a3e64806eb/data/music/antarctic/bossattack.ogg ).
 
-No changes were made to theme.ogg.
+No changes were made to theme.ogg and bossattack.ogg.
 
 -------------------------------------------------------------------------
 

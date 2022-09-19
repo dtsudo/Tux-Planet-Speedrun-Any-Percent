@@ -20,6 +20,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private IReadOnlyDictionary<string, string> customLevelInfo;
 
+		private const string LEVEL_FLAG_KONQI_BOSS_INTRO_CUTSCENE_KONQI_TELEPORT_OUT = "konqiBossIntroCutsceneKonqiTeleportOut";
+
 		private Cutscene_KonqiBossIntro(
 			Status status,
 			DialogueList dialogueList,
@@ -65,7 +67,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public string GetCutsceneName()
 		{
-			return CutsceneProcessing.BOSS_CUTSCENE;
+			return CutsceneProcessing.KONQI_BOSS_INTRO_CUTSCENE;
 		}
 
 		public CutsceneProcessing.Result ProcessFrame(
@@ -87,7 +89,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<string> newLevelFlags = new List<string>();
 
-			int konqiXMibi = (this.customLevelInfo[LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant() + 48 * 17) << 10;
+			int konqiXMibi = (this.customLevelInfo[LevelConfiguration_Level10.BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant() + 48 * 17) << 10;
 			int konqiYMibi = (48 * 3 + 24) << 10;
 
 			switch (this.status)
@@ -100,12 +102,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						newEnemies.Add(EnemyKonqiCutscene.GetEnemyKonqiCutscene(
 							xMibi: konqiXMibi,
 							yMibi: konqiYMibi,
+							isFireKonqi: false,
+							shouldTeleportOutLevelFlag: LEVEL_FLAG_KONQI_BOSS_INTRO_CUTSCENE_KONQI_TELEPORT_OUT,
 							enemyId: "enemyKonqiCutscene_konqiBossIntro"));
 						break;
 					}
 				case Status.B_Camera:
 					{
-						CameraState destinationCameraState = LevelConfiguration_Level6.GetBossRoomCameraState(
+						CameraState destinationCameraState = LevelConfiguration_Level10.GetKonqiBossRoomCameraState(
 							customLevelInfo: this.customLevelInfo,
 							tilemap: tilemap,
 							windowWidth: windowWidth,
@@ -140,36 +144,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 					if (dialogueListResult.IsDone)
 					{
-						newLevelFlags.Add(LevelConfiguration_Level6.BEGIN_BOSS_BATTLE);
+						newLevelFlags.Add(LevelConfiguration_Level10.LOCK_CAMERA_ON_KONQI_BOSS_ROOM);
+						newLevelFlags.Add(LevelConfiguration_Level10.MARK_LEFT_AND_RIGHT_WALLS_OF_BOSS_ROOM_AS_GROUND);
+						newLevelFlags.Add(LEVEL_FLAG_KONQI_BOSS_INTRO_CUTSCENE_KONQI_TELEPORT_OUT);
+						newLevelFlags.Add(EnemyBossDoor.LEVEL_FLAG_CLOSE_BOSS_DOORS);
+						newLevelFlags.Add(LevelConfiguration_Level10.START_PLAYING_KONQI_BOSS_MUSIC);
 
-						int bossRoomXOffsetStart = this.customLevelInfo[LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant();
-						int bossRoomXOffsetEnd = this.customLevelInfo[LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_END].ParseAsIntCultureInvariant();
+						int bossRoomXOffsetStart = this.customLevelInfo[LevelConfiguration_Level10.BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant();
+						int bossRoomXOffsetEnd = this.customLevelInfo[LevelConfiguration_Level10.BOSS_ROOM_X_OFFSET_END].ParseAsIntCultureInvariant();
 
-						newEnemies.Add(EnemyBossDoor.GetEnemyBossDoor(
-							xMibi: (bossRoomXOffsetStart - 48) << 10,
-							yMibi: (48 * 3) << 10,
-							isUpperDoor: false,
-							enemyId: "konqiBoss_bossDoor1"));
-						newEnemies.Add(EnemyBossDoor.GetEnemyBossDoor(
-							xMibi: (bossRoomXOffsetStart - 48) << 10,
-							yMibi: (48 * 5) << 10,
-							isUpperDoor: true,
-							enemyId: "konqiBoss_bossDoor2"));
-						newEnemies.Add(EnemyBossDoor.GetEnemyBossDoor(
-							xMibi: bossRoomXOffsetEnd << 10,
-							yMibi: (48 * 3) << 10,
-							isUpperDoor: false,
-							enemyId: "konqiBoss_bossDoor3"));
-						newEnemies.Add(EnemyBossDoor.GetEnemyBossDoor(
-							xMibi: bossRoomXOffsetEnd << 10,
-							yMibi: (48 * 5) << 10,
-							isUpperDoor: true,
-							enemyId: "konqiBoss_bossDoor4"));
 						newEnemies.Add(EnemyKonqiBoss.GetEnemyKonqiBoss(
 							xMibi: konqiXMibi,
 							yMibi: konqiYMibi,
 							enemyId: "cutscene_konqiBossIntro_konqiBoss",
-							rngSeed: this.customLevelInfo[LevelConfiguration_Level6.KONQI_BOSS_RNG_SEED]));
+							rngSeed: this.customLevelInfo[LevelConfiguration_Level10.KONQI_BOSS_RNG_SEED]));
 						newStatus = Status.D_Delay;
 					}
 					else
@@ -196,7 +184,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			Move newMove;
 
-			if ((tuxXMibi >> 10) < this.customLevelInfo[LevelConfiguration_Level6.BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant() - 50)
+			if ((tuxXMibi >> 10) < this.customLevelInfo[LevelConfiguration_Level10.BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant() - 50)
 				newMove = new Move(jumped: false, teleported: false, arrowLeft: false, arrowRight: true, arrowUp: false, arrowDown: false, respawn: false);
 			else
 				newMove = Move.EmptyMove();

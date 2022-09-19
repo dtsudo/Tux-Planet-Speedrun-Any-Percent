@@ -56,6 +56,8 @@ See the `Data/Music/` folder for more details -- a `license.txt` file is located
 
 # How to compile the source code
 
+To edit the level maps, see `LEVEL_EDITING.md`.
+
 This game is written in C# so you need to have .NET installed.
 
 The game uses Bridge.NET to transpile the C# code into javascript. Compile the code using `MSBuild`:

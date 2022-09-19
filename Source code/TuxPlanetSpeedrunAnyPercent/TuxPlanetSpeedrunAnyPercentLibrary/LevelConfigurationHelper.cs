@@ -9,13 +9,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	{
 		public static GameMusic GetRandomGameMusic(IDTDeterministicRandom random)
 		{
-			int i = random.NextInt(3);
+			int i = random.NextInt(2);
 
 			switch (i)
 			{
 				case 0: return GameMusic.Airship2;
 				case 1: return GameMusic.Chipdisko;
-				case 2: return GameMusic.Jewels;
 				default: throw new Exception();
 			}
 		}
@@ -24,6 +23,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<CompositeTilemap.TilemapWithOffset> normalizedTilemaps,
 			int? tuxX, 
 			int? tuxY, 
+			int? cameraX,
+			int? cameraY,
 			MapKeyState mapKeyState,
 			int windowWidth, 
 			int windowHeight)
@@ -44,7 +45,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					tilemapHeight = height;
 			}
 
-			if (tuxX == null || tuxY == null)
+			if (tuxX == null || tuxY == null || cameraX == null || cameraY == null)
 				return new BoundedTilemap(tilemap: new CompositeTilemap(
 					normalizedTilemaps: normalizedTilemaps, 
 					width: tilemapWidth, 
@@ -53,24 +54,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					tuxY: tuxY,
 					mapKeyState: mapKeyState));
 
-			if (tuxX.Value > tilemapWidth)
-				tuxX = tilemapWidth;
-			if (tuxX.Value < 0)
-				tuxX = 0;
-			if (tuxY.Value > tilemapHeight)
-				tuxY = tilemapHeight;
-			if (tuxY.Value < 0)
-				tuxY = 0;
-
-			List<CompositeTilemap.TilemapWithOffset> tilemapsNearTux = new List<CompositeTilemap.TilemapWithOffset>();
+			List<CompositeTilemap.TilemapWithOffset> tilemapsNearTuxOrCamera = new List<CompositeTilemap.TilemapWithOffset>();
 
 			int halfWindowWidth = windowWidth >> 1;
 			int halfWindowHeight = windowHeight >> 1;
 
-			int cameraLeft = tuxX.Value - halfWindowWidth;
-			int cameraRight = tuxX.Value + halfWindowWidth;
-			int cameraBottom = tuxY.Value - halfWindowHeight;
-			int cameraTop = tuxY.Value + halfWindowHeight;
+			int tuxLeft = tuxX.Value - halfWindowWidth;
+			int tuxRight = tuxX.Value + halfWindowWidth;
+			int tuxBottom = tuxY.Value - halfWindowHeight;
+			int tuxTop = tuxY.Value + halfWindowHeight;
+
+			int cameraLeft = cameraX.Value - halfWindowWidth;
+			int cameraRight = cameraX.Value + halfWindowWidth;
+			int cameraBottom = cameraY.Value - halfWindowHeight;
+			int cameraTop = cameraY.Value + halfWindowHeight;
 
 			int margin = GameLogicState.MARGIN_FOR_TILEMAP_DESPAWN_IN_PIXELS;
 
@@ -81,25 +78,25 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					int tilemapLeft = tilemap.XOffset;
 					int tilemapRight = tilemap.XOffset + tilemap.Tilemap.GetWidth();
 
-					if (tilemapRight < cameraLeft - margin)
+					if (tilemapRight < tuxLeft - margin && tilemapRight < cameraLeft - margin)
 						continue;
-					if (tilemapLeft > cameraRight + margin)
+					if (tilemapLeft > tuxRight + margin && tilemapLeft > cameraRight + margin)
 						continue;
 
 					int tilemapBottom = tilemap.YOffset;
 					int tilemapTop = tilemap.YOffset + tilemap.Tilemap.GetHeight();
 
-					if (tilemapTop < cameraBottom - margin)
+					if (tilemapTop < tuxBottom - margin && tilemapTop < cameraBottom - margin)
 						continue;
-					if (tilemapBottom > cameraTop + margin)
+					if (tilemapBottom > tuxTop + margin && tilemapBottom > cameraTop + margin)
 						continue;
 				}
 
-				tilemapsNearTux.Add(tilemap);
+				tilemapsNearTuxOrCamera.Add(tilemap);
 			}
 
 			return new BoundedTilemap(tilemap: new CompositeTilemap(
-				normalizedTilemaps: tilemapsNearTux, 
+				normalizedTilemaps: tilemapsNearTuxOrCamera, 
 				width: tilemapWidth, 
 				height: tilemapHeight,
 				tuxX: tuxX,

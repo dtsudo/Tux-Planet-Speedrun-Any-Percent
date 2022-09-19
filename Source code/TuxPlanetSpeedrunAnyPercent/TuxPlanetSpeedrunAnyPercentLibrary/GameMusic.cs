@@ -10,7 +10,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		PeaceAtLast,
 		Chipdisko,
 		Jewels,
-		BossTheme
+		KonqiBossTheme,
+		YetiBossTheme
 	}
 
 	public static class GameMusicUtil
@@ -51,10 +52,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					return new MusicFilenameInfo(
 						defaultFilename: "cynicmusic/music_jewels.ogg",
 						wavFilename: "cynicmusic/music_jewels.wav");
-				case GameMusic.BossTheme:
+				case GameMusic.KonqiBossTheme:
 					return new MusicFilenameInfo(
 						defaultFilename: "migfus20/boss.ogg",
 						wavFilename: "migfus20/boss.wav");
+				case GameMusic.YetiBossTheme:
+					return new MusicFilenameInfo(
+						defaultFilename: "wansti/bossattack.ogg",
+						wavFilename: "wansti/bossattack.wav");
 				default: throw new Exception();
 			}
 		}
@@ -69,7 +74,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case GameMusic.PeaceAtLast: return 30;
 				case GameMusic.Chipdisko: return 70;
 				case GameMusic.Jewels: return 30;
-				case GameMusic.BossTheme: return 30;
+				case GameMusic.KonqiBossTheme: return 30;
+				case GameMusic.YetiBossTheme: return 40;
 				default: throw new Exception();
 			}
 		}

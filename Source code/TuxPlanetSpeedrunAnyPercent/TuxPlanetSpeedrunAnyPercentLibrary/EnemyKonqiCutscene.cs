@@ -12,29 +12,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private int y;
 		private int elapsedMicros;
 
+		private bool isFireKonqi;
+
+		private string shouldTeleportOutLevelFlag;
+
 		private List<string> emptyStringList;
 		private List<Hitbox> emptyHitboxList;
 
 		public string EnemyId { get; private set; }
 
-		public static EnemyKonqiCutscene GetEnemyKonqiCutscene(
-			int xMibi,
-			int yMibi,
-			string enemyId)
-		{
-			return new EnemyKonqiCutscene(
-				x: xMibi >> 10,
-				y: yMibi >> 10,
-				elapsedMicros: 0,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
-				enemyId: enemyId);
-		}
-
 		private EnemyKonqiCutscene(
 			int x,
 			int y,
 			int elapsedMicros,
+			bool isFireKonqi,
+			string shouldTeleportOutLevelFlag,
 			List<string> emptyStringList,
 			List<Hitbox> emptyHitboxList,
 			string enemyId)
@@ -42,9 +34,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.x = x;
 			this.y = y;
 			this.elapsedMicros = elapsedMicros;
+			this.isFireKonqi = isFireKonqi;
+			this.shouldTeleportOutLevelFlag = shouldTeleportOutLevelFlag;
 			this.emptyStringList = emptyStringList;
 			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
+		}
+
+		public static EnemyKonqiCutscene GetEnemyKonqiCutscene(
+			int xMibi,
+			int yMibi,
+			bool isFireKonqi,
+			string shouldTeleportOutLevelFlag,
+			string enemyId)
+		{
+			return new EnemyKonqiCutscene(
+				x: xMibi >> 10,
+				y: yMibi >> 10,
+				elapsedMicros: 0,
+				isFireKonqi: isFireKonqi,
+				shouldTeleportOutLevelFlag: shouldTeleportOutLevelFlag,
+				emptyStringList: new List<string>(),
+				emptyHitboxList: new List<Hitbox>(),
+				enemyId: enemyId);
 		}
 
 		public bool IsKonqiCutscene { get { return true; } }
@@ -85,7 +97,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (newElapsedMicros > 2 * 1000 * 1000 * 1000)
 				newElapsedMicros = 1;
 
-			if (levelFlags.Contains(LevelConfiguration_Level6.BEGIN_BOSS_BATTLE))
+			if (this.shouldTeleportOutLevelFlag != null && levelFlags.Contains(this.shouldTeleportOutLevelFlag))
 			{
 				return new EnemyProcessing.Result(
 					enemies: new List<IEnemy>()
@@ -106,6 +118,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						x: this.x,
 						y: this.y,
 						elapsedMicros: newElapsedMicros,
+						isFireKonqi: this.isFireKonqi,
+						shouldTeleportOutLevelFlag: this.shouldTeleportOutLevelFlag,
 						emptyStringList: this.emptyStringList,
 						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
@@ -119,7 +133,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int spriteNum = (this.elapsedMicros % 1000000) / 250000;
 
 			displayOutput.DrawImageRotatedClockwise(
-				image: GameImage.KonqiMirrored,
+				image: this.isFireKonqi ? GameImage.KonqiFireMirrored : GameImage.KonqiMirrored,
 				imageX: spriteNum * 32,
 				imageY: 0,
 				imageWidth: 32,

@@ -1867,6 +1867,26 @@ namespace DTLibrary
 			11447, 11447, 11447, 11447, 11447, 11447, 11447, 11447, 11447, 11447
 		};
 
+		public static int NormalizeDegreesScaled(int degreesScaled)
+		{
+			if (degreesScaled >= 0 && degreesScaled < 360 * 128)
+				return degreesScaled;
+
+			if (degreesScaled < 0)
+				degreesScaled = degreesScaled + 360 * 128 * 2;
+
+			int multiple = degreesScaled / (360 * 128);
+
+			degreesScaled = degreesScaled - multiple * (360 * 128);
+
+			while (degreesScaled < 0)
+				degreesScaled = degreesScaled + 360 * 128;
+			while (degreesScaled >= 360 * 128)
+				degreesScaled = degreesScaled - 360 * 128;
+
+			return degreesScaled;
+		}
+
 		// Given X as input, returns 1024 * sin(X / 128 degrees)
 		public static int SineScaled(int degreesScaled)
 		{
