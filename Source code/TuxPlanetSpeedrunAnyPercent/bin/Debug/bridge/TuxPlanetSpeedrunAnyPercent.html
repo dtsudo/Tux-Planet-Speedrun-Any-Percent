@@ -9,14 +9,80 @@
 	<script src="bridge.meta.js"></script>
 	<script src="TuxPlanetSpeedrunAnyPercent.js"></script>
 	<script src="TuxPlanetSpeedrunAnyPercent.meta.js"></script>
-
+	<script src="https://cdn.jsdelivr.net/gh/PsychoGoldfishNG/newgrounds.io-for-javascript-html5@8772ef4/bin/newgroundsio.min.js"></script>
 </head>
-<body>
+<body style="background-color: white">
 	<div>
 		<span id="fpsLabel"></span><span id="fps"></span>
 	</div>
 	<div style="text-align:center;">
 		<canvas id="bridgeCanvas" width="1000" height="700" style="image-rendering: pixelated"></canvas>
 	</div>
+	
+	<script>
+		((function () {
+			var appId = "55249:d1UPs21m";
+			var aesEncryptionKey = "/XK+i/KPnKpnJI8zhHQqBg==";
+			var medalMapping = {
+				completed_1_level: 70733,
+				completed_2_levels: 70734,
+				completed_3_levels: 70735,
+				completed_4_levels: 70736,
+				completed_5_levels: 70737,
+				completed_6_levels: 70738,
+				completed_7_levels: 70739,
+				completed_8_levels: 70740,
+				completed_9_levels: 70741,
+				completed_10_levels: 70742
+			};
+			
+			var ngio = new Newgrounds.io.core(appId, aesEncryptionKey);
+			
+			var medals = null;
+			
+			ngio.queueComponent("Medal.getList", {}, function (result) {
+				if (result.success)
+					medals = result.medals;
+			});
+			ngio.executeQueue();
+			
+			ngio.getValidSession(function () {});
+					
+			var awardedMedals = {};
+			
+			var awardMedals = function () {
+				if (!window.BridgeCompletedAchievements)
+					return;
+				
+				if (medals === null)
+					return;
+				
+				if (!ngio.user)
+					return;
+				
+				for (var i = 0; i < window.BridgeCompletedAchievements.length; i++) {
+					var medalName = window.BridgeCompletedAchievements[i];
+					
+					if (awardedMedals[medalName])
+						continue;
+						
+					awardedMedals[medalName] = true;
+					
+					var medalId = medalMapping[medalName];
+					
+					if (medalId === undefined || medalId === null)
+						continue;
+					
+					for (var j = 0; j < medals.length; j++) {
+						if (medals[j].id === medalId && !medals[j].unlocked) {
+							ngio.callComponent("Medal.unlock", { id: medalId }, function () {});
+						}
+					}
+				}
+			};
+			
+			setInterval(awardMedals, 250);
+		})());
+	</script>
 </body>
 </html>
