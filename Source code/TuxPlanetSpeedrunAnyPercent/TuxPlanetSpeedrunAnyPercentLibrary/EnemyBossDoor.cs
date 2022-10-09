@@ -17,9 +17,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private const int DOOR_ANIMATION_DURATION = 500 * 1000;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		public const string LEVEL_FLAG_CLOSE_BOSS_DOORS = "closeBossDoors";
 		public const string LEVEL_FLAG_CLOSE_BOSS_DOORS_INSTANTLY = "closeBossDoorsInstantly";
 		public const string LEVEL_FLAG_OPEN_BOSS_DOORS = "openBossDoors";
@@ -32,8 +29,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int elapsedMicrosClosing,
 			int elapsedMicrosOpening,
 			bool isUpperDoor,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.x = x;
@@ -41,8 +36,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.elapsedMicrosClosing = elapsedMicrosClosing;
 			this.elapsedMicrosOpening = elapsedMicrosOpening;
 			this.isUpperDoor = isUpperDoor;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -58,30 +51,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				elapsedMicrosClosing: 0,
 				elapsedMicrosOpening: 0,
 				isUpperDoor: isUpperDoor,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -116,13 +96,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (newElapsedMicrosOpening >= DOOR_ANIMATION_DURATION)
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>(),
-					newlyKilledEnemies: new List<string>() { this.EnemyId },
-					newlyAddedLevelFlags: null);
+					enemiesImmutableNullable: null,
+					newlyKilledEnemiesImmutableNullable: new List<string>() { this.EnemyId },
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyBossDoor(
 						x: this.x,
@@ -130,43 +110,48 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						elapsedMicrosClosing: newElapsedMicrosClosing,
 						elapsedMicrosOpening: newElapsedMicrosOpening,
 						isUpperDoor: this.isUpperDoor,
-						emptyStringList: this.emptyStringList,
-						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)
 		{
-			int y;
+			int numPixels;
 
 			if (this.elapsedMicrosClosing < DOOR_ANIMATION_DURATION)
-			{
-				if (this.isUpperDoor)
-					y = this.y + 32 * 3 - 32 * 3 * this.elapsedMicrosClosing / DOOR_ANIMATION_DURATION;
-				else
-					y = this.y - 32 * 3 + 32 * 3 * this.elapsedMicrosClosing / DOOR_ANIMATION_DURATION;
-			}
+				numPixels = 32 * this.elapsedMicrosClosing / DOOR_ANIMATION_DURATION;
 			else if (this.elapsedMicrosOpening < DOOR_ANIMATION_DURATION)
+				numPixels = 32 - 32 * this.elapsedMicrosOpening / DOOR_ANIMATION_DURATION;
+			else
+				numPixels = 32;
+
+			int imageY;
+			int y;
+
+			if (this.isUpperDoor)
 			{
-				if (this.isUpperDoor)
-					y = this.y + 32 * 3 * this.elapsedMicrosOpening / DOOR_ANIMATION_DURATION;
-				else
-					y = this.y - 32 * 3 * this.elapsedMicrosOpening / DOOR_ANIMATION_DURATION;
+				imageY = 32 - numPixels;
+				y = this.y + (32 - numPixels) * 3;
 			}
 			else
 			{
+				imageY = 0;
 				y = this.y;
 			}
 
-			displayOutput.DrawImageRotatedClockwise(
-				image: GameImage.BossDoor,
-				x: this.x,
-				y: y,
-				degreesScaled: 0,
-				scalingFactorScaled: 128 * 3);
+			if (numPixels > 0)
+				displayOutput.DrawImageRotatedClockwise(
+					image: GameImage.BossDoor,
+					imageX: 0,
+					imageY: imageY,
+					imageWidth: 16,
+					imageHeight: numPixels,
+					x: this.x,
+					y: y,
+					degreesScaled: 0,
+					scalingFactorScaled: 128 * 3);
 		}
 
 		public IEnemy GetDeadEnemy()

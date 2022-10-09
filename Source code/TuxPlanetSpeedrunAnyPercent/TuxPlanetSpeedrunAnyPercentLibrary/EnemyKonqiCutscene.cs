@@ -16,8 +16,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private string shouldTeleportOutLevelFlag;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
+		public const string SHOULD_TELEPORT_OUT_DEFAULT_LEVEL_FLAG = "EnemyKonqiCutscene_shouldTeleportOut_default";
 
 		public string EnemyId { get; private set; }
 
@@ -27,8 +26,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int elapsedMicros,
 			bool isFireKonqi,
 			string shouldTeleportOutLevelFlag,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.x = x;
@@ -36,8 +33,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.elapsedMicros = elapsedMicros;
 			this.isFireKonqi = isFireKonqi;
 			this.shouldTeleportOutLevelFlag = shouldTeleportOutLevelFlag;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -54,30 +49,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				elapsedMicros: 0,
 				isFireKonqi: isFireKonqi,
 				shouldTeleportOutLevelFlag: shouldTeleportOutLevelFlag,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return true; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return new Tuple<int, int>(this.x, this.y);
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -100,19 +82,19 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (this.shouldTeleportOutLevelFlag != null && levelFlags.Contains(this.shouldTeleportOutLevelFlag))
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						EnemyKonqiDisappear.GetEnemyKonqiDisappear(
 							xMibi: this.x << 10,
 							yMibi: this.y << 10,
 							enemyId: this.EnemyId + "_konqiDisappear")
 					},
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: new List<string>() { this.EnemyId },
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyKonqiCutscene(
 						x: this.x,
@@ -120,12 +102,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						elapsedMicros: newElapsedMicros,
 						isFireKonqi: this.isFireKonqi,
 						shouldTeleportOutLevelFlag: this.shouldTeleportOutLevelFlag,
-						emptyStringList: this.emptyStringList,
-						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

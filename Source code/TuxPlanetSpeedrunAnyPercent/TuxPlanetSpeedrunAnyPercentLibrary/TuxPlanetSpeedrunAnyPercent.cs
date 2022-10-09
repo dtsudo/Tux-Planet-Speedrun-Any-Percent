@@ -12,7 +12,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public static IFrame<GameImage, GameFont, GameSound, GameMusic> GetFirstFrame(GlobalState globalState)
 		{
-			var frame = new InitialLoadingScreenFrame(globalState: globalState);
+			var frame = new InitialLoadingScreenFrame(globalState: globalState, isPerformanceTest: false);
+			return frame;
+		}
+
+		public static IFrame<GameImage, GameFont, GameSound, GameMusic> GetPerformanceTest(GlobalState globalState)
+		{
+			var frame = new InitialLoadingScreenFrame(globalState: globalState, isPerformanceTest: true);
 			return frame;
 		}
 	}

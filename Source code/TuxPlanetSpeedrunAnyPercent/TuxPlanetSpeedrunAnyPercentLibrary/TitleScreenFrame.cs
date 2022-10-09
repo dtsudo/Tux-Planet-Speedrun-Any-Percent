@@ -89,6 +89,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return Achievements.GetCompletedAchievements(numCompletedLevels: this.sessionState.Overworld.GetNumCompletedLevels());
 		}
 
+		public string GetScore()
+		{
+			return null;
+		}
+
 		private static bool CanContinueCurrentGame(SessionState sessionState)
 		{
 			return sessionState.HasStarted();

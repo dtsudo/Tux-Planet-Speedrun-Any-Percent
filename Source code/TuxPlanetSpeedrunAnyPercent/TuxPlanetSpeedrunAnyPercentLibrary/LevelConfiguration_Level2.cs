@@ -9,7 +9,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class LevelConfiguration_Level2 : ILevelConfiguration
 	{
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
-		private bool shouldSpawnRemoveKonqi;
+		private bool shouldRemoveKonqi;
 		private IBackground background;
 
 		private const string LEVEL_SUBFOLDER = "Level2";
@@ -24,7 +24,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				canAlreadyUseSaveStates: canAlreadyUseSaveStates,
 				random: random);
 
-			this.shouldSpawnRemoveKonqi = canAlreadyUseSaveStates;
+			this.shouldRemoveKonqi = canAlreadyUseSaveStates;
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 
@@ -300,8 +300,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
 
-			if (this.shouldSpawnRemoveKonqi)
-				tilemap = new SpawnRemoveKonqiTilemap(tilemap: tilemap);
+			if (this.shouldRemoveKonqi)
+				tilemap = new EnemyCreationTilemap(
+					mapTilemap: tilemap,
+					enemiesUnaffectedByXOffsetAndYOffset: new List<IEnemy>()
+					{
+						new EnemyAddLevelFlag(
+							levelFlag: EnemyKonqiCutscene.SHOULD_TELEPORT_OUT_DEFAULT_LEVEL_FLAG,
+							enemyId: "EnemyAddLevelFlag_shouldTeleportOut")
+					});
 
 			return tilemap;
 		}

@@ -91,17 +91,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
-		}
-
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			Hitbox hitbox = this.isSpikes
@@ -116,22 +105,25 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					width: 16 * 6,
 					height: 16 * 6);
 
-			return new List<Hitbox>() { hitbox };
+			List<Hitbox> list = new List<Hitbox>();
+			list.Add(hitbox);
+
+			return list;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
 			if (this.isSpikes)
-				return new List<Hitbox>();
+				return null;
 
-			return new List<Hitbox>()
-			{
-				new Hitbox(
-					x: (this.xMibi >> 10) - 8 * 6,
-					y: (this.yMibi >> 10) - 8 * 6,
-					width: 16 * 6,
-					height: 16 * 6)
-			};
+			List<Hitbox> list = new List<Hitbox>();
+			list.Add(new Hitbox(
+				x: (this.xMibi >> 10) - 8 * 6,
+				y: (this.yMibi >> 10) - 8 * 6,
+				width: 16 * 6,
+				height: 16 * 6));
+
+			return list;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -175,12 +167,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (isEliteFlyamanitaDead)
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						this.GetDeadEnemy()
 					},
-					newlyKilledEnemies: new List<string>() { this.EnemyId },
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: new List<string>() { this.EnemyId },
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			List<IEnemy> list = new List<IEnemy>();
@@ -259,9 +251,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: list,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: list,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

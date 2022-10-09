@@ -14,9 +14,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private bool isFacingRight;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		public string EnemyId { get; private set; }
 
 		private EnemyYetiBoss_Defeated(
@@ -24,16 +21,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int yMibi,
 			int elapsedMicros,
 			bool isFacingRight,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
 			this.yMibi = yMibi;
 			this.elapsedMicros = elapsedMicros;
 			this.isFacingRight = isFacingRight;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -49,30 +42,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				yMibi: yMibi,
 				elapsedMicros: elapsedMicros,
 				isFacingRight: isFacingRight,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -104,14 +84,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				yMibi: this.yMibi,
 				elapsedMicros: newElapsedMicros,
 				isFacingRight: this.isFacingRight,
-				emptyStringList: this.emptyStringList,
-				emptyHitboxList: this.emptyHitboxList,
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: newEnemies,
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: newEnemies,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

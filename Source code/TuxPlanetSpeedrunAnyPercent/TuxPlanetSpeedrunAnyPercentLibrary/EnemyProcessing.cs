@@ -11,21 +11,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public class Result
 		{
 			public Result(
-				IReadOnlyList<IEnemy> enemies,
-				IReadOnlyList<string> newlyKilledEnemies,
-				IReadOnlyList<string> newlyAddedLevelFlags)
+				IReadOnlyList<IEnemy> enemiesImmutableNullable,
+				IReadOnlyList<string> newlyKilledEnemiesImmutableNullable,
+				IReadOnlyList<string> newlyAddedLevelFlagsImmutableNullable)
 			{
-				this.Enemies = new List<IEnemy>(enemies);
-				this.NewlyKilledEnemies = new List<string>(newlyKilledEnemies);
-				if (newlyAddedLevelFlags == null)
-					this.NewlyAddedLevelFlags = new List<string>();
-				else
-					this.NewlyAddedLevelFlags = new List<string>(newlyAddedLevelFlags);
+				this.EnemiesNullable = enemiesImmutableNullable;
+				this.NewlyKilledEnemiesNullable = newlyKilledEnemiesImmutableNullable;
+				this.NewlyAddedLevelFlagsNullable = newlyAddedLevelFlagsImmutableNullable;
 			}
 
-			public IReadOnlyList<IEnemy> Enemies { get; private set; }
-			public IReadOnlyList<string> NewlyKilledEnemies { get; private set; }
-			public IReadOnlyList<string> NewlyAddedLevelFlags { get; private set; }
+			public IReadOnlyList<IEnemy> EnemiesNullable { get; private set; }
+			public IReadOnlyList<string> NewlyKilledEnemiesNullable { get; private set; }
+			public IReadOnlyList<string> NewlyAddedLevelFlagsNullable { get; private set; }
 		}
 
 		public static Result ProcessFrame(
@@ -42,31 +39,42 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			ISoundOutput<GameSound> soundOutput,
 			int elapsedMicrosPerFrame)
 		{
+			int enemiesCount = enemies.Count;
+			int killedEnemiesCount = killedEnemies.Count;
+
 			HashSet<string> newlyAddedLevelFlags = new HashSet<string>();
 
-			HashSet<string> existingEnemies = new HashSet<string>();
-			foreach (IEnemy enemy in enemies)
-				existingEnemies.Add(enemy.EnemyId);
+			HashSet<string> existingAndKilledEnemies = new HashSet<string>();
+			for (int i = 0; i < enemiesCount; i++)
+				existingAndKilledEnemies.Add(enemies[i].EnemyId);
 
 			HashSet<string> killedEnemiesSet = new HashSet<string>();
-			foreach (string killedEnemy in killedEnemies)
+			for (int i = 0; i < killedEnemiesCount; i++)
+			{
+				string killedEnemy = killedEnemies[i];
 				killedEnemiesSet.Add(killedEnemy);
+				existingAndKilledEnemies.Add(killedEnemy);
+			}
 
 			List<IEnemy> newEnemies = new List<IEnemy>();
 			List<string> newlyKilledEnemies = new List<string>();
 
 			IReadOnlyList<IEnemy> potentialNewEnemies = tilemap.GetEnemies(xOffset: 0, yOffset: 0);
-			foreach (IEnemy potentialNewEnemy in potentialNewEnemies)
+			int potentialNewEnemiesCount = potentialNewEnemies.Count;
+			for (int i = 0; i < potentialNewEnemiesCount; i++)
 			{
-				if (!existingEnemies.Contains(potentialNewEnemy.EnemyId) && !killedEnemiesSet.Contains(potentialNewEnemy.EnemyId))
+				IEnemy potentialNewEnemy = potentialNewEnemies[i];
+				if (!existingAndKilledEnemies.Contains(potentialNewEnemy.EnemyId))
 					newEnemies.Add(potentialNewEnemy);
 			}
 
 			List<IEnemy> processedEnemies = new List<IEnemy>();
 			HashSet<string> processedEnemiesSet = new HashSet<string>();
 
-			foreach (IEnemy enemy in enemies)
+			for (int enemyIndex = 0; enemyIndex < enemiesCount; enemyIndex++)
 			{
+				IEnemy enemy = enemies[enemyIndex];
+
 				Result result = enemy.ProcessFrame(
 					cameraX: cameraX,
 					cameraY: cameraY,
@@ -79,22 +87,37 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					levelFlags: levelFlags,
 					soundOutput: soundOutput);
 
-				foreach (IEnemy e in result.Enemies)
+				if (result.EnemiesNullable != null)
 				{
-					if (!processedEnemiesSet.Contains(e.EnemyId) && !killedEnemiesSet.Contains(e.EnemyId))
+					int count = result.EnemiesNullable.Count;
+					for (int i = 0; i < count; i++)
 					{
-						processedEnemies.Add(e);
-						processedEnemiesSet.Add(e.EnemyId);
+						IEnemy e = result.EnemiesNullable[i];
+						if (!killedEnemiesSet.Contains(e.EnemyId))
+						{
+							bool wasAdded = processedEnemiesSet.Add(e.EnemyId);
+							if (wasAdded)
+								processedEnemies.Add(e);
+						}
 					}
 				}
-				newlyKilledEnemies.AddRange(result.NewlyKilledEnemies);
 
-				foreach (string levelFlag in result.NewlyAddedLevelFlags)
-					newlyAddedLevelFlags.Add(levelFlag);
+				if (result.NewlyKilledEnemiesNullable != null)
+					newlyKilledEnemies.AddRange(result.NewlyKilledEnemiesNullable);
+
+				if (result.NewlyAddedLevelFlagsNullable != null)
+				{
+					int count = result.NewlyAddedLevelFlagsNullable.Count;
+					for (int i = 0; i < count; i++)
+						newlyAddedLevelFlags.Add(result.NewlyAddedLevelFlagsNullable[i]);
+				}
 			}
 
-			foreach (IEnemy enemy in newEnemies)
+			int newEnemiesCount = newEnemies.Count;
+			for (int newEnemiesIndex = 0; newEnemiesIndex < newEnemiesCount; newEnemiesIndex++)
 			{
+				IEnemy enemy = newEnemies[newEnemiesIndex];
+
 				Result result = enemy.ProcessFrame(
 					cameraX: cameraX,
 					cameraY: cameraY,
@@ -107,24 +130,36 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					levelFlags: levelFlags,
 					soundOutput: soundOutput);
 
-				foreach (IEnemy e in result.Enemies)
+				if (result.EnemiesNullable != null)
 				{
-					if (!processedEnemiesSet.Contains(e.EnemyId) && !killedEnemiesSet.Contains(e.EnemyId))
+					int count = result.EnemiesNullable.Count;
+					for (int i = 0; i < count; i++)
 					{
-						processedEnemies.Add(e);
-						processedEnemiesSet.Add(e.EnemyId);
+						IEnemy e = result.EnemiesNullable[i];
+						if (!killedEnemiesSet.Contains(e.EnemyId))
+						{
+							bool wasAdded = processedEnemiesSet.Add(e.EnemyId);
+							if (wasAdded)
+								processedEnemies.Add(e);
+						}
 					}
 				}
-				newlyKilledEnemies.AddRange(result.NewlyKilledEnemies);
 
-				foreach (string levelFlag in result.NewlyAddedLevelFlags)
-					newlyAddedLevelFlags.Add(levelFlag);
+				if (result.NewlyKilledEnemiesNullable != null)
+					newlyKilledEnemies.AddRange(result.NewlyKilledEnemiesNullable);
+
+				if (result.NewlyAddedLevelFlagsNullable != null)
+				{
+					int count = result.NewlyAddedLevelFlagsNullable.Count;
+					for (int i = 0; i < count; i++)
+						newlyAddedLevelFlags.Add(result.NewlyAddedLevelFlagsNullable[i]);
+				}
 			}
 
 			return new Result(
-				enemies: processedEnemies,
-				newlyKilledEnemies: newlyKilledEnemies,
-				newlyAddedLevelFlags: newlyAddedLevelFlags.ToList());
+				enemiesImmutableNullable: processedEnemies,
+				newlyKilledEnemiesImmutableNullable: newlyKilledEnemies,
+				newlyAddedLevelFlagsImmutableNullable: newlyAddedLevelFlags.ToList());
 		}
 	}
 }

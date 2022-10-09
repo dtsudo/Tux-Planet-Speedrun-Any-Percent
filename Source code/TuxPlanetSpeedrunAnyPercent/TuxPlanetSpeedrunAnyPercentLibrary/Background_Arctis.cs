@@ -31,6 +31,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				while (displacement < 0)
 					displacement = displacement + imageWidth * scalingFactor;
 			}
+			
+			displayOutput.DrawRectangle(
+				x: 0,
+				y: 0,
+				width: windowWidth,
+				height: windowHeight,
+				color: DTColor.White(),
+				fill: true);
 
 			displayOutput.DrawImageRotatedClockwise(
 				image: image,

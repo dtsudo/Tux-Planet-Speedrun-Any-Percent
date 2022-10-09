@@ -42,6 +42,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return Achievements.GetCompletedAchievements(numCompletedLevels: this.sessionState.Overworld.GetNumCompletedLevels());
 		}
 
+		public string GetScore()
+		{
+			return null;
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,
@@ -63,7 +68,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			if (keyboardInput.IsPressed(Key.Esc) && !previousKeyboardInput.IsPressed(Key.Esc))
-				return new PauseMenuFrame(globalState: this.globalState, sessionState: this.sessionState, underlyingFrame: this, showRestartLevelOption: false, showBackToMapOption: false);
+				return new PauseMenuFrame(
+					globalState: this.globalState, 
+					sessionState: this.sessionState, 
+					underlyingFrame: this, 
+					showRestartLevelOption: false, 
+					showBackToMapOption: false,
+					showToggleInputReplayFunctionalityOption: this.sessionState.CanUseSaveStates);
 
 			Overworld.Result result = this.overworld.ProcessFrame(
 				keyboardInput: keyboardInput,

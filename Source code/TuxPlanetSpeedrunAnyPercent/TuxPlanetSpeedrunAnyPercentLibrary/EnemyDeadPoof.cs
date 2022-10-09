@@ -12,9 +12,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private int elapsedMicros;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		public string EnemyId { get; private set; }
 
 		private const int DEAD_ANIMATION_DURATION = 500 * 1000;
@@ -23,15 +20,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int x,
 			int y,
 			int elapsedMicros,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.x = x;
 			this.y = y;
 			this.elapsedMicros = elapsedMicros;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -44,30 +37,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				x: xMibi >> 10,
 				y: yMibi >> 10,
 				elapsedMicros: 0,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -91,23 +71,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (newElapsedMicros >= DEAD_ANIMATION_DURATION)
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>(),
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: null);
+					enemiesImmutableNullable: null,
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyDeadPoof(
 						x: this.x,
 						y: this.y,
 						enemyId: this.EnemyId,
-						elapsedMicros: newElapsedMicros,
-						emptyStringList: this.emptyStringList,
-						emptyHitboxList: this.emptyHitboxList)
+						elapsedMicros: newElapsedMicros)
 				},
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

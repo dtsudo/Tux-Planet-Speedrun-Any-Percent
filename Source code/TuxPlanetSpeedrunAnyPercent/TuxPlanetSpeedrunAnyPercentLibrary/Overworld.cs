@@ -274,7 +274,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (cameraYCenter > this.overworldMap.GetMapHeightInPixels() - this.windowHeight / 2)
 				cameraYCenter = this.overworldMap.GetMapHeightInPixels() - this.windowHeight / 2;
 
-			IDisplayOutput<GameImage, GameFont> translatedDisplayOutput = new TranslatedDisplayOutput<GameImage, GameFont>(
+			IDisplayOutput<GameImage, GameFont> translatedDisplayOutput = new TuxPlanetSpeedrunTranslatedDisplayOutput(
 				display: displayOutput,
 				xOffsetInPixels: -(cameraXCenter - this.windowWidth / 2),
 				yOffsetInPixels: -(cameraYCenter - this.windowHeight / 2));

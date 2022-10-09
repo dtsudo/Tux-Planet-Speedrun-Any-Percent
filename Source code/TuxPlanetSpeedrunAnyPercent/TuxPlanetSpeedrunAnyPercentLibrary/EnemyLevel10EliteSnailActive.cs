@@ -90,45 +90,34 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
-		}
-
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			if (this.teleportInProgressElapsedMicros.HasValue)
-				return new List<Hitbox>();
+				return null;
 
-			return new List<Hitbox>()
-			{
-				new Hitbox(
-					x: (this.xMibi >> 10) - 8 * 3,
-					y: (this.yMibi >> 10) - 8 * 3,
-					width: 16 * 3,
-					height: 14 * 3)
-			};
+			List<Hitbox> list = new List<Hitbox>();
+			list.Add(new Hitbox(
+				x: (this.xMibi >> 10) - 8 * 3,
+				y: (this.yMibi >> 10) - 8 * 3,
+				width: 16 * 3,
+				height: 14 * 3));
+
+			return list;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
 			if (this.teleportInProgressElapsedMicros.HasValue)
-				return new List<Hitbox>();
+				return null;
 
-			return new List<Hitbox>()
-			{
-				new Hitbox(
-					x: (this.xMibi >> 10) - 8 * 3,
-					y: (this.yMibi >> 10) - 2 * 3,
-					width: 16 * 3,
-					height: 8 * 3)
-			};
+			List<Hitbox> list = new List<Hitbox>();
+			list.Add(new Hitbox(
+				x: (this.xMibi >> 10) - 8 * 3,
+				y: (this.yMibi >> 10) - 2 * 3,
+				width: 16 * 3,
+				height: 8 * 3));
+
+			return list;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -178,9 +167,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: list,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: list,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -501,22 +490,22 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: list,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: list,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)
 		{
 			if (this.teleportInProgressElapsedMicros.HasValue)
 			{
-				long deltaX = this.xMibi - this.teleportStartingLocation.Item1;
-				long deltaY = this.yMibi - this.teleportStartingLocation.Item2;
+				int deltaX = this.xMibi - this.teleportStartingLocation.Item1;
+				int deltaY = this.yMibi - this.teleportStartingLocation.Item2;
 
 				for (int i = Math.Max(0, this.teleportInProgressElapsedMicros.Value - 50 * 1000); i < this.teleportInProgressElapsedMicros.Value; i += 5 * 1000)
 				{
-					int renderXMibi = (int)(this.teleportStartingLocation.Item1 + deltaX * i / TELEPORT_DURATION);
-					int renderYMibi = (int)(this.teleportStartingLocation.Item2 + deltaY * i / TELEPORT_DURATION);
+					int renderXMibi = this.teleportStartingLocation.Item1 + deltaX * (i >> 10) / (TELEPORT_DURATION / 1024);
+					int renderYMibi = this.teleportStartingLocation.Item2 + deltaY * (i >> 10) / (TELEPORT_DURATION / 1024);
 
 					int alpha = (i - (this.teleportInProgressElapsedMicros.Value - 50 * 1000)) * 170 / 50000;
 

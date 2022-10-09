@@ -19,25 +19,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.EnemyId = enemyId;
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
+		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			return null;
 		}
 
-		public IReadOnlyList<Hitbox> GetHitboxes()
-		{
-			return new List<Hitbox>();
-		}
-
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return new List<Hitbox>();
+			return null;
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -58,12 +47,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				newElapsedMicros = 1;
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyLevel8WaterAnimation(elapsedMicros: newElapsedMicros, enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

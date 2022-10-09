@@ -65,17 +65,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
-		}
-
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			return new List<Hitbox>()
@@ -90,7 +79,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return new List<Hitbox>();
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -122,15 +111,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (shouldDespawn)
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						EnemyDeadPoof.SpawnEnemyDeadPoof(
 							xMibi: this.xMibi,
 							yMibi: this.yMibi,
 							enemyId: this.EnemyId + "_poof")
 					},
-					newlyKilledEnemies: new List<string>(),
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			List<IEnemy> newEnemies = new List<IEnemy>();
@@ -150,9 +139,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (newRadiusInMibipixels > 1250 * 1024)
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>(),
-					newlyKilledEnemies: new List<string>(),
-					newlyAddedLevelFlags: null);
+					enemiesImmutableNullable: null,
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			newEnemies.Add(new EnemyKonqiFireballBlue(
@@ -167,9 +156,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: newEnemies,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: newEnemies,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

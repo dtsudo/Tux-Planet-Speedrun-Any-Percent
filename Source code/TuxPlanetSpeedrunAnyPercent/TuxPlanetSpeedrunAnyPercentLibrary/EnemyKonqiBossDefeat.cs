@@ -30,9 +30,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private int? teleportInProgressElapsedMicros;
 		private const int TELEPORT_DURATION = 150 * 1000;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		public string EnemyId { get; private set; }
 
 		private EnemyKonqiBossDefeat(
@@ -44,8 +41,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int ySpeedInMibipixelsPerSecond,
 			Tuple<int, int> teleportStartingLocation,
 			int? teleportInProgressElapsedMicros,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.status = status;
@@ -56,8 +51,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.ySpeedInMibipixelsPerSecond = ySpeedInMibipixelsPerSecond;
 			this.teleportStartingLocation = teleportStartingLocation;
 			this.teleportInProgressElapsedMicros = teleportInProgressElapsedMicros;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -76,30 +69,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				ySpeedInMibipixelsPerSecond: 0,
 				teleportStartingLocation: null,
 				teleportInProgressElapsedMicros: null,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -206,7 +186,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyKonqiBossDefeat(
 						status: newStatus,
@@ -217,12 +197,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						ySpeedInMibipixelsPerSecond: newYSpeedInMibipixelsPerSecond,
 						teleportStartingLocation: newTeleportStartingLocation,
 						teleportInProgressElapsedMicros: newTeleportInProgressElapsedMicros,
-						emptyStringList: this.emptyStringList,
-						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: newlyAddedLevelFlags);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: newlyAddedLevelFlags);
 		}
 
 		public static void RenderKonqiBlock(

@@ -20,9 +20,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private GameImage fishImage;
 		private GameImage fishImageMirrored;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		public string EnemyId { get; private set; }
 
 		private EnemyLevel8Fish(
@@ -34,8 +31,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int changeYSpeedCooldown,
 			GameImage fishImage,
 			GameImage fishImageMirrored,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -46,8 +41,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.changeYSpeedCooldown = changeYSpeedCooldown;
 			this.fishImage = fishImage;
 			this.fishImageMirrored = fishImageMirrored;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -70,30 +63,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				changeYSpeedCooldown: 0,
 				fishImage: fishImage,
 				fishImageMirrored: fishImageMirrored,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -156,7 +136,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyLevel8Fish(
 						xMibi: newXMibi,
@@ -167,12 +147,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						changeYSpeedCooldown: newChangeYSpeedCooldown,
 						fishImage: this.fishImage,
 						fishImageMirrored: this.fishImageMirrored,
-						emptyStringList: this.emptyStringList,
-						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

@@ -7,10 +7,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class InitialLoadingScreenFrame : IFrame<GameImage, GameFont, GameSound, GameMusic>
 	{
 		private GlobalState globalState;
+		private bool isPerformanceTest;
 
-		public InitialLoadingScreenFrame(GlobalState globalState)
+		public InitialLoadingScreenFrame(GlobalState globalState, bool isPerformanceTest)
 		{
 			this.globalState = globalState;
+			this.isPerformanceTest = isPerformanceTest;
 		}
 
 		public void ProcessExtraTime(int milliseconds)
@@ -23,6 +25,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		public HashSet<string> GetCompletedAchievements()
+		{
+			return null;
+		}
+
+		public string GetScore()
 		{
 			return null;
 		}
@@ -76,7 +83,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			this.globalState.LoadMusicVolume();
 
-			return new TitleScreenFrame(globalState: this.globalState, sessionState: sessionState);
+			if (this.isPerformanceTest)
+				return PerformanceTestFrame.GetPerformanceTestFrame(
+					globalState: this.globalState,
+					displayProcessing: displayProcessing,
+					soundOutput: soundOutput,
+					musicProcessing: musicProcessing);
+			else
+				return new TitleScreenFrame(globalState: this.globalState, sessionState: sessionState);
 		}
 
 		public void ProcessMusic()

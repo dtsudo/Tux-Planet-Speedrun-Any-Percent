@@ -17,9 +17,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private bool isSpikes;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		public string EnemyId { get; private set; }
 
 		private EnemyEliteFlyamanitaLesserOrbiterDead(
@@ -29,8 +26,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int angularSpeedInAnglesScaledPerSecond,
 			int angleScaled,
 			bool isSpikes,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -39,8 +34,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.angularSpeedInAnglesScaledPerSecond = angularSpeedInAnglesScaledPerSecond;
 			this.angleScaled = angleScaled;
 			this.isSpikes = isSpikes;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -58,42 +51,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				angularSpeedInAnglesScaledPerSecond: angularSpeedInAnglesScaledPerSecond,
 				angleScaled: 0,
 				isSpikes: isSpikes,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			if (this.isSpikes)
 			{
-				return new List<Hitbox>()
-				{
-					new Hitbox(
-						x: (this.xMibi >> 10) - 6 * 3,
-						y: (this.yMibi >> 10) - 6 * 3,
-						width: 12 * 3,
-						height: 12 * 3)
-				};
+				List<Hitbox> list = new List<Hitbox>();
+				list.Add(new Hitbox(
+					x: (this.xMibi >> 10) - 6 * 3,
+					y: (this.yMibi >> 10) - 6 * 3,
+					width: 12 * 3,
+					height: 12 * 3));
+
+				return list;
 			}
 
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -115,9 +95,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (isOutOfBounds)
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>(),
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: null);
+					enemiesImmutableNullable: null,
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 
 			int newYSpeedInMibipixelsPerSecond = this.ySpeedInMibipixelsPerSecond;
 			if (newYSpeedInMibipixelsPerSecond >= -5000 * 1000)
@@ -133,7 +113,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int newYMibi = (int)(((long)this.yMibi) + ((long)newYSpeedInMibipixelsPerSecond) * ((long)elapsedMicrosPerFrame) / 1000L / 1000L);
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyEliteFlyamanitaLesserOrbiterDead(
 						xMibi: this.xMibi,
@@ -142,12 +122,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						angularSpeedInAnglesScaledPerSecond: this.angularSpeedInAnglesScaledPerSecond,
 						angleScaled: newAngleScaled,
 						isSpikes: this.isSpikes,
-						emptyStringList: this.emptyStringList,
-						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

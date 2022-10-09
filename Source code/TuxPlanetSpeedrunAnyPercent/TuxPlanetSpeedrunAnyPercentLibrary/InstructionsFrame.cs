@@ -34,6 +34,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return null;
 		}
 
+		public string GetScore()
+		{
+			return null;
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,
@@ -61,7 +66,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (keyboardInput.IsPressed(Key.Esc) && !previousKeyboardInput.IsPressed(Key.Esc))
 			{
 				soundOutput.PlaySound(GameSound.Click);
-				return new PauseMenuFrame(globalState: this.globalState, sessionState: this.sessionState, underlyingFrame: this, showRestartLevelOption: false, showBackToMapOption: false);
+				return new PauseMenuFrame(
+					globalState: this.globalState, 
+					sessionState: this.sessionState, 
+					underlyingFrame: this, 
+					showRestartLevelOption: false, 
+					showBackToMapOption: false,
+					showToggleInputReplayFunctionalityOption: false);
 			}
 
 			return this;

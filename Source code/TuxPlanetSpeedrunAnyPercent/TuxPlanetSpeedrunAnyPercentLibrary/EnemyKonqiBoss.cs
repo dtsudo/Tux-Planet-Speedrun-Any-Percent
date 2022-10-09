@@ -27,7 +27,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private const int INVULNERABILITY_DURATION = 1000 * 1000;
 
-		private List<string> emptyStringList;
 		private List<Hitbox> emptyHitboxList;
 		private int startingYMibi;
 
@@ -44,7 +43,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool wasLastBlueFlameAttackClockwise,
 			int enemyIdCounter,
 			string rngSeed,
-			List<string> emptyStringList,
 			List<Hitbox> emptyHitboxList,
 			int startingYMibi,
 			string enemyId)
@@ -59,7 +57,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.wasLastBlueFlameAttackClockwise = wasLastBlueFlameAttackClockwise;
 			this.enemyIdCounter = enemyIdCounter;
 			this.rngSeed = rngSeed;
-			this.emptyStringList = emptyStringList;
 			this.emptyHitboxList = emptyHitboxList;
 			this.startingYMibi = startingYMibi;
 			this.EnemyId = enemyId;
@@ -82,21 +79,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				wasLastBlueFlameAttackClockwise: false,
 				enemyIdCounter: 0,
 				rngSeed: rngSeed,
-				emptyStringList: new List<string>(),
 				emptyHitboxList: new List<Hitbox>(),
 				startingYMibi: yMibi,
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
@@ -143,7 +128,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (levelFlags.Contains(LevelConfiguration_Level10.SPAWN_KONQI_BOSS_DEFEAT))
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						EnemyKonqiBossDefeat.GetEnemyKonqiBossDefeat(
 							xMibi: this.xMibi,
@@ -151,8 +136,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							elapsedMicros: this.elapsedMicros,
 							enemyId: this.EnemyId + "_EnemyKonqiBossDefeat")
 					},
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			int newXMibi = this.xMibi;
@@ -275,7 +260,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				wasLastBlueFlameAttackClockwise: newWasLastBlueFlameAttackClockwise,
 				enemyIdCounter: newEnemyIdCounter,
 				rngSeed: newRngSeed,
-				emptyStringList: this.emptyStringList,
 				emptyHitboxList: this.emptyHitboxList,
 				startingYMibi: this.startingYMibi,
 				enemyId: this.EnemyId));
@@ -288,9 +272,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				newlyAddedLevelFlags = null;
 
 			return new EnemyProcessing.Result(
-				enemies: newEnemies,
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: newlyAddedLevelFlags);
+				enemiesImmutableNullable: newEnemies,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: newlyAddedLevelFlags);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)
@@ -330,7 +314,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				wasLastBlueFlameAttackClockwise: this.wasLastBlueFlameAttackClockwise,
 				enemyIdCounter: this.enemyIdCounter,
 				rngSeed: this.rngSeed,
-				emptyStringList: this.emptyStringList,
 				emptyHitboxList: this.emptyHitboxList,
 				startingYMibi: this.startingYMibi,
 				enemyId: this.EnemyId + "_hit");

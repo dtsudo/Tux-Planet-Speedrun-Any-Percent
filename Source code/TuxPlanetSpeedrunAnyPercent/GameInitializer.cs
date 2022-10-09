@@ -21,6 +21,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 		private static bool shouldRenderDisplayLogger;
 		
 		private static HashSet<string> completedAchievements;
+		private static string score;
 		
 		private static IFrame<GameImage, GameFont, GameSound, GameMusic> frame;
 		
@@ -42,7 +43,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 							canvas = document.getElementById('bridgeCanvas');
 							if (canvas === null)
 								return;	
-							context = canvas.getContext('2d');
+							context = canvas.getContext('2d', { alpha: false });
 						}
 						
 						context.clearRect(0, 0, canvas.width, canvas.height);
@@ -120,6 +121,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 			clickUrl = null;
 			
 			completedAchievements = new HashSet<string>();
+			score = null;
 			
 			ClearClickUrl();
 			
@@ -188,6 +190,11 @@ namespace TuxPlanetSpeedrunAnyPercent
 			Script.Eval("if (!window.BridgeCompletedAchievements) window.BridgeCompletedAchievements = [];");
 			Script.Eval("window.BridgeCompletedAchievements.push('" + achievement + "');");
 		}
+		
+		private static void AddScoreInJavascript(string score)
+		{
+			Script.Eval("window.BridgeScore = '" + score + "';");
+		}
 
 		public static void ComputeAndRenderNextFrame()
 		{
@@ -213,6 +220,14 @@ namespace TuxPlanetSpeedrunAnyPercent
 						AddAchievementToJavascriptArray(completedAchievement);
 				}
 			}
+			
+			string newScore = frame.GetScore();
+			
+			if (newScore != null && (score == null || newScore != score))
+			{
+				score = newScore;
+				AddScoreInJavascript(newScore);
+			}
 
 			string newClickUrl = frame.GetClickUrl();
 			
@@ -231,8 +246,8 @@ namespace TuxPlanetSpeedrunAnyPercent
 			if (currentKeyboard.IsPressed(Key.L) && !previousKeyboard.IsPressed(Key.L))
 				shouldRenderDisplayLogger = !shouldRenderDisplayLogger;
 			
-			previousKeyboard = new CopiedKeyboard(currentKeyboard);
-			previousMouse = new CopiedMouse(currentMouse);
+			previousKeyboard = currentKeyboard;
+			previousMouse = currentMouse;
 		}
 	}
 }

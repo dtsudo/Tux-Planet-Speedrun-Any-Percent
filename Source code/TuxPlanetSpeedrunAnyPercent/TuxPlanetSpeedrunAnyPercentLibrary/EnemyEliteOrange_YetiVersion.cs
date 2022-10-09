@@ -107,17 +107,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return list;
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
-		}
-
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			List<Hitbox> list = new List<Hitbox>()
@@ -194,12 +183,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (levelFlags.Contains(LEVEL_FLAG_DESPAWN_ENEMY_ELITE_ORANGE_YETI_VERSION))
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						this.GetDeadEnemy()
 					},
-					newlyKilledEnemies: new List<string>(),
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			List<IEnemy> list = new List<IEnemy>();
@@ -325,9 +314,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: list,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: list,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

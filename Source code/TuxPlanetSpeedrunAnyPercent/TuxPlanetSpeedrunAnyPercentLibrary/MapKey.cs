@@ -18,9 +18,22 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	{
 		public static List<MapKey> GetOrderedListOfMapKeys()
 		{
+			Array mapKeysArray = Enum.GetValues(typeof(MapKey));
+
+			if (mapKeysArray.Length == 4)
+			{
+				List<MapKey> returnValue = new List<MapKey>();
+				returnValue.Add(MapKey.Copper);
+				returnValue.Add(MapKey.Silver);
+				returnValue.Add(MapKey.Gold);
+				returnValue.Add(MapKey.Mythril);
+
+				return returnValue;
+			}
+
 			List<MapKey> list = new List<MapKey>();
 
-			foreach (MapKey mapKey in Enum.GetValues(typeof(MapKey)))
+			foreach (MapKey mapKey in mapKeysArray)
 			{
 				list.Add(mapKey);
 			}

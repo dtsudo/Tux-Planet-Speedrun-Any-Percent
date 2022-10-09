@@ -78,14 +78,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			List<IEnemy> enemies = new List<IEnemy>()
 			{
-				EnemyLevel5Spikes.GetEnemyLevel5Spikes(
+				EnemyLevel5SpikesInitialSpawn.GetEnemyLevel5SpikesInitialSpawn(
 					xMibi: this.startingXMibiOfFirstSpike + (xOffset << 10),
 					startingXMibi: this.startingXMibi + (xOffset << 10),
 					endingXMibi:  this.endingXMibi + (xOffset << 10),
 					yMibiBottom: yOffset << 10,
 					heightInTiles: 50,
 					enemyIdPrefix: "level5Spikes_Prefix",
-					enemyId: "level5Spikes_FirstEnemy")
+					enemyId: "level5Spikes_GetEnemyLevel5SpikesInitialSpawn")
 			};
 
 			IReadOnlyList<IEnemy> mapTilemapEnemies = this.mapTilemap.GetEnemies(xOffset: xOffset, yOffset: yOffset);

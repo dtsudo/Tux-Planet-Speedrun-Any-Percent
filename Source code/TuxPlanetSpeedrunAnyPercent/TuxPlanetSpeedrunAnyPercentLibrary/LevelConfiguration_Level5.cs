@@ -14,9 +14,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private const string LEVEL_SUBFOLDER = "Level5/";
 
-		// level flags
-		public const string HAS_SPAWNED_SPIKES = "level5_hasSpawnedSpikes";
-
 		public LevelConfiguration_Level5(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
 			IDTDeterministicRandom random)
@@ -61,20 +58,59 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			int yOffset = 3 * 16 * 3;
 
+			bool hasAddedCheckpoint1 = false;
+			bool hasAddedCheckpoint2 = false;
+			bool hasAddedCheckpoint3 = false;
+
 			while (true)
 			{
-				if (xOffset >= 400 * 16 * 3)
+				if (xOffset >= 450 * 16 * 3)
 					break;
 
 				int numberOfFragmentTilemaps = 12;
 				string mapInfoName = LEVEL_SUBFOLDER + "B_Fragment" + (random.NextInt(numberOfFragmentTilemaps) + 1).ToStringCultureInvariant();
 
-				Tilemap fragmentTilemap = MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[mapInfoName],
-					enemyIdGenerator: enemyIdGenerator,
-					cutsceneName: null,
-					scalingFactorScaled: 3 * 128,
-					gameMusic: gameMusic);
+				Tilemap fragmentTilemap;
+
+				if (xOffset >= 130 * 16 * 3 && !hasAddedCheckpoint1)
+				{
+					hasAddedCheckpoint1 = true;
+					fragmentTilemap = MapDataTilemapGenerator.GetTilemap(
+						data: mapInfo[LEVEL_SUBFOLDER + "B_Checkpoint"],
+						enemyIdGenerator: enemyIdGenerator,
+						cutsceneName: null,
+						scalingFactorScaled: 3 * 128,
+						gameMusic: gameMusic);
+				}
+				else if (xOffset >= 235 * 16 * 3 && !hasAddedCheckpoint2)
+				{
+					hasAddedCheckpoint2 = true;
+					fragmentTilemap = MapDataTilemapGenerator.GetTilemap(
+						data: mapInfo[LEVEL_SUBFOLDER + "B_Checkpoint"],
+						enemyIdGenerator: enemyIdGenerator,
+						cutsceneName: null,
+						scalingFactorScaled: 3 * 128,
+						gameMusic: gameMusic);
+				}
+				else if (xOffset >= 340 * 16 * 3 && !hasAddedCheckpoint3)
+				{
+					hasAddedCheckpoint3 = true;
+					fragmentTilemap = MapDataTilemapGenerator.GetTilemap(
+						data: mapInfo[LEVEL_SUBFOLDER + "B_Checkpoint"],
+						enemyIdGenerator: enemyIdGenerator,
+						cutsceneName: null,
+						scalingFactorScaled: 3 * 128,
+						gameMusic: gameMusic);
+				}
+				else
+				{
+					fragmentTilemap = MapDataTilemapGenerator.GetTilemap(
+						data: mapInfo[mapInfoName],
+						enemyIdGenerator: enemyIdGenerator,
+						cutsceneName: null,
+						scalingFactorScaled: 3 * 128,
+						gameMusic: gameMusic);
+				}
 
 				CompositeTilemap.TilemapWithOffset fragmentTilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 					tilemap: fragmentTilemap,
@@ -139,9 +175,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				mapKeyState: mapKeyState,
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
-
-			if (levelFlags.Contains(HAS_SPAWNED_SPIKES))
-				return tilemap;
 
 			return new Level5Tilemap(
 				mapTilemap: tilemap,

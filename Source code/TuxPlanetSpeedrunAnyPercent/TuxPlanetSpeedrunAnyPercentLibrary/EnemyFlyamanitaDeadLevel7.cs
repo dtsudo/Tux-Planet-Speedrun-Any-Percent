@@ -17,9 +17,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private int angularSpeedInAnglesScaledPerSecond;
 		private int angleScaled;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		private bool hasLeftScreen;
 
 		private string enemyIdPrefix;
@@ -37,8 +34,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int ySpeedInMibipixelsPerSecond,
 			int angularSpeedInAnglesScaledPerSecond,
 			int angleScaled,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			bool hasLeftScreen,
 			string enemyIdPrefix,
 			int enemyIdCounter,
@@ -51,8 +46,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.ySpeedInMibipixelsPerSecond = ySpeedInMibipixelsPerSecond;
 			this.angularSpeedInAnglesScaledPerSecond = angularSpeedInAnglesScaledPerSecond;
 			this.angleScaled = angleScaled;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.hasLeftScreen = hasLeftScreen;
 			this.enemyIdPrefix = enemyIdPrefix;
 			this.enemyIdCounter = enemyIdCounter;
@@ -76,33 +69,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				ySpeedInMibipixelsPerSecond: 0,
 				angularSpeedInAnglesScaledPerSecond: angularSpeedInAnglesScaledPerSecond,
 				angleScaled: 0,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				hasLeftScreen: false,
 				enemyIdPrefix: enemyIdPrefix,
 				enemyIdCounter: enemyIdCounter + 1,
 				enemyId: enemyIdPrefix + "_" + enemyIdCounter.ToStringCultureInvariant());
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
+		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			return null;
 		}
 
-		public IReadOnlyList<Hitbox> GetHitboxes()
-		{
-			return this.emptyHitboxList;
-		}
-
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -136,9 +116,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					list.Add(this);
 
 				return new EnemyProcessing.Result(
-					enemies: list,
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: null);
+					enemiesImmutableNullable: list,
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 			else
 			{
@@ -163,7 +143,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				int newYMibi = (int)(((long)this.yMibi) + ((long)newYSpeedInMibipixelsPerSecond) * ((long)elapsedMicrosPerFrame) / 1000L / 1000L);
 
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						new EnemyFlyamanitaDeadLevel7(
 							originalXMibi: this.originalXMibi,
@@ -173,15 +153,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							ySpeedInMibipixelsPerSecond: newYSpeedInMibipixelsPerSecond,
 							angularSpeedInAnglesScaledPerSecond: this.angularSpeedInAnglesScaledPerSecond,
 							angleScaled: newAngleScaled,
-							emptyStringList: this.emptyStringList,
-							emptyHitboxList: this.emptyHitboxList,
 							hasLeftScreen: newHasLeftScreen,
 							enemyIdPrefix: this.enemyIdPrefix,
 							enemyIdCounter: this.enemyIdCounter,
 							enemyId: this.EnemyId)
 					},
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 		}
 

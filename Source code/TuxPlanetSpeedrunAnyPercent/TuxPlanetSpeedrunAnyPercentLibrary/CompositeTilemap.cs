@@ -101,8 +101,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				if (tilemap.Tilemap.IsGroundNotIncludingKeyTiles(x - tilemap.XOffset, y - tilemap.YOffset))
 					return true;
 
-				foreach (MapKey mapKey in this.listOfAllMapKeys)
+				int mapKeysCount = this.listOfAllMapKeys.Count;
+				for (int mapKeyIndex = 0; mapKeyIndex < mapKeysCount; mapKeyIndex++)
 				{
+					MapKey mapKey = this.listOfAllMapKeys[mapKeyIndex];
 					if (tilemap.Tilemap.IsKeyTile(key: mapKey, x: x - tilemap.XOffset, y: y - tilemap.YOffset))
 					{
 						if (!this.mapKeyState.CollectedKeys.Contains(mapKey))
@@ -191,7 +193,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			foreach (TilemapWithOffset tilemap in this.tilemaps)
 			{
-				IDisplayOutput<GameImage, GameFont> translatedDisplayOutput = new TranslatedDisplayOutput<GameImage, GameFont>(
+				IDisplayOutput<GameImage, GameFont> translatedDisplayOutput = new TuxPlanetSpeedrunTranslatedDisplayOutput(
 					display: displayOutput,
 					xOffsetInPixels: tilemap.XOffset,
 					yOffsetInPixels: tilemap.YOffset);
@@ -212,7 +214,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			foreach (TilemapWithOffset tilemap in this.tilemaps)
 			{
-				IDisplayOutput<GameImage, GameFont> translatedDisplayOutput = new TranslatedDisplayOutput<GameImage, GameFont>(
+				IDisplayOutput<GameImage, GameFont> translatedDisplayOutput = new TuxPlanetSpeedrunTranslatedDisplayOutput(
 					display: displayOutput,
 					xOffsetInPixels: tilemap.XOffset,
 					yOffsetInPixels: tilemap.YOffset);

@@ -28,25 +28,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
+		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			return null;
 		}
 
-		public IReadOnlyList<Hitbox> GetHitboxes()
-		{
-			return new List<Hitbox>();
-		}
-
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return new List<Hitbox>();
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -84,11 +73,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					levelFlags: levelFlags,
 					soundOutput: soundOutput);
 
-				newEnemyDeadPoofList.AddRange(result.Enemies);
-				newlyKilledEnemies.AddRange(result.NewlyKilledEnemies);
-				if (result.NewlyAddedLevelFlags != null)
+				if (result.EnemiesNullable != null)
+					newEnemyDeadPoofList.AddRange(result.EnemiesNullable);
+				if (result.NewlyKilledEnemiesNullable != null)
+					newlyKilledEnemies.AddRange(result.NewlyKilledEnemiesNullable);
+				if (result.NewlyAddedLevelFlagsNullable != null)
 				{
-					foreach (string levelFlag in result.NewlyAddedLevelFlags)
+					foreach (string levelFlag in result.NewlyAddedLevelFlagsNullable)
 					{
 						if (!newlyAddedLevelFlags.Contains(levelFlag))
 							newlyAddedLevelFlags.Add(levelFlag);
@@ -104,9 +95,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: newEnemies,
-				newlyKilledEnemies: newlyKilledEnemies,
-				newlyAddedLevelFlags: newlyAddedLevelFlags);
+				enemiesImmutableNullable: newEnemies,
+				newlyKilledEnemiesImmutableNullable: newlyKilledEnemies,
+				newlyAddedLevelFlagsImmutableNullable: newlyAddedLevelFlags);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

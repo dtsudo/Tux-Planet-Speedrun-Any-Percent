@@ -135,7 +135,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			if (this.createCheckpointAfterDefeatingKonqi)
 			{
-				if (y < 14 * 48)
+				if (y < 14 * 48 && x > this.bossRoomXOffsetStart + 48 * 9)
 					return new Tuple<int, int>(
 						item1: this.bossRoomXOffsetStart + 48 * 3,
 						item2: 5 * 48);

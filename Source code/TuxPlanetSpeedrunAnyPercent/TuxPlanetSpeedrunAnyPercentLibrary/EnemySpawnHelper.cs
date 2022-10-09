@@ -32,25 +32,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.EnemyId = enemyToSpawn.EnemyId + "_enemySpawnHelper";
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
+		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			return null;
 		}
 
-		public IReadOnlyList<Hitbox> GetHitboxes()
-		{
-			return new List<Hitbox>();
-		}
-
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return new List<Hitbox>();
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -81,18 +70,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool isOutOfCameraViewY = (this.yMibi >> 10) - halfEnemyHeight > cameraY + halfWindowHeight 
 				|| (this.yMibi >> 10) + halfEnemyHeight < cameraY - halfWindowHeight;
 
-			if (isOutOfCameraViewX || isOutOfCameraViewY || this.enemyToSpawn.ShouldAlwaysSpawnRegardlessOfCamera)
+			if (isOutOfCameraViewX || isOutOfCameraViewY)
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>() { this.enemyToSpawn },
-					newlyKilledEnemies: new List<string>(),
-					newlyAddedLevelFlags: null);
+					enemiesImmutableNullable: new List<IEnemy>() { this.enemyToSpawn },
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>(),
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: null,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 
 		}
 

@@ -22,9 +22,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private int numTimesHit;
 		private string rngSeed;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		public string EnemyId { get; private set; }
 
 		private EnemyYetiBoss_Recoil(
@@ -37,8 +34,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int enemyIdCounter,
 			int numTimesHit,
 			string rngSeed,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -50,8 +45,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.enemyIdCounter = enemyIdCounter;
 			this.numTimesHit = numTimesHit;
 			this.rngSeed = rngSeed;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -75,25 +68,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyIdCounter: enemyIdCounter,
 				numTimesHit: numTimesHit,
 				rngSeed: rngSeed,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
@@ -151,7 +131,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (isOnGround)
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						EnemyYetiBoss_Stunned.GetEnemyYetiBoss_Stunned(
 							xMibi: this.xMibi,
@@ -163,8 +143,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							rngSeed: this.rngSeed,
 							enemyId: this.EnemyId)
 					},
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 			
 			newYSpeedInMibipixelsPerSecond -= elapsedMicrosPerFrame * 3;
@@ -203,14 +183,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyIdCounter: this.enemyIdCounter,
 				numTimesHit: this.numTimesHit,
 				rngSeed: this.rngSeed,
-				emptyStringList: this.emptyStringList,
-				emptyHitboxList: this.emptyHitboxList,
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: newEnemies,
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: newEnemies,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

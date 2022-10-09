@@ -167,6 +167,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return null;
 		}
 
+		public string GetScore()
+		{
+			return null;
+		}
+
 		public void ProcessMusic()
 		{
 			this.globalState.ProcessMusic();

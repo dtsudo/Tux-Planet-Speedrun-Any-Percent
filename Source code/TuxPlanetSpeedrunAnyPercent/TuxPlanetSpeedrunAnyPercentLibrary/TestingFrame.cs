@@ -30,6 +30,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return null;
 		}
 
+		public string GetScore()
+		{
+			return null;
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,

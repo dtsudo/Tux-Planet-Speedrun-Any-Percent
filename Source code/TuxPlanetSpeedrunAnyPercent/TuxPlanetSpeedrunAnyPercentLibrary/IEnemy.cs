@@ -9,14 +9,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	{
 		string EnemyId { get; }
 
-		bool IsKonqiCutscene { get; }
-
-		bool IsRemoveKonqi { get; }
-
-		bool ShouldAlwaysSpawnRegardlessOfCamera { get; }
-
-		Tuple<int, int> GetKonqiCutsceneLocation();
-
 		EnemyProcessing.Result ProcessFrame(
 			int cameraX,
 			int cameraY,

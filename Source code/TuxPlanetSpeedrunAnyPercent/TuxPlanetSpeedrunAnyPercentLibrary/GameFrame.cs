@@ -78,7 +78,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			if (keyboardInput.IsPressed(Key.Esc) && !previousKeyboardInput.IsPressed(Key.Esc) && !this.gameLogic.Tux.IsDead)
-				return new PauseMenuFrame(globalState: this.globalState, sessionState: this.sessionState, underlyingFrame: this, showRestartLevelOption: true, showBackToMapOption: true);
+				return new PauseMenuFrame(
+					globalState: this.globalState, 
+					sessionState: this.sessionState, 
+					underlyingFrame: this, 
+					showRestartLevelOption: true, 
+					showBackToMapOption: true,
+					showToggleInputReplayFunctionalityOption: this.gameLogic.CanUseSaveStates);
 
 			Move move = new Move(
 				jumped: keyboardInput.IsPressed(Key.Z),
@@ -119,7 +125,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				bool didUserPressKey = move.Jumped || move.Teleported || move.ArrowLeft || move.ArrowRight || move.ArrowUp || move.ArrowDown || move.Respawn;
 
-				if (this.useSavedMoves && !didUserPressKey && this.lastMoveOfHistory >= this.gameLogic.FrameCounter && this.moveHistory.ContainsKey(this.gameLogic.FrameCounter))
+				if (this.useSavedMoves && !didUserPressKey && this.sessionState.ShouldReplayInputAfterLoadingSaveState && this.lastMoveOfHistory >= this.gameLogic.FrameCounter && this.moveHistory.ContainsKey(this.gameLogic.FrameCounter))
 					moveToUse = this.moveHistory[this.gameLogic.FrameCounter];
 				else
 				{
@@ -133,6 +139,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					gameLogicState: this.gameLogic,
 					move: moveToUse,
 					debugMode: this.globalState.DebugMode,
+					debug_tuxInvulnerable: this.globalState.Debug_TuxInvulnerable,
 					debugKeyboardInput: keyboardInput,
 					debugPreviousKeyboardInput: previousKeyboardInput,
 					displayProcessing: displayProcessing,
@@ -152,7 +159,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			else
 				shouldEndLevel = false;
 
-			if (keyboardInput.IsPressed(Key.S) && !previousKeyboardInput.IsPressed(Key.S) && this.gameLogic.CanUseSaveStates)
+			if (keyboardInput.IsPressed(Key.S) && !previousKeyboardInput.IsPressed(Key.S) && this.gameLogic.CanUseSaveStates && !this.gameLogic.Tux.IsDead)
 				this.savedGameLogicState = this.gameLogic;
 
 			if (keyboardInput.IsPressed(Key.A) && !previousKeyboardInput.IsPressed(Key.A) && this.gameLogic.CanUseSaveStates)
@@ -168,6 +175,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			{
 				if (keyboardInput.IsPressed(Key.H) && !previousKeyboardInput.IsPressed(Key.H))
 					this.globalState.Debug_ShowHitBoxes = !this.globalState.Debug_ShowHitBoxes;
+
+				if (keyboardInput.IsPressed(Key.I) && !previousKeyboardInput.IsPressed(Key.I))
+					this.globalState.Debug_TuxInvulnerable = !this.globalState.Debug_TuxInvulnerable;
 			}
 
 			if (!this.hasStartedLevelTransition)
@@ -216,6 +226,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		public HashSet<string> GetCompletedAchievements()
+		{
+			return null;
+		}
+
+		public string GetScore()
 		{
 			return null;
 		}

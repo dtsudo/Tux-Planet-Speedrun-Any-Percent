@@ -12,6 +12,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private IReadOnlyDictionary<string, string> customLevelInfo;
 
+		private int bossRoomXOffsetStart;
+		private int bossRoomXOffsetEnd;
+
 		private IBackground background;
 
 		private const string LEVEL_SUBFOLDER = "Level10/";
@@ -29,6 +32,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 
 			this.customLevelInfo = new Dictionary<string, string>(result.Item2);
+			this.bossRoomXOffsetStart = this.customLevelInfo[BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant();
+			this.bossRoomXOffsetEnd = this.customLevelInfo[BOSS_ROOM_X_OFFSET_END].ParseAsIntCultureInvariant();
 
 			this.background = BackgroundUtil.GetRandomBackground(random: random);
 		}
@@ -321,15 +326,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemiesUnaffectedByXOffsetAndYOffset: new List<IEnemy>()
 				{
 					new EnemyLevel10Coordinator(
-						bossRoomXOffsetStart: this.customLevelInfo[BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant(),
-						bossRoomXOffsetEnd: this.customLevelInfo[BOSS_ROOM_X_OFFSET_END].ParseAsIntCultureInvariant())
+						bossRoomXOffsetStart: this.bossRoomXOffsetStart,
+						bossRoomXOffsetEnd: this.bossRoomXOffsetEnd)
 				});
 
 			tilemap = new Level10CoordinatorTilemap(
 				mapTilemap: tilemap,
 				levelFlags: levelFlags,
-				bossRoomXOffsetStart: this.customLevelInfo[BOSS_ROOM_X_OFFSET_START].ParseAsIntCultureInvariant(),
-				bossRoomXOffsetEnd: this.customLevelInfo[BOSS_ROOM_X_OFFSET_END].ParseAsIntCultureInvariant());
+				bossRoomXOffsetStart: this.bossRoomXOffsetStart,
+				bossRoomXOffsetEnd: this.bossRoomXOffsetEnd);
 
 			return tilemap;
 		}

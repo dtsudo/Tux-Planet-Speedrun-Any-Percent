@@ -9,8 +9,14 @@ namespace TuxPlanetSpeedrunAnyPercent
 
 	public class BridgeMusic : IMusic<GameMusic>
 	{
+		private GameMusic? currentGameMusic;
+		private int currentVolume;
+		
 		public BridgeMusic()
 		{
+			this.currentGameMusic = null;
+			this.currentVolume = 0;
+			
 			Script.Eval(@"
 				window.BridgeMusicJavascript = ((function () {
 					'use strict';
@@ -108,6 +114,15 @@ namespace TuxPlanetSpeedrunAnyPercent
 		
 		public void PlayMusic(GameMusic music, int volume)
 		{
+			if (this.currentGameMusic.HasValue
+					&& this.currentGameMusic.Value == music
+					&& this.currentVolume == volume
+					&& this.currentGameMusic.Value != GameMusic.Theme)
+				return;
+			
+			this.currentGameMusic = music;
+			this.currentVolume = volume;
+			
 			double finalVolume = (music.GetMusicVolume() / 100.0) * (volume / 100.0);
 			if (finalVolume > 1.0)
 				finalVolume = 1.0;
@@ -119,6 +134,11 @@ namespace TuxPlanetSpeedrunAnyPercent
 		
 		public void StopMusic()
 		{
+			if (this.currentGameMusic == null)
+				return;
+			
+			this.currentGameMusic = null;
+			
 			Script.Call("window.BridgeMusicJavascript.stopMusic");
 		}
 		

@@ -48,17 +48,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
-		}
-
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			return new List<Hitbox>()
@@ -246,9 +235,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: list,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: list,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

@@ -17,6 +17,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			Continue,
 			RestartLevel,
 			BackToMapScreen,
+			ToggleInputReplayFunctionality,
 			BackToTitleScreen
 		}
 
@@ -31,7 +32,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			SessionState sessionState, 
 			IFrame<GameImage, GameFont, GameSound, GameMusic> underlyingFrame, 
 			bool showRestartLevelOption,
-			bool showBackToMapOption)
+			bool showBackToMapOption,
+			bool showToggleInputReplayFunctionalityOption)
 		{
 			this.globalState = globalState;
 			this.sessionState = sessionState;
@@ -46,6 +48,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				this.options.Add(Option.RestartLevel);
 			if (showBackToMapOption)
 				this.options.Add(Option.BackToMapScreen);
+			if (showToggleInputReplayFunctionalityOption)
+				this.options.Add(Option.ToggleInputReplayFunctionality);
 			this.options.Add(Option.BackToTitleScreen);
 		}
 
@@ -120,6 +124,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						this.sessionState.SetGameLogic(gameLogicState: null);
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 						return new OverworldFrame(globalState: this.globalState, sessionState: this.sessionState);
+					case Option.ToggleInputReplayFunctionality:
+						this.sessionState.SetShouldReplayInputAfterLoadingSaveState(
+							shouldReplayInputAfterLoadingSaveState: !this.sessionState.ShouldReplayInputAfterLoadingSaveState);
+						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
+						break;
 					case Option.BackToTitleScreen:
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 						return new TitleScreenFrame(globalState: this.globalState, sessionState: this.sessionState);
@@ -141,6 +150,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		public HashSet<string> GetCompletedAchievements()
+		{
+			return null;
+		}
+
+		public string GetScore()
 		{
 			return null;
 		}
@@ -177,7 +191,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			for (int i = 0; i < this.options.Count; i++)
 			{
-				int x = this.globalState.WindowWidth / 2 - 105;
+				int x = this.globalState.WindowWidth / 2 - 185;
 				int y = 350 - 50 * i;
 				string text;
 
@@ -191,6 +205,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						break;
 					case Option.BackToMapScreen:
 						text = "Quit level and return to map";
+						break;
+					case Option.ToggleInputReplayFunctionality:
+						if (this.sessionState.ShouldReplayInputAfterLoadingSaveState)
+							text = "Replay previous input after loading a savestate: Yes";
+						else
+							text = "Replay previous input after loading a savestate: No";
 						break;
 					case Option.BackToTitleScreen:
 						text = "Back to title screen";

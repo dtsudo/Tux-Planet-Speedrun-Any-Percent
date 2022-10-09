@@ -17,9 +17,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private string enemyIdPrefix;
 		private int enemyGeneratorCounter;
 
-		private List<Hitbox> emptyHitboxList;
-		private List<string> emptyStringList;
-
 		public string EnemyId { get; private set; }
 
 		private const int NUM_PIXELS_BETWEEN_SPIKES = 4000;
@@ -34,8 +31,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool? isVisible,
 			string enemyIdPrefix,
 			int enemyGeneratorCounter,
-			List<Hitbox> emptyHitboxList,
-			List<string> emptyStringList,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -47,8 +42,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.isVisible = isVisible;
 			this.enemyIdPrefix = enemyIdPrefix;
 			this.enemyGeneratorCounter = enemyGeneratorCounter;
-			this.emptyHitboxList = emptyHitboxList;
-			this.emptyStringList = emptyStringList;
 			this.EnemyId = enemyId;
 		}
 
@@ -71,23 +64,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				isVisible: null,
 				enemyIdPrefix: enemyIdPrefix,
 				enemyGeneratorCounter: 1,
-				emptyHitboxList: new List<Hitbox>(),
-				emptyStringList: new List<string>(),
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
 		public IEnemy GetDeadEnemy()
-		{
-			return null;
-		}
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
 		{
 			return null;
 		}
@@ -95,7 +75,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			if (!this.isVisible.HasValue || this.isVisible.Value == false)
-				return this.emptyHitboxList;
+				return null;
 
 			return new List<Hitbox>()
 			{
@@ -109,7 +89,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -154,8 +134,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						isVisible: null,
 						enemyIdPrefix: this.enemyIdPrefix,
 						enemyGeneratorCounter: this.enemyGeneratorCounter + 1,
-						emptyHitboxList: this.emptyHitboxList,
-						emptyStringList: this.emptyStringList,
 						enemyId: this.enemyIdPrefix + this.enemyGeneratorCounter.ToStringCultureInvariant()));
 				}
 			}
@@ -171,14 +149,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					isVisible: newIsVisible,
 					enemyIdPrefix: this.enemyIdPrefix,
 					enemyGeneratorCounter: this.enemyGeneratorCounter,
-					emptyHitboxList: this.emptyHitboxList,
-					emptyStringList: this.emptyStringList,
 					enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: list,
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: new List<string>() { LevelConfiguration_Level5.HAS_SPAWNED_SPIKES });
+				enemiesImmutableNullable: list,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

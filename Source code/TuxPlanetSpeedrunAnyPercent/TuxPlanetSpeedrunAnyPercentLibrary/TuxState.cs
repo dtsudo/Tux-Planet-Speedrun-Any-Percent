@@ -189,16 +189,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				isFacingRight: this.IsFacingRight);
 		}
 
-		public List<Hitbox> GetHitboxes()
+		public Hitbox GetHitbox()
 		{
-			return new List<Hitbox>()
-			{
-				new Hitbox(
-					x: (this.XMibi >> 10) - 4 * 3, 
-					y: (this.YMibi >> 10) - 16 * 3, 
-					width: 8 * 3, 
-					height: 24 * 3)
-			};
+			return new Hitbox(
+				x: (this.XMibi >> 10) - 4 * 3,
+				y: (this.YMibi >> 10) - 16 * 3,
+				width: 8 * 3,
+				height: 24 * 3);
 		}
 
 		public static TuxState GetDefaultTuxState(int x, int y)

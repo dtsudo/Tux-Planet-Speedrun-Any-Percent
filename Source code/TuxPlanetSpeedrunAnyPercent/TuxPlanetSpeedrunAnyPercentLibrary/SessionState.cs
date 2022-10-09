@@ -22,6 +22,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.CanUseSaveStates = false;
 			this.CanUseTimeSlowdown = false;
 			this.CanUseTeleport = false;
+			this.ShouldReplayInputAfterLoadingSaveState = false;
 			this.HasWon = false;
 			this.ElapsedMillis = 0;
 			this.random = random;
@@ -45,6 +46,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public bool CanUseSaveStates { get; private set; }
 		public bool CanUseTimeSlowdown { get; private set; }
 		public bool CanUseTeleport { get; private set; }
+
+		public bool ShouldReplayInputAfterLoadingSaveState { get; private set; }
 
 		public bool HasWon { get; private set; }
 
@@ -70,6 +73,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.CanUseSaveStates = false;
 			this.CanUseTimeSlowdown = false;
 			this.CanUseTeleport = false;
+			this.ShouldReplayInputAfterLoadingSaveState = false;
 			this.HasWon = false;
 			this.ElapsedMillis = 0;
 			this.randomValuesUsedForGeneratingLevels = new Dictionary<Level, string>();
@@ -121,6 +125,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.HasWon = true;
 		}
 
+		public void SetShouldReplayInputAfterLoadingSaveState(bool shouldReplayInputAfterLoadingSaveState)
+		{
+			this.ShouldReplayInputAfterLoadingSaveState = shouldReplayInputAfterLoadingSaveState;
+		}
+
 		public void SetGameLogic(GameLogicState gameLogicState)
 		{
 			this.GameLogic = gameLogicState;
@@ -162,6 +171,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			list.AddBool(this.CanUseTimeSlowdown);
 			list.AddBool(this.CanUseTeleport);
 
+			list.AddBool(this.ShouldReplayInputAfterLoadingSaveState);
+
 			list.AddBool(this.HasWon);
 			list.AddInt(this.ElapsedMillis);
 
@@ -192,6 +203,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.CanUseSaveStates = iterator.TryPopBool();
 			this.CanUseTimeSlowdown = iterator.TryPopBool();
 			this.CanUseTeleport = iterator.TryPopBool();
+
+			this.ShouldReplayInputAfterLoadingSaveState = iterator.TryPopBool();
 
 			bool hasWon = iterator.TryPopBool();
 			this.HasWon = hasWon;
@@ -261,6 +274,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.CanUseSaveStates = iterator.TryPopBool();
 			this.CanUseTimeSlowdown = iterator.TryPopBool();
 			this.CanUseTeleport = iterator.TryPopBool();
+
+			this.ShouldReplayInputAfterLoadingSaveState = false;
 
 			this.ElapsedMillis = iterator.TryPopInt();
 

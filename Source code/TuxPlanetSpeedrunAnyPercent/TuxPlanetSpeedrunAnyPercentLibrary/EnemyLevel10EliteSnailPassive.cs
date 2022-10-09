@@ -122,39 +122,27 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
-		}
-
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return new List<Hitbox>()
-			{
-				new Hitbox(
-					x: (this.xMibi >> 10) - 8 * 3,
-					y: (this.yMibi >> 10) - 8 * 3,
-					width: 16 * 3,
-					height: 14 * 3)
-			};
+			List<Hitbox> list = new List<Hitbox>();
+			list.Add(new Hitbox(
+				x: (this.xMibi >> 10) - 8 * 3,
+				y: (this.yMibi >> 10) - 8 * 3,
+				width: 16 * 3,
+				height: 14 * 3));
+			return list;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return new List<Hitbox>()
-			{
-				new Hitbox(
-					x: (this.xMibi >> 10) - 8 * 3,
-					y: (this.yMibi >> 10) - 8 * 3,
-					width: 16 * 3,
-					height: 14 * 3)
-			};
+			List<Hitbox> list = new List<Hitbox>();
+			list.Add(new Hitbox(
+				x: (this.xMibi >> 10) - 8 * 3,
+				y: (this.yMibi >> 10) - 8 * 3,
+				width: 16 * 3,
+				height: 14 * 3));
+
+			return list;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -184,6 +172,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<string> levelFlags,
 			ISoundOutput<GameSound> soundOutput)
 		{
+			bool isOutOfBounds = (this.xMibi >> 10) + 8 * 3 < cameraX - (windowWidth >> 1) - GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS
+				|| (this.xMibi >> 10) - 8 * 3 > cameraX + (windowWidth >> 1) + GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS
+				|| (this.yMibi >> 10) + 8 * 3 < cameraY - (windowHeight >> 1) - GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS
+				|| (this.yMibi >> 10) - 8 * 3 > cameraY + (windowHeight >> 1) + GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS;
+
+			if (isOutOfBounds)
+				return new EnemyProcessing.Result(
+					enemiesImmutableNullable: null,
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
+
 			bool newIsActive = this.isActive;
 
 			int? newAccumulatedActivationDelay = this.accumulatedActivationDelay;
@@ -215,7 +214,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (newAccumulatedActivationDelay.HasValue && newAccumulatedActivationDelay.Value >= this.activationDelayInMicroseconds)
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						EnemyLevel10EliteSnailActive.GetEnemyLevel10EliteSnailActive(
 							xMibi: this.xMibi,
@@ -226,8 +225,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							maxXMibi: this.maxXMibi,
 							enemyId: this.EnemyId + "_active")
 					},
-					newlyKilledEnemies: new List<string>() { this.EnemyId },
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: new List<string>() { this.EnemyId },
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			List<IEnemy> list = new List<IEnemy>();
@@ -260,30 +259,24 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				if (!IsGroundOrSpike(tilemap: tilemap, x: (newXMibi >> 10) - 4 * 3, y: (newYMibi >> 10) - 11 * 3))
 					newIsFacingRight = true;
 			}
-
-			bool isOutOfBounds = (newXMibi >> 10) + 8 * 3 < cameraX - windowWidth / 2 - GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS
-				|| (newXMibi >> 10) - 8 * 3 > cameraX + windowWidth / 2 + GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS
-				|| (newYMibi >> 10) + 8 * 3 < cameraY - windowHeight / 2 - GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS
-				|| (newYMibi >> 10) - 8 * 3 > cameraY + windowHeight / 2 + GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS;
 			
-			if (!isOutOfBounds)
-				list.Add(new EnemyLevel10EliteSnailPassive(
-					xMibi: newXMibi,
-					yMibi: newYMibi,
-					isFacingRight: newIsFacingRight,
-					shouldInitiallyTeleportUpward: this.shouldInitiallyTeleportUpward,
-					elapsedMicros: newElapsedMicros,
-					isActive: newIsActive,
-					activationRadiusInPixels: this.activationRadiusInPixels,
-					activationDelayInMicroseconds: this.activationDelayInMicroseconds,
-					accumulatedActivationDelay: newAccumulatedActivationDelay,
-					maxXMibi: this.maxXMibi,
-					enemyId: this.EnemyId));
+			list.Add(new EnemyLevel10EliteSnailPassive(
+				xMibi: newXMibi,
+				yMibi: newYMibi,
+				isFacingRight: newIsFacingRight,
+				shouldInitiallyTeleportUpward: this.shouldInitiallyTeleportUpward,
+				elapsedMicros: newElapsedMicros,
+				isActive: newIsActive,
+				activationRadiusInPixels: this.activationRadiusInPixels,
+				activationDelayInMicroseconds: this.activationDelayInMicroseconds,
+				accumulatedActivationDelay: newAccumulatedActivationDelay,
+				maxXMibi: this.maxXMibi,
+				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: list,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: list,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

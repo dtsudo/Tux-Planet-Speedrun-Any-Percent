@@ -17,8 +17,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private string eliteFlyamanitaIsDeadLevelFlag;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
+		private bool hasAddedLevelFlag;
 
 		public string EnemyId { get; private set; }
 
@@ -29,8 +28,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int angularSpeedInAnglesScaledPerSecond,
 			int angleScaled,
 			string eliteFlyamanitaIsDeadLevelFlag,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
+			bool hasAddedLevelFlag,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -39,8 +37,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.angularSpeedInAnglesScaledPerSecond = angularSpeedInAnglesScaledPerSecond;
 			this.angleScaled = angleScaled;
 			this.eliteFlyamanitaIsDeadLevelFlag = eliteFlyamanitaIsDeadLevelFlag;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
+			this.hasAddedLevelFlag = hasAddedLevelFlag;
 			this.EnemyId = enemyId;
 		}
 
@@ -58,20 +55,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				angularSpeedInAnglesScaledPerSecond: angularSpeedInAnglesScaledPerSecond,
 				angleScaled: 0,
 				eliteFlyamanitaIsDeadLevelFlag: eliteFlyamanitaIsDeadLevelFlag,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
+				hasAddedLevelFlag: false,
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -81,12 +66,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -101,7 +86,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<string> levelFlags,
 			ISoundOutput<GameSound> soundOutput)
 		{
-			List<string> newlyAddedLevelFlags = new List<string>() { this.eliteFlyamanitaIsDeadLevelFlag };
+			List<string> newlyAddedLevelFlags;
+
+			if (this.hasAddedLevelFlag)
+				newlyAddedLevelFlags = null;
+			else
+				newlyAddedLevelFlags = new List<string>() { this.eliteFlyamanitaIsDeadLevelFlag };
 
 			bool isOutOfBounds = (this.xMibi >> 10) + 10 * 9 < cameraX - (windowWidth >> 1) - GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS
 				|| (this.xMibi >> 10) - 10 * 9 > cameraX + (windowWidth >> 1) + GameLogicState.MARGIN_FOR_ENEMY_DESPAWN_IN_PIXELS
@@ -110,9 +100,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (isOutOfBounds)
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>(),
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: newlyAddedLevelFlags);
+					enemiesImmutableNullable: null,
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: newlyAddedLevelFlags);
 
 			int newYSpeedInMibipixelsPerSecond = this.ySpeedInMibipixelsPerSecond;
 			if (newYSpeedInMibipixelsPerSecond >= -5000 * 1000)
@@ -128,7 +118,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int newYMibi = (int)(((long)this.yMibi) + ((long)newYSpeedInMibipixelsPerSecond) * ((long)elapsedMicrosPerFrame) / 1000L / 1000L);
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyEliteFlyamanitaDead(
 						xMibi: this.xMibi,
@@ -137,12 +127,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						angularSpeedInAnglesScaledPerSecond: this.angularSpeedInAnglesScaledPerSecond,
 						angleScaled: newAngleScaled,
 						eliteFlyamanitaIsDeadLevelFlag: this.eliteFlyamanitaIsDeadLevelFlag,
-						emptyStringList: this.emptyStringList,
-						emptyHitboxList: this.emptyHitboxList,
+						hasAddedLevelFlag: true,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: newlyAddedLevelFlags);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: newlyAddedLevelFlags);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

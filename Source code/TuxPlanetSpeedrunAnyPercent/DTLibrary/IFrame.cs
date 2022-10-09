@@ -13,5 +13,6 @@ namespace DTLibrary
 
 		string GetClickUrl();
 		HashSet<string> GetCompletedAchievements();
+		string GetScore();
 	}
 }

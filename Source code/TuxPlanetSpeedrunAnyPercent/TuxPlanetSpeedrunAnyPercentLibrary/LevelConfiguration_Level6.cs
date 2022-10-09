@@ -8,10 +8,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 	public class LevelConfiguration_Level6 : ILevelConfiguration
 	{
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
-		private bool shouldSpawnRemoveKonqi;
+		private bool shouldRemoveKonqi;
 		private IBackground background;
 
 		private CompositeTilemap.TilemapWithOffset tilemapA;
+		private CompositeTilemap.TilemapWithOffset tilemapC;
+		private CompositeTilemap.TilemapWithOffset tilemapD;
+		private CompositeTilemap.TilemapWithOffset tilemapF;
 
 		private const string LEVEL_SUBFOLDER = "Level6/";
 
@@ -20,21 +23,47 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool canAlreadyUseTimeSlowdown,
 			IDTDeterministicRandom random)
 		{
-			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(
+			Result result = ConstructUnnormalizedTilemaps(
 				mapInfo: mapInfo,
 				canAlreadyUseTimeSlowdown: canAlreadyUseTimeSlowdown,
 				random: random);
 
-			this.shouldSpawnRemoveKonqi = canAlreadyUseTimeSlowdown;
+			this.shouldRemoveKonqi = canAlreadyUseTimeSlowdown;
 
-			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
+			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: result.UnnormalizedTilemaps));
 
-			this.tilemapA = this.normalizedTilemaps[0];
+			this.tilemapA = this.normalizedTilemaps[result.TilemapAIndex];
+			this.tilemapC = this.normalizedTilemaps[result.TilemapCIndex];
+			this.tilemapD = this.normalizedTilemaps[result.TilemapDIndex];
+			this.tilemapF = this.normalizedTilemaps[result.TilemapFIndex];
 
 			this.background = new Background_Cave();
 		}
 
-		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
+		private class Result
+		{
+			public Result(
+				List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps,
+				int tilemapAIndex,
+				int tilemapCIndex,
+				int tilemapDIndex,
+				int tilemapFIndex)
+			{
+				this.UnnormalizedTilemaps = unnormalizedTilemaps;
+				this.TilemapAIndex = tilemapAIndex;
+				this.TilemapCIndex = tilemapCIndex;
+				this.TilemapDIndex = tilemapDIndex;
+				this.TilemapFIndex = tilemapFIndex;
+			}
+
+			public List<CompositeTilemap.TilemapWithOffset> UnnormalizedTilemaps { get; private set; }
+			public int TilemapAIndex { get; private set; }
+			public int TilemapCIndex { get; private set; }
+			public int TilemapDIndex { get; private set; }
+			public int TilemapFIndex { get; private set; }
+		}
+
+		private static Result ConstructUnnormalizedTilemaps(
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			bool canAlreadyUseTimeSlowdown,
 			IDTDeterministicRandom random)
@@ -57,6 +86,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				alwaysIncludeTilemap: false);
 
 			list.Add(tilemapA);
+
+			int tilemapAIndex = list.Count - 1;
 
 			int xOffsetInTiles = 7;
 			bool lastChangeWasToTheRight = false;
@@ -111,6 +142,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				yOffset: list[list.Count - 1].YOffset - cutsceneTilemap.GetHeight(),
 				alwaysIncludeTilemap: false));
 
+			int tilemapCIndex = list.Count - 1;
+
 			Tilemap tilemapD = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo[LEVEL_SUBFOLDER + "D_SecondDrop"],
 					enemyIdGenerator: enemyIdGenerator,
@@ -125,6 +158,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				alwaysIncludeTilemap: false);
 
 			list.Add(tilemapDWithOffset);
+
+			int tilemapDIndex = list.Count - 1;
 
 			xOffsetInTiles = 0;
 			lastChangeWasToTheRight = false;
@@ -179,7 +214,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				yOffset: list[list.Count - 1].YOffset - tilemapF.GetHeight(),
 				alwaysIncludeTilemap: false));
 
-			return list;
+			int tilemapFIndex = list.Count - 1;
+
+			return new Result(
+				unnormalizedTilemaps: list,
+				tilemapAIndex: tilemapAIndex,
+				tilemapCIndex: tilemapCIndex,
+				tilemapDIndex: tilemapDIndex,
+				tilemapFIndex: tilemapFIndex);
 		}
 
 		public IReadOnlyDictionary<string, string> GetCustomLevelInfo()
@@ -204,8 +246,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				windowWidth: windowWidth,
 				windowHeight: windowHeight);
 
-			if (this.shouldSpawnRemoveKonqi)
-				tilemap = new SpawnRemoveKonqiTilemap(tilemap: tilemap);
+			if (this.shouldRemoveKonqi)
+				tilemap = new EnemyCreationTilemap(
+					mapTilemap: tilemap,
+					enemiesUnaffectedByXOffsetAndYOffset: new List<IEnemy>()
+					{
+						new EnemyAddLevelFlag(
+							levelFlag: EnemyKonqiCutscene.SHOULD_TELEPORT_OUT_DEFAULT_LEVEL_FLAG,
+							enemyId: "EnemyAddLevelFlag_shouldTeleportOut")
+					});
 
 			return tilemap;
 		}
@@ -220,29 +269,142 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowHeight,
 			IReadOnlyList<string> levelFlags)
 		{
-			int tuxX = tuxXMibi >> 10;
-			int tuxY = tuxYMibi >> 10;
+			CameraState cameraState = CameraStateProcessing.ComputeCameraState(
+				tuxXMibi: tuxXMibi,
+				tuxYMibi: tuxYMibi,
+				tuxTeleportStartingLocation: tuxTeleportStartingLocation,
+				tuxTeleportInProgressElapsedMicros: tuxTeleportInProgressElapsedMicros,
+				tilemap: tilemap,
+				windowWidth: windowWidth,
+				windowHeight: windowHeight);
 
-			if (this.tilemapA.XOffset <= tuxX
-				&& tuxX <= this.tilemapA.XOffset + this.tilemapA.Tilemap.GetWidth()
-				&& this.tilemapA.YOffset <= tuxY
-				&& tuxY <= this.tilemapA.YOffset + this.tilemapA.Tilemap.GetHeight())
+			int effectiveTuxXMibi = tuxXMibi;
+			int effectiveTuxYMibi = tuxYMibi;
+
+			if (tuxTeleportInProgressElapsedMicros != null)
 			{
-				CameraState cameraState = CameraStateProcessing.ComputeCameraState(
-					tuxXMibi: tuxXMibi,
-					tuxYMibi: tuxYMibi,
-					tuxTeleportStartingLocation: tuxTeleportStartingLocation,
-					tuxTeleportInProgressElapsedMicros: tuxTeleportInProgressElapsedMicros,
-					tilemap: tilemap,
-					windowWidth: windowWidth,
-					windowHeight: windowHeight);
+				long deltaX = tuxXMibi - tuxTeleportStartingLocation.Item1;
+				long deltaY = tuxYMibi - tuxTeleportStartingLocation.Item2;
 
+				effectiveTuxXMibi = (int)(tuxTeleportStartingLocation.Item1 + deltaX * tuxTeleportInProgressElapsedMicros.Value / TuxState.TELEPORT_DURATION);
+				effectiveTuxYMibi = (int)(tuxTeleportStartingLocation.Item2 + deltaY * tuxTeleportInProgressElapsedMicros.Value / TuxState.TELEPORT_DURATION);
+			}
+
+			int effectiveTuxX = effectiveTuxXMibi >> 10;
+			int effectiveTuxY = effectiveTuxYMibi >> 10;
+
+			if (this.tilemapA.XOffset <= effectiveTuxX
+				&& effectiveTuxX <= this.tilemapA.XOffset + this.tilemapA.Tilemap.GetWidth()
+				&& this.tilemapA.YOffset + 18 * 48 <= effectiveTuxY
+				&& effectiveTuxY <= this.tilemapA.YOffset + this.tilemapA.Tilemap.GetHeight())
+			{
 				return CameraState.GetCameraState(
 					x: Math.Max(cameraState.X, this.tilemapA.XOffset + 7 * 48 + (windowWidth >> 1)),
 					y: cameraState.Y);
 			}
 
-			return null;
+			if (this.tilemapA.YOffset - 3 * 48 <= effectiveTuxY
+				&& effectiveTuxY <= this.tilemapA.YOffset + 17 * 48)
+			{
+				int distance = (this.tilemapA.YOffset + 17 * 48) - effectiveTuxY;
+
+				int ratioTimes10000 = distance * 10000 / (20 * 48);
+
+				int cameraYOffset = ratioTimes10000 * (-windowHeight / 3) / 10000;
+
+				return CameraState.GetCameraState(
+					x: cameraState.X,
+					y: cameraState.Y + cameraYOffset);
+			}
+
+			if (this.tilemapC.YOffset + 50 * 48 <= effectiveTuxY
+				&& effectiveTuxY <= this.tilemapA.YOffset - 3 * 48)
+			{
+				int cameraYOffset = -windowHeight / 3;
+
+				return CameraState.GetCameraState(
+					x: cameraState.X,
+					y: cameraState.Y + cameraYOffset);
+			}
+
+			if (this.tilemapC.YOffset <= effectiveTuxY
+				&& effectiveTuxY <= this.tilemapC.YOffset + 50 * 48
+				&& effectiveTuxX <= this.tilemapC.XOffset + this.tilemapC.Tilemap.GetWidth())
+			{
+				int ratioTimes10000;
+
+				if (effectiveTuxX <= this.tilemapC.XOffset + 30 * 48)
+					ratioTimes10000 = 10000;
+				else if (effectiveTuxX <= this.tilemapC.XOffset + 45 * 48)
+				{
+					int distance = this.tilemapC.XOffset + 45 * 48 - effectiveTuxX;
+					ratioTimes10000 = distance * 10000 / (15 * 48);
+				}
+				else
+					ratioTimes10000 = 0;
+
+				int cameraYOffset = ratioTimes10000 * (-windowHeight / 3) / 10000;
+
+				return CameraState.GetCameraState(
+					x: cameraState.X,
+					y: cameraState.Y + cameraYOffset);
+			}
+
+			if (this.tilemapD.XOffset <= effectiveTuxX
+				&& effectiveTuxX <= this.tilemapD.XOffset + this.tilemapD.Tilemap.GetWidth()
+				&& this.tilemapD.YOffset <= effectiveTuxY
+				&& effectiveTuxY <= this.tilemapD.YOffset + 10 * 48)
+			{
+				int distance = (this.tilemapD.YOffset + 10 * 48) - effectiveTuxY;
+
+				int ratioTimes10000 = distance * 10000 / (10 * 48);
+
+				int cameraYOffset = ratioTimes10000 * (-windowHeight / 3) / 10000;
+
+				return CameraState.GetCameraState(
+					x: cameraState.X,
+					y: cameraState.Y + cameraYOffset);
+			}
+
+			if (this.tilemapF.YOffset + this.tilemapF.Tilemap.GetHeight() <= effectiveTuxY
+				&& effectiveTuxY <= this.tilemapD.YOffset)
+			{
+				int cameraYOffset = -windowHeight / 3;
+
+				return CameraState.GetCameraState(
+					x: cameraState.X,
+					y: cameraState.Y + cameraYOffset);
+			}
+
+			if (this.tilemapF.YOffset <= effectiveTuxY
+				&& effectiveTuxY <= this.tilemapF.YOffset + this.tilemapF.Tilemap.GetHeight()
+				&& this.tilemapF.XOffset <= effectiveTuxX
+				&& effectiveTuxX <= this.tilemapF.XOffset + this.tilemapF.Tilemap.GetWidth())
+			{
+				int ratioTimes10000;
+
+				if (this.tilemapF.XOffset + 70 * 48 <= effectiveTuxX)
+					ratioTimes10000 = 0;
+				else if (this.tilemapF.YOffset + 23 * 48 <= effectiveTuxY)
+					ratioTimes10000 = 10000;
+				else if (effectiveTuxX <= this.tilemapF.XOffset + 30 * 48)
+					ratioTimes10000 = 10000;
+				else if (effectiveTuxX <= this.tilemapF.XOffset + 45 * 48)
+				{
+					int distance = this.tilemapF.XOffset + 45 * 48 - effectiveTuxX;
+					ratioTimes10000 = distance * 10000 / (15 * 48);
+				}
+				else
+					ratioTimes10000 = 0;
+
+				int cameraYOffset = ratioTimes10000 * (-windowHeight / 3) / 10000;
+
+				return CameraState.GetCameraState(
+					x: cameraState.X,
+					y: cameraState.Y + cameraYOffset);
+			}
+
+			return cameraState;
 		}
 	}
 }

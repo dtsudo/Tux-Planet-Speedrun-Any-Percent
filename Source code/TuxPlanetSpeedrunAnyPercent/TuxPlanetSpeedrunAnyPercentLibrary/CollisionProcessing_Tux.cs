@@ -10,80 +10,84 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			public Result(
 				TuxState newTuxState, 
-				IReadOnlyList<IEnemy> newEnemies, 
-				IReadOnlyList<string> newlyKilledEnemies)
+				IReadOnlyList<IEnemy> newEnemiesImmutable, 
+				IReadOnlyList<string> newlyKilledEnemiesImmutableNullable)
 			{
 				this.NewTuxState = newTuxState;
-				this.NewEnemies = new List<IEnemy>(newEnemies);
-				this.NewlyKilledEnemies = new List<string>(newlyKilledEnemies);
+				this.NewEnemies = newEnemiesImmutable;
+				this.NewlyKilledEnemiesNullable = newlyKilledEnemiesImmutableNullable;
 			}
 
 			public TuxState NewTuxState { get; private set; }
 			public IReadOnlyList<IEnemy> NewEnemies { get; private set; }
-			public IReadOnlyList<string> NewlyKilledEnemies { get; private set; }
+			public IReadOnlyList<string> NewlyKilledEnemiesNullable { get; private set; }
 		}
 
 		public static Result ProcessFrame(
 			TuxState tuxState,
-			IReadOnlyList<IEnemy> enemies,
+			IReadOnlyList<IEnemy> enemiesImmutable,
+			bool debug_tuxInvulnerable,
 			ISoundOutput<GameSound> soundOutput)
 		{
 			if (tuxState.IsDead || tuxState.TeleportInProgressElapsedMicros != null || tuxState.HasFinishedLevel)
-			{
-				return new Result(newTuxState: tuxState, newEnemies: enemies, newlyKilledEnemies: new List<string>());
-			}
+				return new Result(newTuxState: tuxState, newEnemiesImmutable: enemiesImmutable, newlyKilledEnemiesImmutableNullable: null);
 
-			List<IEnemy> newEnemies = new List<IEnemy>();
-			List<string> newlyKilledEnemies = new List<string>();
+			List<IEnemy> newEnemies = new List<IEnemy>(capacity: enemiesImmutable.Count);
+			List<string> newlyKilledEnemies = null;
 
-			List<Hitbox> tuxHitboxes = tuxState.GetHitboxes();
+			Hitbox tuxHitbox = tuxState.GetHitbox();
 
 			TuxState newTuxState = tuxState;
 			bool isTuxDead = false;
 
-			foreach (IEnemy enemy in enemies)
+			int numEnemies = enemiesImmutable.Count;
+			for (int enemiesIndex = 0; enemiesIndex < numEnemies; enemiesIndex++)
 			{
+				IEnemy enemy = enemiesImmutable[enemiesIndex];
+
 				IReadOnlyList<Hitbox> enemyDamageBoxes = enemy.GetDamageBoxes();
 
 				bool isSquished = false;
 				bool hasCollided = false;
 
-				foreach (Hitbox tuxHitbox in tuxHitboxes)
+				if (enemyDamageBoxes != null)
 				{
-					foreach (Hitbox enemyDamageBox in enemyDamageBoxes)
+					int numDamageBoxes = enemyDamageBoxes.Count;
+					for (int i = 0; i < numDamageBoxes; i++)
 					{
+						Hitbox enemyDamageBox = enemyDamageBoxes[i];
+
 						if (HasCollided(tuxHitbox, enemyDamageBox))
 						{
 							isSquished = tuxHitbox.Y > enemyDamageBox.Y + (enemyDamageBox.Height >> 1) || tuxState.YSpeedInMibipixelsPerSecond < 0;
 							break;
 						}
 					}
-
-					if (isSquished)
-						break;
 				}
 
 				if (!isSquished)
 				{
-					foreach (Hitbox tuxHitbox in tuxHitboxes)
+					IReadOnlyList<Hitbox> enemyHitboxes = enemy.GetHitboxes();
+					if (enemyHitboxes != null)
 					{
-						foreach (Hitbox enemyHitbox in enemy.GetHitboxes())
+						int numHitboxes = enemyHitboxes.Count;
+						for (int i = 0; i < numHitboxes; i++)
 						{
+							Hitbox enemyHitbox = enemyHitboxes[i];
 							if (HasCollided(tuxHitbox, enemyHitbox))
 							{
 								hasCollided = true;
 								break;
 							}
 						}
-
-						if (hasCollided)
-							break;
 					}
 				}
 
 				if (isSquished)
 				{
 					soundOutput.PlaySound(GameSound.Squish);
+					if (newlyKilledEnemies == null)
+						newlyKilledEnemies = new List<string>();
 					newlyKilledEnemies.Add(enemy.EnemyId);
 					newEnemies.Add(enemy.GetDeadEnemy());
 
@@ -92,7 +96,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						.SetLastTimeOnGround(null)
 						.SetHasAlreadyUsedTeleport(false);
 				}
-				else if (hasCollided)
+				else if (hasCollided && !debug_tuxInvulnerable)
 				{
 					isTuxDead = true;
 					newEnemies.Add(enemy);
@@ -108,8 +112,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			return new Result(
 				newTuxState: newTuxState,
-				newEnemies: newEnemies,
-				newlyKilledEnemies: newlyKilledEnemies);
+				newEnemiesImmutable: newEnemies,
+				newlyKilledEnemiesImmutableNullable: newlyKilledEnemies);
 		}
 
 		private static bool HasCollided(Hitbox a, Hitbox b)

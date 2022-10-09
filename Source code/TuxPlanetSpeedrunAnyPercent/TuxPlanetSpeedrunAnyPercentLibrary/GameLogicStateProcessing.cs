@@ -32,6 +32,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			GameLogicState gameLogicState,
 			Move move,
 			bool debugMode,
+			bool debug_tuxInvulnerable,
 			IKeyboard debugKeyboardInput,
 			IKeyboard debugPreviousKeyboardInput,
 			IDisplayProcessing<GameImage> displayProcessing,
@@ -138,6 +139,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				previousMove: gameLogicState.PreviousMove,
 				canUseTeleport: gameLogicState.CanUseTeleport,
 				debugMode: debugMode,
+				debug_tuxInvulnerable: debug_tuxInvulnerable,
 				debugKeyboardInput: debugKeyboardInput,
 				debugPreviousKeyboardInput: debugPreviousKeyboardInput,
 				displayProcessing: displayProcessing,
@@ -187,33 +189,36 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				elapsedMicrosPerFrame: elapsedMicrosPerFrame);
 			newRngSeed = enemyProcessingRandom.SerializeToString();
 
-			newEnemies = new List<IEnemy>(enemyProcessingResult.Enemies);
+			if (enemyProcessingResult.EnemiesNullable != null)
+				newEnemies = new List<IEnemy>(enemyProcessingResult.EnemiesNullable);
+			else
+				newEnemies = new List<IEnemy>();
 
 			List<string> newKilledEnemies = new List<string>(gameLogicState.KilledEnemies);
-			newKilledEnemies.AddRange(enemyProcessingResult.NewlyKilledEnemies);
+			if (enemyProcessingResult.NewlyKilledEnemiesNullable != null)
+				newKilledEnemies.AddRange(enemyProcessingResult.NewlyKilledEnemiesNullable);
 
 			HashSet<string> levelFlagsHashSet = new HashSet<string>(newLevelFlags);
-			foreach (string newlyAddedLevelFlag in enemyProcessingResult.NewlyAddedLevelFlags)
+			if (enemyProcessingResult.NewlyAddedLevelFlagsNullable != null)
 			{
-				if (!levelFlagsHashSet.Contains(newlyAddedLevelFlag))
-					newLevelFlags.Add(newlyAddedLevelFlag);
+				foreach (string newlyAddedLevelFlag in enemyProcessingResult.NewlyAddedLevelFlagsNullable)
+				{
+					if (!levelFlagsHashSet.Contains(newlyAddedLevelFlag))
+						newLevelFlags.Add(newlyAddedLevelFlag);
+				}
 			}
 
 			CollisionProcessing_Tux.Result collisionResultTux = CollisionProcessing_Tux.ProcessFrame(
 				tuxState: newTuxState,
-				enemies: newEnemies,
+				enemiesImmutable: newEnemies,
+				debug_tuxInvulnerable: debug_tuxInvulnerable,
 				soundOutput: soundOutput);
 
 			newTuxState = collisionResultTux.NewTuxState;
 			newEnemies = new List<IEnemy>(collisionResultTux.NewEnemies);
 
-			newKilledEnemies.AddRange(collisionResultTux.NewlyKilledEnemies);
-
-			CollisionProcessing_Enemies.Result collisionResultEnemy = CollisionProcessing_Enemies.ProcessFrame(enemies: newEnemies);
-
-			newEnemies = new List<IEnemy>(collisionResultEnemy.NewEnemies);
-
-			newKilledEnemies.AddRange(collisionResultEnemy.NewlyKilledEnemies);
+			if (collisionResultTux.NewlyKilledEnemiesNullable != null)
+				newKilledEnemies.AddRange(collisionResultTux.NewlyKilledEnemiesNullable);
 
 			bool newStartedLevelOrCheckpointWithSaveStates = gameLogicState.StartedLevelOrCheckpointWithSaveStates;
 			bool newStartedLevelOrCheckpointWithTimeSlowdown = gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown;
@@ -371,10 +376,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				windowHeight: gameLogicState.WindowHeight,
 				displayOutput: displayOutput);
 
-			TranslatedDisplayOutput<GameImage, GameFont> translatedDisplayOutput = new TranslatedDisplayOutput<GameImage, GameFont>(
+			TuxPlanetSpeedrunTranslatedDisplayOutput translatedDisplayOutput = new TuxPlanetSpeedrunTranslatedDisplayOutput(
 				display: displayOutput,
-				xOffsetInPixels: -(camera.X - gameLogicState.WindowWidth / 2),
-				yOffsetInPixels: -(camera.Y - gameLogicState.WindowHeight / 2));
+				xOffsetInPixels: -(camera.X - (gameLogicState.WindowWidth >> 1)),
+				yOffsetInPixels: -(camera.Y - (gameLogicState.WindowHeight >> 1)));
 
 			gameLogicState.Tilemap.RenderBackgroundTiles(
 				displayOutput: translatedDisplayOutput, 
@@ -403,13 +408,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (debug_showHitboxes)
 			{
 				List<Hitbox> hitboxes = new List<Hitbox>();
-				hitboxes.AddRange(gameLogicState.Tux.GetHitboxes());
+				hitboxes.Add(gameLogicState.Tux.GetHitbox());
 
 				foreach (IEnemy enemy in gameLogicState.Enemies)
-					hitboxes.AddRange(enemy.GetHitboxes());
+				{
+					IReadOnlyList<Hitbox> enemyHitboxes = enemy.GetHitboxes();
+					if (enemyHitboxes != null)
+						hitboxes.AddRange(enemyHitboxes);
+				}
 
 				foreach (IEnemy enemy in gameLogicState.Enemies)
-					hitboxes.AddRange(enemy.GetDamageBoxes());
+				{
+					IReadOnlyList<Hitbox> enemyDamageBoxes = enemy.GetDamageBoxes();
+					if (enemyDamageBoxes != null)
+						hitboxes.AddRange(enemyDamageBoxes);
+				}
 
 				foreach (Hitbox hitbox in hitboxes)
 				{

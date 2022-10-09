@@ -43,6 +43,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.saveAndLoadData = new SaveAndLoadData(fileIO: fileIO);
 
 			this.Debug_ShowHitBoxes = false;
+			this.Debug_TuxInvulnerable = false;
 
 			this.MapInfo = MapDataHelper.GetStronglyTypedMapData(mapData: MapData.GetMapData());
 		}
@@ -59,6 +60,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public bool DebugMode { get; private set; }
 
 		public bool Debug_ShowHitBoxes { get; set; }
+		public bool Debug_TuxInvulnerable { get; set; }
 
 		public IReadOnlyDictionary<string, MapDataHelper.Map> MapInfo { get; private set; }
 

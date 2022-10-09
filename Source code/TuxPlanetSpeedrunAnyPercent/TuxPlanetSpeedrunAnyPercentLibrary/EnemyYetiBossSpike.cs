@@ -46,21 +46,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return false; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
-		}
-
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			if (!this.isActive)
-				return new List<Hitbox>();
+				return null;
 
 			return new List<Hitbox>()
 			{
@@ -74,7 +63,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return new List<Hitbox>();
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -97,15 +86,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (levelFlags.Contains(LEVEL_FLAG_DESPAWN_YETI_BOSS_ROOM_SPIKES))
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						EnemyDeadPoof.SpawnEnemyDeadPoof(
 							xMibi: this.xMibi,
 							yMibi: this.yMibi,
 							enemyId: this.EnemyId + "_disappearPoof")
 					},
-					newlyKilledEnemies: new List<string>(),
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			List<IEnemy> list = new List<IEnemy>();
@@ -150,9 +139,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					enemyId: this.EnemyId + "_spawnPoof"));
 
 			return new EnemyProcessing.Result(
-				enemies: list,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: list,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

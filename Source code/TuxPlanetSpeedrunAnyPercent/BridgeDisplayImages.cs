@@ -69,7 +69,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 						if (canvas === null) {
 							canvas = document.getElementById('bridgeCanvas');
 							if (canvas !== null)
-								context = canvas.getContext('2d');
+								context = canvas.getContext('2d', { alpha: false });
 							else
 								return;
 						}
@@ -88,9 +88,11 @@ namespace TuxPlanetSpeedrunAnyPercent
 						context.translate(x, y);
 						context.scale(scalingFactor, scalingFactor);
 						
-						context.translate(img.width / 2, img.height / 2);
-						context.rotate(degreesScaled * radianConversion);
-						context.translate(-img.width / 2, -img.height / 2);
+						if (degreesScaled !== 0) {
+							context.translate(img.width / 2, img.height / 2);
+							context.rotate(degreesScaled * radianConversion);
+							context.translate(-img.width / 2, -img.height / 2);
+						}
 						
 						context.drawImage(img, 0, 0);
 									
@@ -101,7 +103,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 						if (canvas === null) {
 							canvas = document.getElementById('bridgeCanvas');
 							if (canvas !== null)
-								context = canvas.getContext('2d');
+								context = canvas.getContext('2d', { alpha: false });
 							else
 								return;
 						}
@@ -115,9 +117,11 @@ namespace TuxPlanetSpeedrunAnyPercent
 						context.translate(x, y);
 						context.scale(scalingFactor, scalingFactor);
 						
-						context.translate(imageWidth / 2, imageHeight / 2);
-						context.rotate(degreesScaled * radianConversion);
-						context.translate(-imageWidth / 2, -imageHeight / 2);
+						if (degreesScaled !== 0) {
+							context.translate(imageWidth / 2, imageHeight / 2);
+							context.rotate(degreesScaled * radianConversion);
+							context.translate(-imageWidth / 2, -imageHeight / 2);
+						}
 						
 						context.drawImage(img, imageX, imageY, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
 									

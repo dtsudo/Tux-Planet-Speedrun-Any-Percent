@@ -10,9 +10,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private int bossRoomXOffsetStart;
 		private int bossRoomXOffsetEnd;
 
-		private List<Hitbox> emptyHitboxList;
-		private List<string> emptyStringList;
-
 		public string EnemyId { get { return "EnemyLevel10Coordinator"; } }
 
 		public EnemyLevel10Coordinator(
@@ -21,30 +18,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			this.bossRoomXOffsetStart = bossRoomXOffsetStart;
 			this.bossRoomXOffsetEnd = bossRoomXOffsetEnd;
-
-			this.emptyHitboxList = new List<Hitbox>();
-			this.emptyStringList = new List<string>();
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -84,9 +67,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			return new EnemyProcessing.Result(
-				enemies: newEnemies,
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: newlyAddedLevelFlags);
+				enemiesImmutableNullable: newEnemies,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: newlyAddedLevelFlags);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

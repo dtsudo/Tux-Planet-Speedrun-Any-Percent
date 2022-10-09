@@ -34,6 +34,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return Achievements.GetCompletedAchievements(numCompletedLevels: this.sessionState.Overworld.GetNumCompletedLevels());
 		}
 
+		public string GetScore()
+		{
+			int elapsedMillis = this.sessionState.ElapsedMillis;
+			return elapsedMillis.ToStringCultureInvariant();
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,

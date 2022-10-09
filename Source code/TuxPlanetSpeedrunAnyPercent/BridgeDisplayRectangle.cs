@@ -27,7 +27,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 							canvas = document.getElementById('bridgeCanvas');		
 							if (canvas === null)
 								return;	
-							context = canvas.getContext('2d');
+							context = canvas.getContext('2d', { alpha: false });
 						}
 						
 						context.fillStyle = 'rgba(' + red.toString() + ', ' + green.toString() + ', ' + blue.toString() + ', ' + (alpha / 255).toString() + ')';

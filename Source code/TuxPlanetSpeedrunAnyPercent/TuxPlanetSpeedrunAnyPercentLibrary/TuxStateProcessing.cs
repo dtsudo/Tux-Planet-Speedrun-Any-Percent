@@ -165,6 +165,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			Move previousMove,
 			bool canUseTeleport,
 			bool debugMode,
+			bool debug_tuxInvulnerable,
 			IKeyboard debugKeyboardInput,
 			IKeyboard debugPreviousKeyboardInput,
 			IDisplayProcessing<GameImage> displayProcessing,
@@ -385,11 +386,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					|| tilemap.IsKillZone((tuxState.XMibi >> 10) - 4 * 3, (tuxState.YMibi >> 10) + 8 * 3)
 					|| tilemap.IsKillZone((tuxState.XMibi >> 10) + 4 * 3, (tuxState.YMibi >> 10) + 8 * 3))
 				newIsDeadElapsedMicros = 0;
-			if (tilemap.IsSpikes((tuxState.XMibi >> 10) - 4 * 3, (tuxState.YMibi >> 10) - 16 * 3)
-					|| tilemap.IsSpikes((tuxState.XMibi >> 10) + 4 * 3, (tuxState.YMibi >> 10) - 16 * 3)
-					|| tilemap.IsSpikes((tuxState.XMibi >> 10) - 4 * 3, (tuxState.YMibi >> 10) + 8 * 3)
-					|| tilemap.IsSpikes((tuxState.XMibi >> 10) + 4 * 3, (tuxState.YMibi >> 10) + 8 * 3))
-				newIsDeadElapsedMicros = 0;
+
+			if (!debug_tuxInvulnerable)
+			{
+				if (tilemap.IsSpikes((tuxState.XMibi >> 10) - 4 * 3, (tuxState.YMibi >> 10) - 16 * 3)
+						|| tilemap.IsSpikes((tuxState.XMibi >> 10) + 4 * 3, (tuxState.YMibi >> 10) - 16 * 3)
+						|| tilemap.IsSpikes((tuxState.XMibi >> 10) - 4 * 3, (tuxState.YMibi >> 10) + 8 * 3)
+						|| tilemap.IsSpikes((tuxState.XMibi >> 10) + 4 * 3, (tuxState.YMibi >> 10) + 8 * 3))
+					newIsDeadElapsedMicros = 0;
+			}
 
 			int? newTeleportCooldown = tuxState.TeleportCooldown;
 			if (newTeleportCooldown != null)
@@ -499,10 +504,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		{
 			GameImage image = tuxState.IsFacingRight ? GameImage.Tux : GameImage.TuxMirrored;
 
-			displayOutput = new TranslatedDisplayOutput<GameImage, GameFont>(
+			displayOutput = new TuxPlanetSpeedrunTranslatedDisplayOutput(
 				display: displayOutput,
-				xOffsetInPixels: -(camera.X - windowWidth / 2),
-				yOffsetInPixels: -(camera.Y - windowHeight / 2));
+				xOffsetInPixels: -(camera.X - (windowWidth >> 1)),
+				yOffsetInPixels: -(camera.Y - (windowHeight >> 1)));
 
 			if (tuxState.IsDead)
 			{
@@ -529,13 +534,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 			else if (tuxState.TeleportInProgressElapsedMicros != null)
 			{
-				long deltaX = tuxState.XMibi - tuxState.TeleportStartingLocation.Item1;
-				long deltaY = tuxState.YMibi - tuxState.TeleportStartingLocation.Item2;
+				int deltaX = tuxState.XMibi - tuxState.TeleportStartingLocation.Item1;
+				int deltaY = tuxState.YMibi - tuxState.TeleportStartingLocation.Item2;
 
 				for (int i = Math.Max(0, tuxState.TeleportInProgressElapsedMicros.Value - 50 * 1000); i < tuxState.TeleportInProgressElapsedMicros.Value; i += 5 * 1000)
 				{
-					int renderXMibi = (int)(tuxState.TeleportStartingLocation.Item1 + deltaX * i / TuxState.TELEPORT_DURATION);
-					int renderYMibi = (int)(tuxState.TeleportStartingLocation.Item2 + deltaY * i / TuxState.TELEPORT_DURATION);
+					int renderXMibi = tuxState.TeleportStartingLocation.Item1 + deltaX * (i >> 10) / (TuxState.TELEPORT_DURATION / 1024);
+					int renderYMibi = tuxState.TeleportStartingLocation.Item2 + deltaY * (i >> 10) / (TuxState.TELEPORT_DURATION / 1024);
 
 					int alpha = (i - (tuxState.TeleportInProgressElapsedMicros.Value - 50 * 1000)) * 170 / 50000;
 

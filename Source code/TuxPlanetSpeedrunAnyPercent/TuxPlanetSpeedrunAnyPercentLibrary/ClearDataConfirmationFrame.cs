@@ -73,6 +73,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return new HashSet<string>();
 		}
 
+		public string GetScore()
+		{
+			return null;
+		}
+
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
 			IKeyboard keyboardInput,
 			IMouse mouseInput,

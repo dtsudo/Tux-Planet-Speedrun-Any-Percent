@@ -39,17 +39,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: enemyId);
 		}
 
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
-		}
-
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
 			return new List<Hitbox>()
@@ -64,7 +53,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return new List<Hitbox>();
+			return null;
 		}
 
 		public EnemyProcessing.Result ProcessFrame(
@@ -79,17 +68,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<string> levelFlags,
 			ISoundOutput<GameSound> soundOutput)
 		{
-			List<IEnemy> newEnemies = new List<IEnemy>();
-
 			int newElapsedMicros = this.elapsedMicros + elapsedMicrosPerFrame;
 
 			if (newElapsedMicros > EXPLOSION_ANIMATION_DURATION)
 			{
 				return new EnemyProcessing.Result(
-					enemies: newEnemies,
-					newlyKilledEnemies: new List<string>(),
-					newlyAddedLevelFlags: null);
+					enemiesImmutableNullable: null,
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
+
+			List<IEnemy> newEnemies = new List<IEnemy>();
 
 			newEnemies.Add(new EnemyKonqiFireballExplosion(
 				xMibi: this.xMibi,
@@ -98,9 +87,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(
-				enemies: newEnemies,
-				newlyKilledEnemies: new List<string>(),
-				newlyAddedLevelFlags: null);
+				enemiesImmutableNullable: newEnemies,
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

@@ -97,6 +97,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			Status newStatus;
 			int newKonqiDisappearElapsedMicros = this.konqiDisappearElapsedMicros;
 			List<IEnemy> newEnemies = new List<IEnemy>(enemies);
+			List<string> newlyAddedLevelFlags = null;
 
 			switch (this.status)
 			{
@@ -136,7 +137,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					if (dialogueListResult.IsDone)
 					{
 						newStatus = Status.C_KonqiDisappear;
-						newEnemies.Add(new EnemyRemoveKonqiCutscene(enemyId: "enemyRemoveKonqiCutscene_cutscene_savestate"));
+						if (newlyAddedLevelFlags == null)
+							newlyAddedLevelFlags = new List<string>();
+						newlyAddedLevelFlags.Add(EnemyKonqiCutscene.SHOULD_TELEPORT_OUT_DEFAULT_LEVEL_FLAG);
 					}
 					else
 					{
@@ -176,7 +179,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							move: Move.EmptyMove(),
 							cameraState: cameraState,
 							enemies: newEnemies,
-							newlyAddedLevelFlags: null,
+							newlyAddedLevelFlags: newlyAddedLevelFlags,
 							cutscene: null,
 							shouldGrantSaveStatePower: true,
 							shouldGrantTimeSlowdownPower: false,
@@ -203,7 +206,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					: Move.EmptyMove(),
 				cameraState: newCameraState,
 				enemies: newEnemies,
-				newlyAddedLevelFlags: null,
+				newlyAddedLevelFlags: newlyAddedLevelFlags,
 				cutscene: new Cutscene_SaveState(isFirstFrame: false, status: newStatus, konqiDisappearElapsedMicros: newKonqiDisappearElapsedMicros, dialogueList: newDialogueList),
 				shouldGrantSaveStatePower: this.status == Status.C_KonqiDisappear || this.status == Status.D_Camera,
 				shouldGrantTimeSlowdownPower: false,

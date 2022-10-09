@@ -68,7 +68,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 							if (canvas === null)
 								return;
 							
-							context = canvas.getContext('2d');
+							context = canvas.getContext('2d', { alpha: false });
 						}
 						
 						lineHeight = parseFloat(lineHeight);

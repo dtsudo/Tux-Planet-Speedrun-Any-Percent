@@ -16,9 +16,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private string rngSeed;
 
-		private List<string> emptyStringList;
-		private List<Hitbox> emptyHitboxList;
-
 		public string EnemyId { get; private set; }
 
 		public const string LEVEL_FLAG_SWITCH_DIRECTIONS = "enemyYetiCutscene_switchDirections";
@@ -30,8 +27,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int elapsedMicros,
 			bool isFacingRight,
 			string rngSeed,
-			List<string> emptyStringList,
-			List<Hitbox> emptyHitboxList,
 			string enemyId)
 		{
 			this.x = x;
@@ -39,8 +34,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.elapsedMicros = elapsedMicros;
 			this.isFacingRight = isFacingRight;
 			this.rngSeed = rngSeed;
-			this.emptyStringList = emptyStringList;
-			this.emptyHitboxList = emptyHitboxList;
 			this.EnemyId = enemyId;
 		}
 
@@ -56,30 +49,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				elapsedMicros: 0,
 				isFacingRight: true,
 				rngSeed: rngSeed,
-				emptyStringList: new List<string>(),
-				emptyHitboxList: new List<Hitbox>(),
 				enemyId: enemyId);
-		}
-
-		public bool IsKonqiCutscene { get { return false; } }
-
-		public bool IsRemoveKonqi { get { return false; } }
-
-		public bool ShouldAlwaysSpawnRegardlessOfCamera { get { return true; } }
-
-		public Tuple<int, int> GetKonqiCutsceneLocation()
-		{
-			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetHitboxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IReadOnlyList<Hitbox> GetDamageBoxes()
 		{
-			return this.emptyHitboxList;
+			return null;
 		}
 
 		public IEnemy GetDeadEnemy()
@@ -112,7 +92,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (levelFlags.Contains(LEVEL_FLAG_DESPAWN_YETI_CUTSCENE_AND_SPAWN_YETI_BOSS))
 			{
 				return new EnemyProcessing.Result(
-					enemies: new List<IEnemy>()
+					enemiesImmutableNullable: new List<IEnemy>()
 					{
 						EnemyYetiBoss_Jump.GetEnemyYetiBoss_Jump(
 							xMibi: this.x << 10,
@@ -124,12 +104,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							rngSeed: this.rngSeed,
 							enemyId: "EnemyYetiBoss")
 					},
-					newlyKilledEnemies: this.emptyStringList,
-					newlyAddedLevelFlags: null);
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
 			}
 
 			return new EnemyProcessing.Result(
-				enemies: new List<IEnemy>()
+				enemiesImmutableNullable: new List<IEnemy>()
 				{
 					new EnemyYetiCutscene(
 						x: this.x,
@@ -137,12 +117,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						elapsedMicros: newElapsedMicros,
 						isFacingRight: newIsFacingRight,
 						rngSeed: this.rngSeed,
-						emptyStringList: this.emptyStringList,
-						emptyHitboxList: this.emptyHitboxList,
 						enemyId: this.EnemyId)
 				},
-				newlyKilledEnemies: this.emptyStringList,
-				newlyAddedLevelFlags: null);
+				newlyKilledEnemiesImmutableNullable: null,
+				newlyAddedLevelFlagsImmutableNullable: null);
 		}
 
 		public void Render(IDisplayOutput<GameImage, GameFont> displayOutput)

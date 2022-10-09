@@ -64,6 +64,8 @@
     <Compile Include="DTLibrary\EmptyKeyboard.cs" />
     <Compile Include="DTLibrary\EmptyLogger.cs" />
     <Compile Include="DTLibrary\EmptyMouse.cs" />
+    <Compile Include="DTLibrary\EmptyMusic.cs" />
+    <Compile Include="DTLibrary\EmptySoundOutput.cs" />
     <Compile Include="DTLibrary\GlobalConfigurationManager.cs" />
     <Compile Include="DTLibrary\GuidGenerator.cs" />
     <Compile Include="DTLibrary\IDTDeterministicRandom.cs" />
@@ -99,7 +101,6 @@
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\CameraState.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\CameraStateProcessing.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\ClearDataConfirmationFrame.cs" />
-    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\CollisionProcessing_Enemies.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\CollisionProcessing_Tux.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\CompositeTilemap.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\CreditsFrame.cs" />
@@ -151,12 +152,12 @@
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyLevel10EliteSnailActive.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyLevel10EliteSnailPassive.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyLevel5Spikes.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyLevel5SpikesInitialSpawn.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyLevel8Fish.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyLevel8WaterAnimation.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyOrange.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyOrange_YetiVersion.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyProcessing.cs" />
-    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyRemoveKonqiCutscene.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemySmartcap.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemySmartcapDead.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemySnail.cs" />
@@ -221,11 +222,12 @@
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\OverworldMapGenerator.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\OverworldUtil.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\PauseMenuFrame.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\PerformanceTestFrame.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\PerformanceTestFrameKeyboard.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SaveAndLoadData.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SessionState.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SoundAndMusicVolumePicker.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SoundVolumePicker.cs" />
-    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SpawnRemoveKonqiTilemap.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Sprite.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SpriteUtil.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\TestingFontFrame.cs" />
@@ -237,6 +239,7 @@
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Tilemap.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\TitleScreenFrame.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\TuxPlanetSpeedrunAnyPercent.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\TuxPlanetSpeedrunTranslatedDisplayOutput.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\TuxState.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\TuxStateProcessing.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\VersionInfo.cs" />

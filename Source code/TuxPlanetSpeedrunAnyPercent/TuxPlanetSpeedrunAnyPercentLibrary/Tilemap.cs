@@ -43,6 +43,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private bool[][] isCutsceneArray;
 		private Tuple<int, int>[][] checkpointArray;
 		private Dictionary<MapKey, bool[][]> isKeyTileArrays;
+		private bool[][] isCopperKeyTileArray;
+		private bool[][] isSilverKeyTileArray;
+		private bool[][] isGoldKeyTileArray;
+		private bool[][] isMythrilKeyTileArray;
 
 		private int tileWidth;
 		private int tileHeight;
@@ -167,6 +171,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					this.isKeyTileArrays[kvp.Key] = copiedArray;
 				}
 			}
+			this.isCopperKeyTileArray = this.isKeyTileArrays[MapKey.Copper];
+			this.isSilverKeyTileArray = this.isKeyTileArrays[MapKey.Silver];
+			this.isGoldKeyTileArray = this.isKeyTileArrays[MapKey.Gold];
+			this.isMythrilKeyTileArray = this.isKeyTileArrays[MapKey.Mythril];
 
 			this.tileWidth = tileWidth;
 			this.tileHeight = tileHeight;
@@ -226,7 +234,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public bool IsKeyTile(MapKey key, int x, int y)
 		{
-			bool[][] array = this.isKeyTileArrays[key];
+			bool[][] array;
+
+			if (key == MapKey.Copper)
+				array = this.isCopperKeyTileArray;
+			else if (key == MapKey.Silver)
+				array = this.isSilverKeyTileArray;
+			else if (key == MapKey.Gold)
+				array = this.isGoldKeyTileArray;
+			else if (key == MapKey.Mythril)
+				array = this.isMythrilKeyTileArray;
+			else
+				array = this.isKeyTileArrays[key];
 
 			if (array == null)
 				return false;
@@ -504,15 +523,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						xMibi: xMibi,
 						yMibi: yMibi,
 						isFireKonqi: false,
-						shouldTeleportOutLevelFlag: null,
+						shouldTeleportOutLevelFlag: EnemyKonqiCutscene.SHOULD_TELEPORT_OUT_DEFAULT_LEVEL_FLAG,
 						enemyId: enemy.EnemyId);
 
-					list.Add(new EnemySpawnHelper(
-						enemyToSpawn: konqi,
-						xMibi: xMibi,
-						yMibi: yMibi,
-						enemyWidth: 32 * 3,
-						enemyHeight: 32 * 3));
+					list.Add(konqi);
 				}
 				else if (enemy.ActorId == 26)
 				{

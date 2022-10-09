@@ -92,6 +92,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private void LoadSessionStateFromSimpleData(SessionState sessionState, int windowWidth, int windowHeight, IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo)
 		{
+			sessionState.ClearData(windowWidth: windowWidth, windowHeight: windowHeight);
+
 			ByteList list = this.fileIO.FetchVersionedData(fileId: TuxPlanetSpeedrunAnyPercent.FILE_ID_FOR_SIMPLE_DATA_SESSION_STATE, version: SessionState.SIMPLE_DATA_VERSION_NUMBER);
 
 			if (list == null)
