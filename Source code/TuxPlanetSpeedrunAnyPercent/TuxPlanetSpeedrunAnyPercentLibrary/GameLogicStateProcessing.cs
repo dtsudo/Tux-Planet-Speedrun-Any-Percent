@@ -94,6 +94,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					windowWidth: gameLogicState.WindowWidth,
 					windowHeight: gameLogicState.WindowHeight,
 					tilemap: newTilemap,
+					difficulty: gameLogicState.Difficulty,
 					enemies: newEnemies,
 					levelFlags: newLevelFlags);
 
@@ -302,6 +303,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						windowWidth: gameLogicState.WindowWidth,
 						windowHeight: gameLogicState.WindowHeight,
 						level: gameLogicState.Level,
+						difficulty: gameLogicState.Difficulty,
 						rngSeed: gameLogicState.RngSeedAtCheckpoint,
 						canUseSaveStates: gameLogicState.StartedLevelOrCheckpointWithSaveStates,
 						canUseTimeSlowdown: gameLogicState.StartedLevelOrCheckpointWithTimeSlowdown,
@@ -340,6 +342,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						windowWidth: gameLogicState.WindowWidth,
 						windowHeight: gameLogicState.WindowHeight,
 						level: gameLogicState.Level,
+						difficulty: gameLogicState.Difficulty,
 						rngSeed: newRngSeed,
 						canUseSaveStates: newCanUseSaveStates,
 						canUseTimeSlowdown: newCanUseTimeSlowdown,
@@ -365,6 +368,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			GameLogicState gameLogicState, 
 			IDisplayOutput<GameImage, GameFont> displayOutput, 
 			int elapsedMillis,
+			bool showElapsedTime,
 			bool debug_showHitboxes)
 		{
 			CameraState camera = gameLogicState.Camera;
@@ -448,15 +452,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				windowWidth: gameLogicState.WindowWidth, 
 				windowHeight: gameLogicState.WindowHeight);
 
-			string elapsedTimeString = ElapsedTimeUtil.GetElapsedTimeString(elapsedMillis: elapsedMillis);
-			string timerText = "Time: " + elapsedTimeString;
+			if (showElapsedTime)
+			{
+				string elapsedTimeString = ElapsedTimeUtil.GetElapsedTimeString(elapsedMillis: elapsedMillis);
+				string timerText = "Time: " + elapsedTimeString;
 
-			displayOutput.DrawText(
-				x: gameLogicState.WindowWidth - 120,
-				y: gameLogicState.WindowHeight - 10,
-				text: timerText,
-				font: GameFont.DTSimpleFont14Pt,
-				color: DTColor.Black());
+				displayOutput.DrawText(
+					x: gameLogicState.WindowWidth - 120,
+					y: gameLogicState.WindowHeight - 10,
+					text: timerText,
+					font: GameFont.DTSimpleFont14Pt,
+					color: DTColor.Black());
+			}
 
 			if (gameLogicState.Cutscene != null)
 				gameLogicState.Cutscene.Render(

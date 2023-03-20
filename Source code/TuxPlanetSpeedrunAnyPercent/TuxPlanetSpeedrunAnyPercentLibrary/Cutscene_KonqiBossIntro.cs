@@ -79,6 +79,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			ITilemap tilemap,
+			Difficulty difficulty,
 			IReadOnlyList<IEnemy> enemies,
 			IReadOnlyList<string> levelFlags)
 		{
@@ -156,6 +157,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						newEnemies.Add(EnemyKonqiBoss.GetEnemyKonqiBoss(
 							xMibi: konqiXMibi,
 							yMibi: konqiYMibi,
+							difficulty: difficulty,
 							enemyId: "cutscene_konqiBossIntro_konqiBoss",
 							rngSeed: this.customLevelInfo[LevelConfiguration_Level10.KONQI_BOSS_RNG_SEED]));
 						newStatus = Status.D_Delay;

@@ -17,6 +17,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private string eliteFlyamanitaIsDeadLevelFlag;
 
+		private Difficulty difficulty;
+
 		public const int GREATER_ORBITER_RADIUS_IN_PIXELS = 400;
 		public const int GREATER_ORBITER_ROTATION_SPEED_IN_ANGLES_SCALED_PER_SECOND = 50 * 128;
 
@@ -33,6 +35,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			string rngSeed,
 			bool hasSpawnedOrbiters,
 			string isDeadLevelFlag,
+			Difficulty difficulty,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -42,6 +45,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.rngSeed = rngSeed;
 			this.hasSpawnedOrbiters = hasSpawnedOrbiters;
 			this.eliteFlyamanitaIsDeadLevelFlag = isDeadLevelFlag;
+			this.difficulty = difficulty;
 			this.EnemyId = enemyId;
 		}
 
@@ -49,6 +53,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int xMibi,
 			int yMibi,
 			string rngSeed,
+			Difficulty difficulty,
 			string enemyId)
 		{
 			return new EnemyEliteFlyamanita(
@@ -59,6 +64,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				rngSeed: rngSeed,
 				hasSpawnedOrbiters: false,
 				isDeadLevelFlag: "enemyEliteFlyamanitaIsDeadLevelFlag[" + enemyId + "]",
+				difficulty: difficulty,
 				enemyId: enemyId);
 		}
 
@@ -171,9 +177,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						eliteFlyamanitaYMibi: this.yMibi,
 						angleScaled: angleScaledBaseValue + i * (120 * 128),
 						isRotatingClockwise: isRotatingClockwise,
-						isSpikes: i != 0,
+						isSpikes: this.difficulty == Difficulty.Hard ? (i != 0) : false,
 						eliteFlyamanitaIsDeadLevelFlag: this.eliteFlyamanitaIsDeadLevelFlag,
 						rngSeed: orbiterRngSeed,
+						difficulty: this.difficulty,
 						enemyId: this.EnemyId + "_orbiter[" + i.ToStringCultureInvariant() + "]"));
 				}
 
@@ -188,6 +195,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				rngSeed: newRngSeed,
 				hasSpawnedOrbiters: true,
 				isDeadLevelFlag: this.eliteFlyamanitaIsDeadLevelFlag,
+				difficulty: this.difficulty,
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(

@@ -19,11 +19,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private const string LEVEL_SUBFOLDER = "Level6/";
 
 		public LevelConfiguration_Level6(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			bool canAlreadyUseTimeSlowdown,
 			IDTDeterministicRandom random)
 		{
 			Result result = ConstructUnnormalizedTilemaps(
+				difficulty: difficulty,
 				mapInfo: mapInfo,
 				canAlreadyUseTimeSlowdown: canAlreadyUseTimeSlowdown,
 				random: random);
@@ -64,6 +66,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		private static Result ConstructUnnormalizedTilemaps(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			bool canAlreadyUseTimeSlowdown,
 			IDTDeterministicRandom random)
@@ -89,16 +92,33 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			int tilemapAIndex = list.Count - 1;
 
+			int changeXOffsetMaxCooldown;
+
+			switch (difficulty)
+			{
+				case Difficulty.Easy:
+					changeXOffsetMaxCooldown = 12;
+					break;
+				case Difficulty.Normal:
+					changeXOffsetMaxCooldown = 7;
+					break;
+				case Difficulty.Hard:
+					changeXOffsetMaxCooldown = 4;
+					break;
+				default:
+					throw new Exception();
+			}
+
 			int xOffsetInTiles = 7;
 			bool lastChangeWasToTheRight = false;
-			int changeXOffsetCooldown = 4;
+			int changeXOffsetCooldown = changeXOffsetMaxCooldown;
 
 			for (int i = 0; i < 400; i++)
 			{
 				changeXOffsetCooldown--;
 				if (changeXOffsetCooldown <= 0)
 				{
-					changeXOffsetCooldown = 4;
+					changeXOffsetCooldown = changeXOffsetMaxCooldown;
 
 					int delta;
 
@@ -129,8 +149,25 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					alwaysIncludeTilemap: false));
 			}
 
+			string difficultySuffix;
+
+			switch (difficulty)
+			{
+				case Difficulty.Easy:
+					difficultySuffix = "_Easy";
+					break;
+				case Difficulty.Normal:
+					difficultySuffix = "_Normal";
+					break;
+				case Difficulty.Hard:
+					difficultySuffix = "_Hard";
+					break;
+				default:
+					throw new Exception();
+			}
+
 			Tilemap cutsceneTilemap = MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "C_Cutscene"],
+					data: mapInfo[LEVEL_SUBFOLDER + "C_Cutscene" + difficultySuffix],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: CutsceneProcessing.TIME_SLOWDOWN_CUTSCENE,
 					scalingFactorScaled: 128 * 3,
@@ -163,14 +200,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			xOffsetInTiles = 0;
 			lastChangeWasToTheRight = false;
-			changeXOffsetCooldown = 4;
+			changeXOffsetCooldown = changeXOffsetMaxCooldown;
 
 			for (int i = 0; i < 400; i++)
 			{
 				changeXOffsetCooldown--;
 				if (changeXOffsetCooldown <= 0)
 				{
-					changeXOffsetCooldown = 4;
+					changeXOffsetCooldown = changeXOffsetMaxCooldown;
 
 					int delta;
 
@@ -202,7 +239,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 
 			Tilemap tilemapF = MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "F_Finish"],
+					data: mapInfo[LEVEL_SUBFOLDER + "F_Finish" + difficultySuffix],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 128 * 3,

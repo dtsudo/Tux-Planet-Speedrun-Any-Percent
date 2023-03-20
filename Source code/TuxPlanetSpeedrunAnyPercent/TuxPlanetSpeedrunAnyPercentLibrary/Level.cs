@@ -105,5 +105,83 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				default: return null;
 			}
 		}
+
+		public static void RenderLevelScreenshot(
+			Level level,
+			IDisplayOutput<GameImage, GameFont> displayOutput,
+			int x,
+			int y)
+		{
+			GameImage image;
+			int imageX;
+			int imageY;
+
+			switch (level)
+			{
+				case Level.Level1:
+					image = GameImage.Level1Screenshot;
+					imageX = 75;
+					imageY = 190;
+					break;
+				case Level.Level2:
+					image = GameImage.Level2Screenshot;
+					imageX = 75;
+					imageY = 190;
+					break;
+				case Level.Level3:
+					image = GameImage.Level3Screenshot;
+					imageX = 35;
+					imageY = 240;
+					break;
+				case Level.Level4:
+					image = GameImage.Level4Screenshot;
+					imageX = 150;
+					imageY = 165;
+					break;
+				case Level.Level5:
+					image = GameImage.Level5Screenshot;
+					imageX = 150;
+					imageY = 225;
+					break;
+				case Level.Level6:
+					image = GameImage.Level6Screenshot;
+					imageX = 150;
+					imageY = 160;
+					break;
+				case Level.Level7:
+					image = GameImage.Level7Screenshot;
+					imageX = 100;
+					imageY = 90;
+					break;
+				case Level.Level8:
+					image = GameImage.Level8Screenshot;
+					imageX = 0;
+					imageY = 160;
+					break;
+				case Level.Level9:
+					image = GameImage.Level9Screenshot;
+					imageX = 150;
+					imageY = 310;
+					break;
+				case Level.Level10:
+					image = GameImage.Level10Screenshot;
+					imageX = 50;
+					imageY = 315;
+					break;
+				default:
+					throw new Exception();
+			}
+
+			displayOutput.DrawImageRotatedClockwise(
+				image: image,
+				imageX: imageX,
+				imageY: imageY,
+				imageWidth: 850,
+				imageHeight: 355,
+				x: x,
+				y: y,
+				degreesScaled: 0,
+				scalingFactorScaled: 128);
+		}
 	}
 }

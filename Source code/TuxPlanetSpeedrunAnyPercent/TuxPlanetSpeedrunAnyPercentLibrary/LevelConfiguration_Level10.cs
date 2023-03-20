@@ -20,10 +20,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private const string LEVEL_SUBFOLDER = "Level10/";
 
 		public LevelConfiguration_Level10(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
 			IDTDeterministicRandom random)
 		{
 			Tuple<List<CompositeTilemap.TilemapWithOffset>, IReadOnlyDictionary<string, string>> result = ConstructUnnormalizedTilemaps(
+				difficulty: difficulty,
 				mapInfo: mapInfo,
 				random: random);
 
@@ -47,19 +49,21 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		// level flags
 		public const string BEGIN_KONQI_DEFEATED_CUTSCENE = "level10_beginKonqiDefeatedCutscene";
 
-		public const string SPAWN_KONQI_BOSS_DEFEAT = "level10_spawnKonqiBossDefeat";
+		public const string SPAWN_KONQI_BOSS_DEFEAT_HARD = "level10_spawnKonqiBossDefeatHard";
+		public const string KONQI_BOSS_TELEPORT_OUT_EASY_NORMAL = "level10_konqiBossTeleportOutEasyNormal";
 		public const string SPAWN_MYTHRIL_KEY = "level10_spawnMythrilKey";
 
 		public const string LOCK_CAMERA_ON_KONQI_BOSS_ROOM = "level10_lockCameraOnKonqiBossRoom";
 		public const string STOP_LOCKING_CAMERA_ON_KONQI_BOSS_ROOM = "level10_stopLockingCameraOnKonqiBossRoom";
 
-		public const string LOCK_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM = "level10_lockCameraOnKonqiDefeatedBossRoom";
-		public const string STOP_LOCKING_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM = "level10_stopLockingCameraOnKonqiDefeatedBossRoom";
+		public const string LOCK_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM_HARD = "level10_lockCameraOnKonqiDefeatedBossRoomHard";
+		public const string STOP_LOCKING_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM_HARD = "level10_stopLockingCameraOnKonqiDefeatedBossRoomHard";
 
 		public const string LOCK_CAMERA_ON_YETI_BOSS_ROOM = "level10_lockCameraOnYetiBossRoom";
 		public const string STOP_LOCKING_CAMERA_ON_YETI_BOSS_ROOM = "level10_stopLockingCameraOnYetiBossRoom";
 
 		public const string SET_CAMERA_TO_YETI_DEFEATED_LOGIC = "level10_setCameraToYetiDefeatedLogic";
+		public const string SET_CAMERA_TO_KONQI_DEFEATED_EASY_NORMAL_LOGIC = "level10_setCameraToKonqiDefeatedEasyNormalLogic";
 
 		public const string MARK_LEFT_AND_RIGHT_WALLS_OF_BOSS_ROOM_AS_GROUND = "level10_markLeftAndRightWallsOfBossRoomAsGround";
 		public const string STOP_MARKING_LEFT_AND_RIGHT_WALLS_OF_BOSS_ROOM_AS_GROUND = "level10_stopMarkingLeftAndRightWallsOfBossRoomAsGround";
@@ -89,7 +93,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				y: windowHeight >> 1);
 		}
 
-		public static CameraState GetKonqiDefeatedCameraState(
+		public static CameraState GetKonqiDefeatedCameraState_Hard(
 			IReadOnlyDictionary<string, string> customLevelInfo,
 			ITilemap tilemap,
 			int windowWidth,
@@ -104,6 +108,40 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			return CameraState.GetCameraState(
 				x: konqiBossRoomCameraState.X,
 				y: konqiBossRoomCameraState.Y + 48 * 2);
+		}
+
+		public static CameraState GetKonqiDefeatedCameraState_EasyNormal(
+			IReadOnlyDictionary<string, string> customLevelInfo,
+			ITilemap tilemap,
+			int effectiveTuxXMibi,
+			int effectiveTuxYMibi,
+			int windowWidth,
+			int windowHeight)
+		{
+			CameraState cameraState = CameraStateProcessing.ComputeCameraState(
+				tuxXMibi: effectiveTuxXMibi,
+				tuxYMibi: effectiveTuxYMibi,
+				tuxTeleportStartingLocation: null,
+				tuxTeleportInProgressElapsedMicros: null,
+				tilemap: tilemap,
+				windowWidth: windowWidth,
+				windowHeight: windowHeight);
+
+			CameraState konqiBossRoomCameraState = GetKonqiBossRoomCameraState(
+				customLevelInfo: customLevelInfo,
+				tilemap: tilemap,
+				windowWidth: windowWidth,
+				windowHeight: windowHeight);
+
+			int x = cameraState.X;
+			int y = konqiBossRoomCameraState.Y;
+
+			int maximumCameraX = tilemap.GetWidth() - (windowWidth >> 1) - 48 * 2;
+
+			if (x > maximumCameraX)
+				x = maximumCameraX;
+
+			return CameraState.GetCameraState(x: x, y: y);
 		}
 
 		public static CameraState GetYetiBossRoomCameraState(
@@ -161,6 +199,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		private static Tuple<List<CompositeTilemap.TilemapWithOffset>, IReadOnlyDictionary<string, string>> ConstructUnnormalizedTilemaps(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			IDTDeterministicRandom random)
 		{
@@ -173,7 +212,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
 
 			Tilemap startTilemap = MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "A_Start"],
+					data: mapInfo[LEVEL_SUBFOLDER + (difficulty == Difficulty.Hard ? "A_Start_Hard" : "A_Start_EasyNormal")],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 3 * 128,
@@ -181,14 +220,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<Tilemap.IExtraEnemyToSpawn> startTilemapExtraEnemies = new List<Tilemap.IExtraEnemyToSpawn>();
 
-			for (int i = 0; i < 7; i++)
-				startTilemapExtraEnemies.Add(new EnemySnail.EnemySnailSpawn(
-					xMibi: (20 + 10 * i) * 48 * 1024,
-					yMibi: (37 * 48 + 24) * 1024,
-					isFacingRight: false,
-					enemyId: "startTilemap_snail[" + i.ToStringCultureInvariant() + "]"));
-
-			for (int i = 0; i < 7; i++)
+			for (int i = 0; i < (difficulty == Difficulty.Hard ? 7 : 31); i++)
 			{
 				startTilemapExtraEnemies.Add(new EnemySnail.EnemySnailSpawn(
 					xMibi: (51 + 5 * i) * 48 * 1024,
@@ -202,24 +234,73 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					enemyId: "startTilemap_snailTop[" + i.ToStringCultureInvariant() + "]"));
 			}
 
-			for (int i = 0; i < 24; i++)
+			if (difficulty == Difficulty.Hard)
 			{
-				startTilemapExtraEnemies.Add(new EnemyLevel10EliteSnailPassive.EnemyLevel10EliteSnailSpawn(
-					xMibi: (86 + 5 * i) * 48 * 1024,
-					yMibi: (35 * 48 + 24) * 1024,
-					activationRadiusInPixels: 300 + random.NextInt(250),
-					activationDelayInMicroseconds: random.NextInt(200 * 1000),
-					shouldInitiallyTeleportUpward: true,
-					maxXMibi: startTilemap.GetWidth() << 10,
-					enemyId: "startTilemap_eliteSnailBottom[" + i.ToStringCultureInvariant() + "]"));
-				startTilemapExtraEnemies.Add(new EnemyLevel10EliteSnailPassive.EnemyLevel10EliteSnailSpawn(
-					xMibi: (86 + 5 * i) * 48 * 1024,
-					yMibi: (45 * 48 + 24) * 1024,
-					activationRadiusInPixels: 400 + random.NextInt(150),
-					activationDelayInMicroseconds: random.NextInt(200 * 1000),
-					shouldInitiallyTeleportUpward: false,
-					maxXMibi: startTilemap.GetWidth() << 10,
-					enemyId: "startTilemap_eliteSnailTop[" + i.ToStringCultureInvariant() + "]"));
+				for (int i = 0; i < 6; i++)
+					startTilemapExtraEnemies.Add(new EnemySnail.EnemySnailSpawn(
+						xMibi: (30 + 10 * i) * 48 * 1024,
+						yMibi: (37 * 48 + 24) * 1024,
+						isFacingRight: false,
+						enemyId: "startTilemap_snail[" + i.ToStringCultureInvariant() + "]"));
+
+				for (int i = 0; i < 24; i++)
+				{
+					startTilemapExtraEnemies.Add(new EnemyLevel10EliteSnailPassive.EnemyLevel10EliteSnailSpawn(
+						xMibi: (86 + 5 * i) * 48 * 1024,
+						yMibi: (35 * 48 + 24) * 1024,
+						activationRadiusInPixels: 300 + random.NextInt(250),
+						activationDelayInMicroseconds: random.NextInt(200 * 1000),
+						shouldInitiallyTeleportUpward: true,
+						maxXMibi: startTilemap.GetWidth() << 10,
+						enemyId: "startTilemap_eliteSnailBottom[" + i.ToStringCultureInvariant() + "]"));
+					startTilemapExtraEnemies.Add(new EnemyLevel10EliteSnailPassive.EnemyLevel10EliteSnailSpawn(
+						xMibi: (86 + 5 * i) * 48 * 1024,
+						yMibi: (45 * 48 + 24) * 1024,
+						activationRadiusInPixels: 400 + random.NextInt(150),
+						activationDelayInMicroseconds: random.NextInt(200 * 1000),
+						shouldInitiallyTeleportUpward: false,
+						maxXMibi: startTilemap.GetWidth() << 10,
+						enemyId: "startTilemap_eliteSnailTop[" + i.ToStringCultureInvariant() + "]"));
+				}
+			}
+			else
+			{
+				for (int i = 0; i < 4; i++)
+					startTilemapExtraEnemies.Add(new EnemySnail.EnemySnailSpawn(
+						xMibi: (30 + 9 * i) * 48 * 1024,
+						yMibi: (37 * 48 + 24) * 1024,
+						isFacingRight: false,
+						enemyId: "startTilemap_snail[" + i.ToStringCultureInvariant() + "]"));
+
+				for (int i = 0; i < 4; i++)
+					startTilemapExtraEnemies.Add(new EnemySmartcap.EnemySmartcapSpawn(
+						xMibi: (66 + 9 * i) * 48 * 1024,
+						yMibi: (37 * 48 + 24) * 1024,
+						isFacingRight: false,
+						enemyId: "startTilemap_smartcap[" + i.ToStringCultureInvariant() + "]"));
+
+				for (int i = 0; i < 4; i++)
+					startTilemapExtraEnemies.Add(new EnemyBlazeborn.EnemyBlazebornSpawn(
+						xMibi: (102 + 9 * i) * 48 * 1024,
+						yMibi: (37 * 48 + 24) * 1024,
+						isFacingRight: false,
+						enemyId: "startTilemap_blazeborn[" + i.ToStringCultureInvariant() + "]"));
+
+				for (int i = 0; i < 4; i++)
+					startTilemapExtraEnemies.Add(new EnemyOrange.EnemyOrangeSpawn(
+						xMibi: (138 + 9 * i) * 48 * 1024,
+						yMibi: (37 * 48 + 24) * 1024,
+						isFacingRight: false,
+						enemyId: "startTilemap_orange[" + i.ToStringCultureInvariant() + "]"));
+
+				for (int i = 0; i < 4; i++)
+					startTilemapExtraEnemies.Add(new EnemyEliteOrange.EnemyEliteOrangeSpawn(
+						xMibi: (174 + 9 * i) * 48 * 1024,
+						yMibi: (37 * 48 + 24) * 1024,
+						orbitersAngleScaled: random.NextInt(360 * 128),
+						isOrbitingClockwise: random.NextBool(),
+						difficulty: difficulty,
+						enemyId: "startTilemap_eliteOrange[" + i.ToStringCultureInvariant() + "]"));
 			}
 
 			startTilemap = Tilemap.GetTilemapWithExtraEnemiesToSpawn(
@@ -358,9 +439,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					windowHeight: windowHeight);
 			}
 
-			if (levelFlags.Contains(LOCK_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM) && !levelFlags.Contains(STOP_LOCKING_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM))
+			if (levelFlags.Contains(LOCK_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM_HARD) && !levelFlags.Contains(STOP_LOCKING_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM_HARD))
 			{
-				return GetKonqiDefeatedCameraState(
+				return GetKonqiDefeatedCameraState_Hard(
 					customLevelInfo: this.GetCustomLevelInfo(),
 					tilemap: tilemap,
 					windowWidth: windowWidth,
@@ -391,6 +472,29 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				}
 
 				return GetYetiBossDefeatedCameraState(
+					customLevelInfo: this.GetCustomLevelInfo(),
+					tilemap: tilemap,
+					effectiveTuxXMibi: effectiveTuxXMibi,
+					effectiveTuxYMibi: effectiveTuxYMibi,
+					windowWidth: windowWidth,
+					windowHeight: windowHeight);
+			}
+
+			if (levelFlags.Contains(SET_CAMERA_TO_KONQI_DEFEATED_EASY_NORMAL_LOGIC))
+			{
+				int effectiveTuxXMibi = tuxXMibi;
+				int effectiveTuxYMibi = tuxYMibi;
+
+				if (tuxTeleportInProgressElapsedMicros != null)
+				{
+					long deltaX = tuxXMibi - tuxTeleportStartingLocation.Item1;
+					long deltaY = tuxYMibi - tuxTeleportStartingLocation.Item2;
+
+					effectiveTuxXMibi = (int)(tuxTeleportStartingLocation.Item1 + deltaX * tuxTeleportInProgressElapsedMicros.Value / TuxState.TELEPORT_DURATION);
+					effectiveTuxYMibi = (int)(tuxTeleportStartingLocation.Item2 + deltaY * tuxTeleportInProgressElapsedMicros.Value / TuxState.TELEPORT_DURATION);
+				}
+
+				return GetKonqiDefeatedCameraState_EasyNormal(
 					customLevelInfo: this.GetCustomLevelInfo(),
 					tilemap: tilemap,
 					effectiveTuxXMibi: effectiveTuxXMibi,

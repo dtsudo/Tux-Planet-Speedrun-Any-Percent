@@ -7,6 +7,49 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 	public class EnemyEliteOrange : IEnemy
 	{
+		public class EnemyEliteOrangeSpawn : Tilemap.IExtraEnemyToSpawn
+		{
+			private int xMibi;
+			private int yMibi;
+			private int orbitersAngleScaled;
+			private bool isOrbitingClockwise;
+			private Difficulty difficulty;
+			private string enemyId;
+
+			public EnemyEliteOrangeSpawn(
+				int xMibi,
+				int yMibi,
+				int orbitersAngleScaled,
+				bool isOrbitingClockwise,
+				Difficulty difficulty,
+				string enemyId)
+			{
+				this.xMibi = xMibi;
+				this.yMibi = yMibi;
+				this.orbitersAngleScaled = orbitersAngleScaled;
+				this.isOrbitingClockwise = isOrbitingClockwise;
+				this.difficulty = difficulty;
+				this.enemyId = enemyId;
+			}
+
+			public IEnemy GetEnemy(int xOffset, int yOffset)
+			{
+				return new EnemySpawnHelper(
+					enemyToSpawn: GetEnemyEliteOrange(
+						xMibi: this.xMibi + (xOffset << 10),
+						yMibi: this.yMibi + (yOffset << 10),
+						isFacingRight: false,
+						orbitersAngleScaled: this.orbitersAngleScaled,
+						isOrbitingClockwise: this.isOrbitingClockwise,
+						difficulty: this.difficulty,
+						enemyId: this.enemyId),
+					xMibi: this.xMibi + (xOffset << 10),
+					yMibi: this.yMibi + (yOffset << 10),
+					enemyWidth: ORBITERS_RADIUS_IN_PIXELS * 2 + 48,
+					enemyHeight: ORBITERS_RADIUS_IN_PIXELS * 2 + 48);
+			}
+		}
+
 		private int xMibi;
 		private int yMibi;
 
@@ -18,6 +61,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private List<Tuple<int, int>> orbitersXAndYMibi;
 
 		private int elapsedMicros;
+
+		private Difficulty difficulty;
 
 		private const int ORBITERS_SPEED_IN_ANGLES_SCALED_PER_SECOND = 180 * 128;
 		public const int ORBITERS_RADIUS_IN_PIXELS = 150;
@@ -33,6 +78,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool isOrbitingClockwise,
 			List<Tuple<int, int>> orbitersXAndYMibi,
 			int elapsedMicros,
+			Difficulty difficulty,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -43,6 +89,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.isOrbitingClockwise = isOrbitingClockwise;
 			this.orbitersXAndYMibi = orbitersXAndYMibi;
 			this.elapsedMicros = elapsedMicros;
+			this.difficulty = difficulty;
 			this.EnemyId = enemyId;
 		}
 
@@ -52,6 +99,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool isFacingRight,
 			int orbitersAngleScaled,
 			bool isOrbitingClockwise,
+			Difficulty difficulty,
 			string enemyId)
 		{
 			return new EnemyEliteOrange(
@@ -61,12 +109,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				ySpeedInMibipixelsPerSecond: 0,
 				orbitersAngleScaled: orbitersAngleScaled,
 				isOrbitingClockwise: isOrbitingClockwise,
-				orbitersXAndYMibi: ComputeOrbitersXAndYMibi(xMibi: xMibi, yMibi: yMibi, orbitersAngleScaled: orbitersAngleScaled),
+				orbitersXAndYMibi: ComputeOrbitersXAndYMibi(xMibi: xMibi, yMibi: yMibi, orbitersAngleScaled: orbitersAngleScaled, difficulty: difficulty),
 				elapsedMicros: 0,
+				difficulty: difficulty,
 				enemyId: enemyId);
 		}
 
-		private static List<Tuple<int, int>> ComputeOrbitersXAndYMibi(int xMibi, int yMibi, int orbitersAngleScaled)
+		private static List<Tuple<int, int>> ComputeOrbitersXAndYMibi(
+			int xMibi, 
+			int yMibi, 
+			int orbitersAngleScaled,
+			Difficulty difficulty)
 		{
 			orbitersAngleScaled = DTMath.NormalizeDegreesScaled(orbitersAngleScaled);
 
@@ -76,17 +129,28 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				item1: xMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.CosineScaled(degreesScaled: orbitersAngleScaled),
 				item2: yMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.SineScaled(degreesScaled: orbitersAngleScaled)));
 
-			orbitersAngleScaled += 120 * 128;
+			if (difficulty == Difficulty.Normal)
+			{
+				orbitersAngleScaled += 180 * 128;
 
-			list.Add(new Tuple<int, int>(
-				item1: xMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.CosineScaled(degreesScaled: orbitersAngleScaled),
-				item2: yMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.SineScaled(degreesScaled: orbitersAngleScaled)));
+				list.Add(new Tuple<int, int>(
+					item1: xMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.CosineScaled(degreesScaled: orbitersAngleScaled),
+					item2: yMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.SineScaled(degreesScaled: orbitersAngleScaled)));
+			}
+			else if (difficulty == Difficulty.Hard)
+			{
+				orbitersAngleScaled += 120 * 128;
 
-			orbitersAngleScaled += 120 * 128;
+				list.Add(new Tuple<int, int>(
+					item1: xMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.CosineScaled(degreesScaled: orbitersAngleScaled),
+					item2: yMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.SineScaled(degreesScaled: orbitersAngleScaled)));
 
-			list.Add(new Tuple<int, int>(
-				item1: xMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.CosineScaled(degreesScaled: orbitersAngleScaled),
-				item2: yMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.SineScaled(degreesScaled: orbitersAngleScaled)));
+				orbitersAngleScaled += 120 * 128;
+
+				list.Add(new Tuple<int, int>(
+					item1: xMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.CosineScaled(degreesScaled: orbitersAngleScaled),
+					item2: yMibi + ORBITERS_RADIUS_IN_PIXELS * DTMath.SineScaled(degreesScaled: orbitersAngleScaled)));
+			}
 
 			return list;
 		}
@@ -279,12 +343,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (newXSpeedInMibipixelsPerSecond > 0)
 			{
-				if (newXMibi <= this.xMibi)
+				if (newXMibi < this.xMibi + 1024)
 					newXSpeedInMibipixelsPerSecond = -newXSpeedInMibipixelsPerSecond;
 			}
 			else
 			{
-				if (newXMibi >= this.xMibi)
+				if (newXMibi > this.xMibi - 1024)
 					newXSpeedInMibipixelsPerSecond = -newXSpeedInMibipixelsPerSecond;
 			}
 
@@ -314,8 +378,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					ySpeedInMibipixelsPerSecond: newYSpeedInMibipixelsPerSecond,
 					orbitersAngleScaled: newOrbitersAngleScaled,
 					isOrbitingClockwise: this.isOrbitingClockwise,
-					orbitersXAndYMibi: ComputeOrbitersXAndYMibi(xMibi: newXMibi, yMibi: newYMibi, orbitersAngleScaled: newOrbitersAngleScaled),
+					orbitersXAndYMibi: ComputeOrbitersXAndYMibi(xMibi: newXMibi, yMibi: newYMibi, orbitersAngleScaled: newOrbitersAngleScaled, difficulty: this.difficulty),
 					elapsedMicros: newElapsedMicros,
+					difficulty: this.difficulty,
 					enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(

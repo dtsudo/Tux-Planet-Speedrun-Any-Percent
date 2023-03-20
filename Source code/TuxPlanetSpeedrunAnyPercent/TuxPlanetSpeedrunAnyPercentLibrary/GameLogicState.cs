@@ -35,6 +35,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public int WindowHeight { get; private set; }
 
 		public Level Level { get; private set; }
+		public Difficulty Difficulty { get; private set; }
 
 		public string RngSeed { get; private set; }
 
@@ -72,6 +73,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			Level level,
+			Difficulty difficulty,
 			string rngSeed,
 			bool canUseSaveStates,
 			bool canUseTimeSlowdown,
@@ -103,6 +105,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.WindowWidth = windowWidth;
 			this.WindowHeight = windowHeight;
 			this.Level = level;
+			this.Difficulty = difficulty;
 			this.RngSeed = rngSeed;
 			this.CanUseSaveStates = canUseSaveStates;
 			this.CanUseTimeSlowdown = canUseTimeSlowdown;
@@ -122,6 +125,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public GameLogicState(
 			Level level,
+			Difficulty difficulty,
 			int windowWidth,
 			int windowHeight,
 			bool canUseSaveStates,
@@ -133,25 +137,25 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			ILevelConfiguration levelConfig;
 
 			if (level == Level.Level1)
-				levelConfig = new LevelConfiguration_Level1(mapInfo: mapInfo, random: random);
+				levelConfig = new LevelConfiguration_Level1(difficulty: difficulty, mapInfo: mapInfo, random: random);
 			else if (level == Level.Level2)
-				levelConfig = new LevelConfiguration_Level2(mapInfo: mapInfo, canAlreadyUseSaveStates: canUseSaveStates, random: random);
+				levelConfig = new LevelConfiguration_Level2(difficulty: difficulty, mapInfo: mapInfo, canAlreadyUseSaveStates: canUseSaveStates, random: random);
 			else if (level == Level.Level3)
-				levelConfig = new LevelConfiguration_Level3(mapInfo: mapInfo, random: random);
+				levelConfig = new LevelConfiguration_Level3(difficulty: difficulty, mapInfo: mapInfo, random: random);
 			else if (level == Level.Level4)
-				levelConfig = new LevelConfiguration_Level4(mapInfo: mapInfo, canAlreadyUseTeleport: canUseTeleport, random: random);
+				levelConfig = new LevelConfiguration_Level4(difficulty: difficulty, mapInfo: mapInfo, canAlreadyUseTeleport: canUseTeleport, random: random);
 			else if (level == Level.Level5)
-				levelConfig = new LevelConfiguration_Level5(mapInfo: mapInfo, random: random);
+				levelConfig = new LevelConfiguration_Level5(difficulty: difficulty, mapInfo: mapInfo, random: random);
 			else if (level == Level.Level6)
-				levelConfig = new LevelConfiguration_Level6(mapInfo: mapInfo, canAlreadyUseTimeSlowdown: canUseTimeSlowdown, random: random);
+				levelConfig = new LevelConfiguration_Level6(difficulty: difficulty, mapInfo: mapInfo, canAlreadyUseTimeSlowdown: canUseTimeSlowdown, random: random);
 			else if (level == Level.Level7)
-				levelConfig = new LevelConfiguration_Level7(mapInfo: mapInfo, random: random);
+				levelConfig = new LevelConfiguration_Level7(difficulty: difficulty, mapInfo: mapInfo, random: random);
 			else if (level == Level.Level8)
-				levelConfig = new LevelConfiguration_Level8(mapInfo: mapInfo, random: random);
+				levelConfig = new LevelConfiguration_Level8(difficulty: difficulty, mapInfo: mapInfo, random: random);
 			else if (level == Level.Level9)
-				levelConfig = new LevelConfiguration_Level9(mapInfo: mapInfo, random: random);
+				levelConfig = new LevelConfiguration_Level9(difficulty: difficulty, mapInfo: mapInfo, random: random);
 			else if (level == Level.Level10)
-				levelConfig = new LevelConfiguration_Level10(mapInfo: mapInfo, random: random);
+				levelConfig = new LevelConfiguration_Level10(difficulty: difficulty, mapInfo: mapInfo, random: random);
 			else
 				throw new Exception();
 
@@ -179,6 +183,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.WindowWidth = windowWidth;
 			this.WindowHeight = windowHeight;
 			this.Level = level;
+			this.Difficulty = difficulty;
 			this.RngSeed = rngSeed;
 			this.CanUseSaveStates = canUseSaveStates;
 			this.CanUseTimeSlowdown = canUseTimeSlowdown;

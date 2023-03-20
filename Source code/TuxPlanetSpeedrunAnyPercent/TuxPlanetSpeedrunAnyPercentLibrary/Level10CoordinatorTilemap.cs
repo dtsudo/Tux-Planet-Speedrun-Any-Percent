@@ -89,6 +89,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				if (y < 18 * 48)
 					return true;
 			}
+			else
+			{
+				if (y > 16 * 48 && x >= this.bossRoomXOffsetStart + 5 * 48 && x < this.bossRoomXOffsetStart + 6 * 48)
+					return true;
+			}
 
 			if (this.markLeftAndRightWallsOfBossRoomAsGround && !this.stopMarkingLeftAndRightWallsOfBossRoomAsGround)
 			{

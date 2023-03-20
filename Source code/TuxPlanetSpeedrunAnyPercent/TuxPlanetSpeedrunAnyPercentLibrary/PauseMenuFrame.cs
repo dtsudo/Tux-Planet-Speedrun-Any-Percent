@@ -10,6 +10,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private GlobalState globalState;
 		private SessionState sessionState;
 
+		private Level? currentLevelForRestartLevelOption;
+		private Difficulty? currentDifficultyForRestartLevelOption;
+
 		private int selectedOption;
 
 		private enum Option
@@ -31,14 +34,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			GlobalState globalState, 
 			SessionState sessionState, 
 			IFrame<GameImage, GameFont, GameSound, GameMusic> underlyingFrame, 
+			Level? currentLevelForRestartLevelOption,
+			Difficulty? currentDifficultyForRestartLevelOption,
 			bool showRestartLevelOption,
 			bool showBackToMapOption,
-			bool showToggleInputReplayFunctionalityOption)
+			bool showToggleInputReplayFunctionalityOption,
+			bool showBackToTitleScreenOption)
 		{
 			this.globalState = globalState;
 			this.sessionState = sessionState;
 			this.volumePicker = null;
 			this.underlyingFrame = underlyingFrame;
+
+			this.currentLevelForRestartLevelOption = currentLevelForRestartLevelOption;
+			this.currentDifficultyForRestartLevelOption = currentDifficultyForRestartLevelOption;
 
 			this.selectedOption = 0;
 
@@ -50,7 +59,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				this.options.Add(Option.BackToMapScreen);
 			if (showToggleInputReplayFunctionalityOption)
 				this.options.Add(Option.ToggleInputReplayFunctionality);
-			this.options.Add(Option.BackToTitleScreen);
+			if (showBackToTitleScreenOption)
+				this.options.Add(Option.BackToTitleScreen);
 		}
 
 		public IFrame<GameImage, GameFont, GameSound, GameMusic> GetNextFrame(
@@ -108,8 +118,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 						return this.underlyingFrame;
 					case Option.RestartLevel:
-						this.sessionState.StartLevel(
-							level: this.sessionState.CurrentLevel.Value,
+						GameLogicState gameLogicState = this.sessionState.StartLevel(
+							level: this.currentLevelForRestartLevelOption.Value,
+							difficulty: this.currentDifficultyForRestartLevelOption.Value,
 							windowWidth: this.globalState.WindowWidth,
 							windowHeight: this.globalState.WindowHeight,
 							mapInfo: this.globalState.MapInfo);
@@ -117,11 +128,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						return GameFrame.GetGameFrame(
 							globalState: this.globalState,
 							sessionState: this.sessionState,
+							gameLogicState: gameLogicState,
 							displayProcessing: displayProcessing,
 							soundOutput: soundOutput,
 							musicProcessing: musicProcessing);
 					case Option.BackToMapScreen:
-						this.sessionState.SetGameLogic(gameLogicState: null);
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 						return new OverworldFrame(globalState: this.globalState, sessionState: this.sessionState);
 					case Option.ToggleInputReplayFunctionality:

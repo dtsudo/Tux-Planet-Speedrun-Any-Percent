@@ -11,17 +11,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private int startingXMibiOfFirstSpike;
 		private int startingXMibi;
 		private int endingXMibi;
+		private Difficulty difficulty;
 
 		public Level5Tilemap(
 			ITilemap mapTilemap,
 			int startingXMibiOfFirstSpike,
 			int startingXMibi,
-			int endingXMibi)
+			int endingXMibi,
+			Difficulty difficulty)
 		{
 			this.mapTilemap = mapTilemap;
 			this.startingXMibiOfFirstSpike = startingXMibiOfFirstSpike;
 			this.startingXMibi = startingXMibi;
 			this.endingXMibi = endingXMibi;
+			this.difficulty = difficulty;
 		}
 
 		public bool IsGround(int x, int y)
@@ -76,17 +79,39 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		public IReadOnlyList<IEnemy> GetEnemies(int xOffset, int yOffset)
 		{
-			List<IEnemy> enemies = new List<IEnemy>()
+			List<IEnemy> enemies = new List<IEnemy>();
+
+			if (this.difficulty != Difficulty.Easy)
 			{
-				EnemyLevel5SpikesInitialSpawn.GetEnemyLevel5SpikesInitialSpawn(
+				int heightInTiles;
+				int numPixelsBetweenSpikes;
+
+				switch (this.difficulty)
+				{
+					case Difficulty.Easy:
+						throw new Exception();
+					case Difficulty.Normal:
+						heightInTiles = 10;
+						numPixelsBetweenSpikes = 8000;
+						break;
+					case Difficulty.Hard:
+						heightInTiles = 50;
+						numPixelsBetweenSpikes = 4000;
+						break;
+					default:
+						throw new Exception();
+				}
+
+				enemies.Add(EnemyLevel5SpikesInitialSpawn.GetEnemyLevel5SpikesInitialSpawn(
 					xMibi: this.startingXMibiOfFirstSpike + (xOffset << 10),
 					startingXMibi: this.startingXMibi + (xOffset << 10),
-					endingXMibi:  this.endingXMibi + (xOffset << 10),
+					endingXMibi: this.endingXMibi + (xOffset << 10),
 					yMibiBottom: yOffset << 10,
-					heightInTiles: 50,
+					heightInTiles: heightInTiles,
+					numPixelsBetweenSpikes: numPixelsBetweenSpikes,
 					enemyIdPrefix: "level5Spikes_Prefix",
-					enemyId: "level5Spikes_GetEnemyLevel5SpikesInitialSpawn")
-			};
+					enemyId: "level5Spikes_GetEnemyLevel5SpikesInitialSpawn"));
+			}
 
 			IReadOnlyList<IEnemy> mapTilemapEnemies = this.mapTilemap.GetEnemies(xOffset: xOffset, yOffset: yOffset);
 

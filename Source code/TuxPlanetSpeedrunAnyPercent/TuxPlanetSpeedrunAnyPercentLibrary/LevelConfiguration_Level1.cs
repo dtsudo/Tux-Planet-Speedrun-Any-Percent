@@ -10,20 +10,24 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
 		private IBackground background;
 
-		private const string LEVEL_SUBFOLDER = "Level1";
+		private const string LEVEL_SUBFOLDER = "Level1/";
 
 		public LevelConfiguration_Level1(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			IDTDeterministicRandom random)
 		{
-			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(mapInfo: mapInfo, random: random);
+			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(difficulty: difficulty, mapInfo: mapInfo, random: random);
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 
 			this.background = BackgroundUtil.GetRandomBackground(random: random);
 		}
 
-		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, IDTDeterministicRandom random)
+		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
+			Difficulty difficulty,
+			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
+			IDTDeterministicRandom random)
 		{
 			GameMusic gameMusic = GameMusic.Chipdisko;
 
@@ -31,9 +35,26 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
 
+			MapDataHelper.Map map;
+
+			switch (difficulty)
+			{
+				case Difficulty.Easy:
+					map = mapInfo[LEVEL_SUBFOLDER + "Level1_Easy"];
+					break;
+				case Difficulty.Normal:
+					map = mapInfo[LEVEL_SUBFOLDER + "Level1_Normal"];
+					break;
+				case Difficulty.Hard:
+					map = mapInfo[LEVEL_SUBFOLDER + "Level1_Hard"];
+					break;
+				default:
+					throw new Exception();
+			}
+
 			CompositeTilemap.TilemapWithOffset level1TilemapWithOffset = new CompositeTilemap.TilemapWithOffset(
 				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "/" + "Level1"],
+					data: map,
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 3 * 128,

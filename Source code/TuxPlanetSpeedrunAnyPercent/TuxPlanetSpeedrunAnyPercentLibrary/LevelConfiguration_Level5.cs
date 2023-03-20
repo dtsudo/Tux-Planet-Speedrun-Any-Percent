@@ -11,14 +11,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
 		private int startingXMibi;
 		private IBackground background;
+		private Difficulty difficulty;
 
 		private const string LEVEL_SUBFOLDER = "Level5/";
 
 		public LevelConfiguration_Level5(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
 			IDTDeterministicRandom random)
 		{
 			Tuple<List<CompositeTilemap.TilemapWithOffset>, int> result = ConstructUnnormalizedTilemaps(
+				difficulty: difficulty,
 				mapInfo: mapInfo,
 				random: random);
 
@@ -29,9 +32,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.startingXMibi = result.Item2;
 
 			this.background = BackgroundUtil.GetRandomBackground(random: random);
+
+			this.difficulty = difficulty;
 		}
 
 		private static Tuple<List<CompositeTilemap.TilemapWithOffset>, int> ConstructUnnormalizedTilemaps(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			IDTDeterministicRandom random)
 		{
@@ -62,13 +68,71 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool hasAddedCheckpoint2 = false;
 			bool hasAddedCheckpoint3 = false;
 
+			List<string> mapInfoNames;
+
+			switch (difficulty)
+			{
+				case Difficulty.Easy:
+					mapInfoNames = new List<string>()
+					{
+						"B_Fragment1Easy",
+						"B_Fragment2EasyNormal",
+						"B_Fragment3EasyNormal",
+						"B_Fragment4Easy",
+						"B_Fragment5Easy",
+						"B_Fragment6EasyNormal",
+						"B_Fragment7Easy",
+						"B_Fragment8EasyNormal",
+						"B_Fragment9Easy",
+						"B_Fragment10EasyNormalHard",
+						"B_Fragment11Easy",
+						"B_Fragment12EasyNormalHard"
+					};
+					break;
+				case Difficulty.Normal:
+					mapInfoNames = new List<string>()
+					{
+						"B_Fragment1NormalHard",
+						"B_Fragment2EasyNormal",
+						"B_Fragment3EasyNormal",
+						"B_Fragment4Normal",
+						"B_Fragment5NormalHard",
+						"B_Fragment6EasyNormal",
+						"B_Fragment7Normal",
+						"B_Fragment8EasyNormal",
+						"B_Fragment9Normal",
+						"B_Fragment10EasyNormalHard",
+						"B_Fragment11Normal",
+						"B_Fragment12EasyNormalHard"
+					};
+					break;
+				case Difficulty.Hard:
+					mapInfoNames = new List<string>()
+					{
+						"B_Fragment1NormalHard",
+						"B_Fragment2Hard",
+						"B_Fragment3Hard",
+						"B_Fragment4Hard",
+						"B_Fragment5NormalHard",
+						"B_Fragment6Hard",
+						"B_Fragment7Hard",
+						"B_Fragment8Hard",
+						"B_Fragment9Hard",
+						"B_Fragment10EasyNormalHard",
+						"B_Fragment11Hard",
+						"B_Fragment12EasyNormalHard"
+					};
+					break;
+				default:
+					throw new Exception();
+			}
+
 			while (true)
 			{
 				if (xOffset >= 450 * 16 * 3)
 					break;
 
-				int numberOfFragmentTilemaps = 12;
-				string mapInfoName = LEVEL_SUBFOLDER + "B_Fragment" + (random.NextInt(numberOfFragmentTilemaps) + 1).ToStringCultureInvariant();
+				string mapInfoName = LEVEL_SUBFOLDER + mapInfoNames[random.NextInt(mapInfoNames.Count)];
 
 				Tilemap fragmentTilemap;
 
@@ -180,7 +244,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				mapTilemap: tilemap,
 				startingXMibiOfFirstSpike: (windowWidth * 3) << 10,
 				startingXMibi: this.startingXMibi,
-				endingXMibi: -5 * 48 * 1024);
+				endingXMibi: -5 * 48 * 1024,
+				difficulty: this.difficulty);
 		}
 
 		public CameraState GetCameraState(

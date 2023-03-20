@@ -29,6 +29,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int endingXMibi,
 			int yMibiBottom,
 			int heightInTiles,
+			int numPixelsBetweenSpikes,
 			string enemyIdPrefix,
 			string enemyId)
 		{
@@ -39,6 +40,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					endingXMibi: endingXMibi,
 					yMibiBottom: yMibiBottom,
 					heightInTiles: heightInTiles,
+					numPixelsBetweenSpikes: numPixelsBetweenSpikes,
 					enemyIdPrefix: enemyIdPrefix,
 					enemyId: enemyId + "spikes"),
 				hasSpawnedSpikes: false,

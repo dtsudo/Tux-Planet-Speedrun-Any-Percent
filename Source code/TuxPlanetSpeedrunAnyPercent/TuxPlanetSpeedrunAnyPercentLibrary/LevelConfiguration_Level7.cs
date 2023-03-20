@@ -42,10 +42,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public const string HAS_OBTAINED_KEY = "level7_hasObtainedKey";
 
 		public LevelConfiguration_Level7(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			IDTDeterministicRandom random)
 		{
-			Tuple<List<CompositeTilemap.TilemapWithOffset>, int> result = ConstructUnnormalizedTilemaps(mapInfo: mapInfo, random: random);
+			Tuple<List<CompositeTilemap.TilemapWithOffset>, int> result = ConstructUnnormalizedTilemaps(difficulty: difficulty, mapInfo: mapInfo, random: random);
 
 			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = result.Item1;
 
@@ -56,7 +57,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.background = new Background_Cave();
 		}
 
-		private static Tuple<List<CompositeTilemap.TilemapWithOffset>, int> ConstructUnnormalizedTilemaps(IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, IDTDeterministicRandom random)
+		private static Tuple<List<CompositeTilemap.TilemapWithOffset>, int> ConstructUnnormalizedTilemaps(
+			Difficulty difficulty,
+			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
+			IDTDeterministicRandom random)
 		{
 			GameMusic gameMusic = GameMusic.Chipdisko;
 
@@ -77,10 +81,27 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			list.Add(startTilemap);
 
+			string difficultySuffix;
+
+			switch (difficulty)
+			{
+				case Difficulty.Easy:
+					difficultySuffix = "_Easy";
+					break;
+				case Difficulty.Normal:
+					difficultySuffix = "_Normal";
+					break;
+				case Difficulty.Hard:
+					difficultySuffix = "_Hard";
+					break;
+				default:
+					throw new Exception();
+			}
+
 			List<MapDataHelper.Map> B_fragmentMaps = new List<MapDataHelper.Map>()
 			{
-				mapInfo[LEVEL_SUBFOLDER + "B_Fragment1"],
-				mapInfo[LEVEL_SUBFOLDER + "B_Fragment2"]
+				mapInfo[LEVEL_SUBFOLDER + "B_Fragment1" + difficultySuffix],
+				mapInfo[LEVEL_SUBFOLDER + "B_Fragment2" + difficultySuffix]
 			};
 
 			B_fragmentMaps.Shuffle(random: random);
@@ -99,7 +120,24 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					alwaysIncludeTilemap: false));
 			}
 
-			for (int i = 0; i < 4; i++)
+			int numConsecutiveFlyamanita;
+
+			switch (difficulty)
+			{
+				case Difficulty.Easy:
+					numConsecutiveFlyamanita = 1;
+					break;
+				case Difficulty.Normal:
+					numConsecutiveFlyamanita = 2;
+					break;
+				case Difficulty.Hard:
+					numConsecutiveFlyamanita = 4;
+					break;
+				default:
+					throw new Exception();
+			}
+
+			for (int i = 0; i < numConsecutiveFlyamanita; i++)
 			{
 				Tilemap tilemapFlyamanita = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo[LEVEL_SUBFOLDER + "Flyamanita"],
@@ -127,8 +165,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<MapDataHelper.Map> C_fragmentMaps = new List<MapDataHelper.Map>()
 			{
-				mapInfo[LEVEL_SUBFOLDER + "C_Fragment1"],
-				mapInfo[LEVEL_SUBFOLDER + "C_Fragment2"]
+				mapInfo[LEVEL_SUBFOLDER + "C_Fragment1" + difficultySuffix],
+				mapInfo[LEVEL_SUBFOLDER + "C_Fragment2" + difficultySuffix]
 			};
 
 			C_fragmentMaps.Shuffle(random: random);
@@ -147,7 +185,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					alwaysIncludeTilemap: false));
 			}
 
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < numConsecutiveFlyamanita; i++)
 			{
 				Tilemap tilemapFlyamanita = MapDataTilemapGenerator.GetTilemap(
 					data: mapInfo[LEVEL_SUBFOLDER + "Flyamanita"],
@@ -175,7 +213,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			list.Add(new CompositeTilemap.TilemapWithOffset(
 				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "D_Key"],
+					data: mapInfo[LEVEL_SUBFOLDER + "D_Key" + difficultySuffix],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 3 * 128,

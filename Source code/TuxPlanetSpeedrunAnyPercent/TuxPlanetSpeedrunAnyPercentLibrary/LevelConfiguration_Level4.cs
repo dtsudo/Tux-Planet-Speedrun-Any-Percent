@@ -11,14 +11,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private bool shouldRemoveKonqi;
 		private IBackground background;
 
-		private const string LEVEL_SUBFOLDER = "Level4";
+		private const string LEVEL_SUBFOLDER = "Level4/";
 
 		public LevelConfiguration_Level4(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			bool canAlreadyUseTeleport,
 			IDTDeterministicRandom random)
 		{
 			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(
+				difficulty: difficulty,
 				mapInfo: mapInfo,
 				canAlreadyUseTeleport: canAlreadyUseTeleport,
 				random: random);
@@ -31,6 +33,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		}
 
 		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			bool canAlreadyUseTeleport,
 			IDTDeterministicRandom random)
@@ -39,10 +42,27 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			EnemyIdGenerator enemyIdGenerator = new EnemyIdGenerator();
 
+			string difficultySuffix;
+
+			switch (difficulty)
+			{
+				case Difficulty.Easy:
+					difficultySuffix = "_Easy";
+					break;
+				case Difficulty.Normal:
+					difficultySuffix = "_Normal";
+					break;
+				case Difficulty.Hard:
+					difficultySuffix = "_Hard";
+					break;
+				default:
+					throw new Exception();
+			}
+
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
 
 			Tilemap cutsceneTilemap = MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "/" + "A_Start"],
+					data: mapInfo[LEVEL_SUBFOLDER + "A_Start" + difficultySuffix],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: CutsceneProcessing.TELEPORT_CUTSCENE,
 					scalingFactorScaled: 3 * 128,
@@ -58,7 +78,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			CompositeTilemap.TilemapWithOffset tilemap2 = new CompositeTilemap.TilemapWithOffset(
 				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "/" + "B_Key"],
+					data: mapInfo[LEVEL_SUBFOLDER + "B_Key" + difficultySuffix],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 3 * 128,
@@ -71,7 +91,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			CompositeTilemap.TilemapWithOffset tilemap3 = new CompositeTilemap.TilemapWithOffset(
 				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "/" + "C_Ascent"],
+					data: mapInfo[LEVEL_SUBFOLDER + "C_Ascent" + difficultySuffix],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 3 * 128,

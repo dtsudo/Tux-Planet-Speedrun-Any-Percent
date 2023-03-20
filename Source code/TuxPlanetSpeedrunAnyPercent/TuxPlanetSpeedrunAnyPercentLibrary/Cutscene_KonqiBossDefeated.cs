@@ -65,6 +65,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			ITilemap tilemap,
+			Difficulty difficulty,
 			IReadOnlyList<IEnemy> enemies,
 			IReadOnlyList<string> levelFlags)
 		{
@@ -78,10 +79,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			{
 				case Status.A_Dialogue:
 					{
-						newLevelFlags.Add(LevelConfiguration_Level10.STOP_LOCKING_CAMERA_ON_KONQI_BOSS_ROOM);
-						newLevelFlags.Add(LevelConfiguration_Level10.LOCK_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM);
 						newLevelFlags.Add(LevelConfiguration_Level10.STOP_PLAYING_KONQI_BOSS_MUSIC);
-						newLevelFlags.Add(EnemyBossDoor.LEVEL_FLAG_CLOSE_BOSS_DOORS_INSTANTLY);
+						newLevelFlags.Add(LevelConfiguration_Level10.STOP_LOCKING_CAMERA_ON_KONQI_BOSS_ROOM);
+
+						if (difficulty == Difficulty.Hard)
+						{
+							newLevelFlags.Add(LevelConfiguration_Level10.LOCK_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM_HARD);
+							newLevelFlags.Add(EnemyBossDoor.LEVEL_FLAG_CLOSE_BOSS_DOORS_INSTANTLY);
+						}
+						else
+						{
+							newLevelFlags.Add(LevelConfiguration_Level10.SET_CAMERA_TO_KONQI_DEFEATED_EASY_NORMAL_LOGIC);
+						}
 
 						DialogueList.Result dialogueListResult = this.dialogueList.ProcessFrame(
 							move: move,
@@ -98,8 +107,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						if (dialogueListResult.IsDone)
 						{
 							newStatus = Status.B_KonqiTeleportsOut;
-							newLevelFlags.Add(LevelConfiguration_Level10.SPAWN_KONQI_BOSS_DEFEAT);
-							newLevelFlags.Add(LevelConfiguration_Level10.SPAWN_MYTHRIL_KEY);
+
+							if (difficulty == Difficulty.Hard)
+							{
+								newLevelFlags.Add(LevelConfiguration_Level10.SPAWN_KONQI_BOSS_DEFEAT_HARD);
+								newLevelFlags.Add(LevelConfiguration_Level10.SPAWN_MYTHRIL_KEY);
+							}
+							else
+							{
+								newLevelFlags.Add(EnemyBossDoor.LEVEL_FLAG_OPEN_BOSS_DOORS);
+								newLevelFlags.Add(LevelConfiguration_Level10.STOP_MARKING_LEFT_AND_RIGHT_WALLS_OF_BOSS_ROOM_AS_GROUND);
+								newLevelFlags.Add(LevelConfiguration_Level10.KONQI_BOSS_TELEPORT_OUT_EASY_NORMAL);
+							}
 						}
 						else
 						{
@@ -110,11 +129,26 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					}
 				case Status.B_KonqiTeleportsOut:
 					{
-						CameraState destinationCameraState = LevelConfiguration_Level10.GetKonqiDefeatedCameraState(
-							customLevelInfo: this.customLevelInfo,
-							tilemap: tilemap,
-							windowWidth: windowWidth,
-							windowHeight: windowHeight);
+						CameraState destinationCameraState;
+
+						if (difficulty == Difficulty.Hard)
+						{
+							destinationCameraState = LevelConfiguration_Level10.GetKonqiDefeatedCameraState_Hard(
+								customLevelInfo: this.customLevelInfo,
+								tilemap: tilemap,
+								windowWidth: windowWidth,
+								windowHeight: windowHeight);
+						}
+						else
+						{
+							destinationCameraState = LevelConfiguration_Level10.GetKonqiDefeatedCameraState_EasyNormal(
+								customLevelInfo: this.customLevelInfo,
+								tilemap: tilemap,
+								effectiveTuxXMibi: tuxXMibi,
+								effectiveTuxYMibi: tuxYMibi,
+								windowWidth: windowWidth,
+								windowHeight: windowHeight);
+						}
 
 						newCameraState = CameraState.SmoothCameraState(
 							currentCamera: cameraState,

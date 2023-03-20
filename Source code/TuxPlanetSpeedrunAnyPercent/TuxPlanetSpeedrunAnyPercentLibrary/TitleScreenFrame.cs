@@ -173,15 +173,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						return new InstructionsFrame(globalState: this.globalState, sessionState: this.sessionState);
 					case Option.ContinueGame:
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
-						
-						if (this.sessionState.GameLogic != null)
-							return GameFrame.GetGameFrame(
-								globalState: this.globalState,
-								sessionState: this.sessionState,
-								displayProcessing: displayProcessing,
-								soundOutput: soundOutput,
-								musicProcessing: musicProcessing);
-
 						return new OverworldFrame(globalState: this.globalState, sessionState: this.sessionState);
 					case Option.Quit:
 						this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());

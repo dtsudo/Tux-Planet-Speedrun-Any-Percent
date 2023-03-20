@@ -25,6 +25,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private string rngSeed;
 		private bool hasSpawnedOrbiters;
 
+		private Difficulty difficulty;
+
 		public string EnemyId { get; private set; }
 
 		private EnemyEliteFlyamanitaGreaterOrbiter(
@@ -41,6 +43,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			string greaterOrbiterIsDeadLevelFlag,
 			string rngSeed,
 			bool hasSpawnedOrbiters,
+			Difficulty difficulty,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -56,6 +59,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.greaterOrbiterIsDeadLevelFlag = greaterOrbiterIsDeadLevelFlag;
 			this.rngSeed = rngSeed;
 			this.hasSpawnedOrbiters = hasSpawnedOrbiters;
+			this.difficulty = difficulty;
 			this.EnemyId = enemyId;
 		}
 
@@ -67,6 +71,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			bool isSpikes,
 			string eliteFlyamanitaIsDeadLevelFlag,
 			string rngSeed,
+			Difficulty difficulty,
 			string enemyId)
 		{
 			Tuple<int, int> location = EnemyEliteFlyamanita.GetGreaterOrbiterLocation(
@@ -88,6 +93,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				greaterOrbiterIsDeadLevelFlag: eliteFlyamanitaIsDeadLevelFlag + "_orbiter[" + enemyId + "]",
 				rngSeed: rngSeed,
 				hasSpawnedOrbiters: false,
+				difficulty: difficulty,
 				enemyId: enemyId);
 		}
 
@@ -224,7 +230,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						greaterOrbiterIsRotatingClockwise: this.isRotatingClockwise,
 						angleScaled: lesserOrbiterAngleScaledBaseValue + i * (120 * 128),
 						isRotatingClockwise: areLesserOrbitersRotatingClockwise,
-						isSpikes: i == 0,
+						isSpikes: this.difficulty == Difficulty.Hard ? (i == 0) : false,
 						eliteFlyamanitaIsDeadLevelFlag: this.eliteFlyamanitaIsDeadLevelFlag,
 						greaterOrbiterIsDeadLevelFlag: this.greaterOrbiterIsDeadLevelFlag, 
 						rngSeed: orbiterRngSeed,
@@ -248,6 +254,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				greaterOrbiterIsDeadLevelFlag: this.greaterOrbiterIsDeadLevelFlag,
 				rngSeed: newRngSeed,
 				hasSpawnedOrbiters: true,
+				difficulty: this.difficulty,
 				enemyId: this.EnemyId));
 
 			return new EnemyProcessing.Result(

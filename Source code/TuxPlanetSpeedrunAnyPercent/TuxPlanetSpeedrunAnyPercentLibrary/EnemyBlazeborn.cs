@@ -7,6 +7,40 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 	public class EnemyBlazeborn : IEnemy
 	{
+		public class EnemyBlazebornSpawn : Tilemap.IExtraEnemyToSpawn
+		{
+			private int xMibi;
+			private int yMibi;
+			private bool isFacingRight;
+			private string enemyId;
+
+			public EnemyBlazebornSpawn(
+				int xMibi,
+				int yMibi,
+				bool isFacingRight,
+				string enemyId)
+			{
+				this.xMibi = xMibi;
+				this.yMibi = yMibi;
+				this.isFacingRight = isFacingRight;
+				this.enemyId = enemyId;
+			}
+
+			public IEnemy GetEnemy(int xOffset, int yOffset)
+			{
+				return new EnemySpawnHelper(
+					enemyToSpawn: GetEnemyBlazeborn(
+						xMibi: this.xMibi + (xOffset << 10),
+						yMibi: this.yMibi + (yOffset << 10),
+						isFacingRight: this.isFacingRight,
+						enemyId: this.enemyId),
+					xMibi: this.xMibi + (xOffset << 10),
+					yMibi: this.yMibi + (yOffset << 10),
+					enemyWidth: 48,
+					enemyHeight: 48);
+			}
+		}
+
 		private int xMibi;
 		private int yMibi;
 		private bool isFacingRight;

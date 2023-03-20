@@ -7,6 +7,40 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 	public class EnemyOrange : IEnemy
 	{
+		public class EnemyOrangeSpawn : Tilemap.IExtraEnemyToSpawn
+		{
+			private int xMibi;
+			private int yMibi;
+			private bool isFacingRight;
+			private string enemyId;
+
+			public EnemyOrangeSpawn(
+				int xMibi,
+				int yMibi,
+				bool isFacingRight,
+				string enemyId)
+			{
+				this.xMibi = xMibi;
+				this.yMibi = yMibi;
+				this.isFacingRight = isFacingRight;
+				this.enemyId = enemyId;
+			}
+
+			public IEnemy GetEnemy(int xOffset, int yOffset)
+			{
+				return new EnemySpawnHelper(
+					enemyToSpawn: GetEnemyOrange(
+						xMibi: this.xMibi + (xOffset << 10),
+						yMibi: this.yMibi + (yOffset << 10),
+						isFacingRight: this.isFacingRight,
+						enemyId: this.enemyId),
+					xMibi: this.xMibi + (xOffset << 10),
+					yMibi: this.yMibi + (yOffset << 10),
+					enemyWidth: 48,
+					enemyHeight: 48);
+			}
+		}
+
 		private int xMibi;
 		private int yMibi;
 
@@ -207,12 +241,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (newXSpeedInMibipixelsPerSecond > 0)
 			{
-				if (newXMibi <= this.xMibi)
+				if (newXMibi < this.xMibi + 1024)
 					newXSpeedInMibipixelsPerSecond = -newXSpeedInMibipixelsPerSecond;
 			}
 			else
 			{
-				if (newXMibi >= this.xMibi)
+				if (newXMibi > this.xMibi - 1024)
 					newXSpeedInMibipixelsPerSecond = -newXSpeedInMibipixelsPerSecond;
 			}
 

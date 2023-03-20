@@ -47,7 +47,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private void SaveSessionState(SessionState sessionState)
 		{
 			ByteList.Builder listBuilder = new ByteList.Builder();
-			sessionState.SerializeEverythingExceptGameLogic(list: listBuilder);
+			sessionState.Serialize(list: listBuilder);
 
 			ByteList byteList = listBuilder.ToByteList();
 
@@ -79,7 +79,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			try
 			{
 				ByteList.Iterator iterator = list.GetIterator();
-				sessionState.TryDeserializeEverythingExceptGameLogic(iterator: iterator);
+				sessionState.TryDeserialize(iterator: iterator);
 
 				if (iterator.HasNextByte())
 					throw new DTDeserializationException();

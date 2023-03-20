@@ -19,10 +19,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public const string HAS_FINISHED_CUTSCENE = "level8_hasFinishedCutscene";
 
 		public LevelConfiguration_Level8(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			IDTDeterministicRandom random)
 		{
-			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(mapInfo: mapInfo, random: random);
+			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(difficulty: difficulty, mapInfo: mapInfo, random: random);
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 
@@ -63,7 +64,10 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			}
 		}
 
-		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, IDTDeterministicRandom random)
+		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
+			Difficulty difficulty,
+			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, 
+			IDTDeterministicRandom random)
 		{
 			GameMusic gameMusic = LevelConfigurationHelper.GetRandomGameMusic(random: random);
 

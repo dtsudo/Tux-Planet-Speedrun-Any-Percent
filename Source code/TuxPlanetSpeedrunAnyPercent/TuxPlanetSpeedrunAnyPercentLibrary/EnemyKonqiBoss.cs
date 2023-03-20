@@ -30,6 +30,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private List<Hitbox> emptyHitboxList;
 		private int startingYMibi;
 
+		private Difficulty difficulty;
+
 		public string EnemyId { get; private set; }
 
 		private EnemyKonqiBoss(
@@ -45,6 +47,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			string rngSeed,
 			List<Hitbox> emptyHitboxList,
 			int startingYMibi,
+			Difficulty difficulty,
 			string enemyId)
 		{
 			this.xMibi = xMibi;
@@ -59,12 +62,14 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.rngSeed = rngSeed;
 			this.emptyHitboxList = emptyHitboxList;
 			this.startingYMibi = startingYMibi;
+			this.difficulty = difficulty;
 			this.EnemyId = enemyId;
 		}
 
 		public static EnemyKonqiBoss GetEnemyKonqiBoss(
 			int xMibi,
 			int yMibi,
+			Difficulty difficulty,
 			string enemyId,
 			string rngSeed)
 		{
@@ -81,6 +86,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				rngSeed: rngSeed,
 				emptyHitboxList: new List<Hitbox>(),
 				startingYMibi: yMibi,
+				difficulty: difficulty,
 				enemyId: enemyId);
 		}
 
@@ -125,7 +131,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			IReadOnlyList<string> levelFlags,
 			ISoundOutput<GameSound> soundOutput)
 		{
-			if (levelFlags.Contains(LevelConfiguration_Level10.SPAWN_KONQI_BOSS_DEFEAT))
+			if (levelFlags.Contains(LevelConfiguration_Level10.SPAWN_KONQI_BOSS_DEFEAT_HARD))
 			{
 				return new EnemyProcessing.Result(
 					enemiesImmutableNullable: new List<IEnemy>()
@@ -135,6 +141,20 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 							yMibi: this.yMibi,
 							elapsedMicros: this.elapsedMicros,
 							enemyId: this.EnemyId + "_EnemyKonqiBossDefeat")
+					},
+					newlyKilledEnemiesImmutableNullable: null,
+					newlyAddedLevelFlagsImmutableNullable: null);
+			}
+
+			if (levelFlags.Contains(LevelConfiguration_Level10.KONQI_BOSS_TELEPORT_OUT_EASY_NORMAL))
+			{
+				return new EnemyProcessing.Result(
+					enemiesImmutableNullable: new List<IEnemy>()
+					{
+						EnemyKonqiDisappear.GetEnemyKonqiDisappear(
+								xMibi: this.xMibi,
+								yMibi: this.yMibi,
+								enemyId: this.EnemyId + "_konqiBossTeleportOutEasyNormal")
 					},
 					newlyKilledEnemiesImmutableNullable: null,
 					newlyAddedLevelFlagsImmutableNullable: null);
@@ -192,7 +212,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				int fireballYSpeed2 = 300 * 1000 + rng.NextInt(1500 * 1000);
 				newRngSeed = rng.SerializeToString();
 
-				if (this.numTimesHit < 6)
+				if (this.numTimesHit < 6 && this.difficulty == Difficulty.Hard || this.numTimesHit < 4)
 				{
 					newEnemies.Add(EnemyKonqiFireball.GetEnemyKonqiFireball(
 						xMibi: newXMibi + (this.IsFacingRight() ? 5 * 1024 : -5 * 1024),
@@ -202,7 +222,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 						enemyId: this.EnemyId + "_fireball" + newEnemyIdCounter.ToStringCultureInvariant()));
 					newEnemyIdCounter++;
 
-					if (this.numTimesHit == 2 || this.numTimesHit == 3)
+					if ((this.numTimesHit == 2 || this.numTimesHit == 3) && this.difficulty == Difficulty.Hard)
 					{
 						newEnemies.Add(EnemyKonqiFireball.GetEnemyKonqiFireball(
 							xMibi: newXMibi + (this.IsFacingRight() ? 5 * 1024 : -5 * 1024),
@@ -215,12 +235,16 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				}
 			}
 
-			if (this.numTimesHit == 4 || this.numTimesHit == 5)
+			if (this.difficulty == Difficulty.Hard && (this.numTimesHit == 4 || this.numTimesHit == 5)
+					|| this.difficulty == Difficulty.Normal && (this.numTimesHit == 2 || this.numTimesHit == 3))
 			{
 				newBlueFlameCooldown -= elapsedMicrosPerFrame;
 				if (newBlueFlameCooldown <= 0)
 				{
-					newBlueFlameCooldown += 1000 * 1000;
+					if (this.difficulty == Difficulty.Hard)
+						newBlueFlameCooldown += 1000 * 1000;
+					else
+						newBlueFlameCooldown += 2250 * 1000;
 
 					DTDeterministicRandom rng = new DTDeterministicRandom();
 					rng.DeserializeFromString(newRngSeed);
@@ -262,11 +286,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				rngSeed: newRngSeed,
 				emptyHitboxList: this.emptyHitboxList,
 				startingYMibi: this.startingYMibi,
+				difficulty: this.difficulty,
 				enemyId: this.EnemyId));
 
 			List<string> newlyAddedLevelFlags;
 
-			if (this.numTimesHit == 6)
+			if (this.numTimesHit == 6 || this.numTimesHit == 4 && this.difficulty != Difficulty.Hard)
 				newlyAddedLevelFlags = new List<string>() { LevelConfiguration_Level10.BEGIN_KONQI_DEFEATED_CUTSCENE, EnemyKonqiFireball.LEVEL_FLAG_DESPAWN_KONQI_FIREBALLS, EnemyKonqiFireballBlue.LEVEL_FLAG_DESPAWN_KONQI_FIREBALLS_BLUE };
 			else
 				newlyAddedLevelFlags = null;
@@ -316,6 +341,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				rngSeed: this.rngSeed,
 				emptyHitboxList: this.emptyHitboxList,
 				startingYMibi: this.startingYMibi,
+				difficulty: this.difficulty,
 				enemyId: this.EnemyId + "_hit");
 		}
 	}

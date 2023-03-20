@@ -107,6 +107,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			ITilemap tilemap,
+			Difficulty difficulty,
 			IReadOnlyList<IEnemy> enemies,
 			IReadOnlyList<string> levelFlags)
 		{
@@ -209,7 +210,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 						if (dialogueListResult.IsDone)
 						{
-							newLevelFlags.Add(LevelConfiguration_Level10.STOP_LOCKING_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM);
+							newLevelFlags.Add(LevelConfiguration_Level10.STOP_LOCKING_CAMERA_ON_KONQI_DEFEATED_BOSS_ROOM_HARD);
 							newLevelFlags.Add(LevelConfiguration_Level10.LOCK_CAMERA_ON_YETI_BOSS_ROOM);
 							newLevelFlags.Add(EnemyYetiCutscene.LEVEL_FLAG_DESPAWN_YETI_CUTSCENE_AND_SPAWN_YETI_BOSS);
 							newLevelFlags.Add(LevelConfiguration_Level10.START_PLAYING_YETI_BOSS_MUSIC);

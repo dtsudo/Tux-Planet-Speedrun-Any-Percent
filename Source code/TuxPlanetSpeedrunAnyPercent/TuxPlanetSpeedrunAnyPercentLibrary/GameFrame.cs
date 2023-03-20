@@ -25,11 +25,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private GameFrame(
 			GlobalState globalState, 
-			SessionState sessionState)
+			SessionState sessionState,
+			GameLogicState gameLogicState)
 		{
 			this.globalState = globalState;
 			this.sessionState = sessionState;
-			this.gameLogic = sessionState.GameLogic;
+			this.gameLogic = gameLogicState;
 			this.hasStartedLevelTransition = false;
 			this.savedGameLogicState = null;
 			this.extraElapsedMicros = 0;
@@ -42,11 +43,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		public static IFrame<GameImage, GameFont, GameSound, GameMusic> GetGameFrame(
 			GlobalState globalState,
 			SessionState sessionState,
+			GameLogicState gameLogicState,
 			IDisplayProcessing<GameImage> displayProcessing,
 			ISoundOutput<GameSound> soundOutput,
 			IMusicProcessing musicProcessing)
 		{
-			GameFrame gameFrame = new GameFrame(globalState, sessionState);
+			GameFrame gameFrame = new GameFrame(globalState: globalState, sessionState: sessionState, gameLogicState: gameLogicState);
 			gameFrame.GetNextFrame(
 				keyboardInput: new EmptyKeyboard(),
 				mouseInput: new EmptyMouse(),
@@ -82,9 +84,12 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					globalState: this.globalState, 
 					sessionState: this.sessionState, 
 					underlyingFrame: this, 
+					currentLevelForRestartLevelOption: this.gameLogic.Level,
+					currentDifficultyForRestartLevelOption: this.gameLogic.Difficulty,
 					showRestartLevelOption: true, 
 					showBackToMapOption: true,
-					showToggleInputReplayFunctionalityOption: this.gameLogic.CanUseSaveStates);
+					showToggleInputReplayFunctionalityOption: this.gameLogic.CanUseSaveStates,
+					showBackToTitleScreenOption: false);
 
 			Move move = new Move(
 				jumped: keyboardInput.IsPressed(Key.Z),
@@ -162,7 +167,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			if (keyboardInput.IsPressed(Key.S) && !previousKeyboardInput.IsPressed(Key.S) && this.gameLogic.CanUseSaveStates && !this.gameLogic.Tux.IsDead)
 				this.savedGameLogicState = this.gameLogic;
 
-			if (keyboardInput.IsPressed(Key.A) && !previousKeyboardInput.IsPressed(Key.A) && this.gameLogic.CanUseSaveStates)
+			if (keyboardInput.IsPressed(Key.A) && !previousKeyboardInput.IsPressed(Key.A) && this.gameLogic.CanUseSaveStates && !shouldEndLevel && !this.hasStartedLevelTransition)
 			{
 				if (this.savedGameLogicState != null)
 				{
@@ -180,17 +185,46 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					this.globalState.Debug_TuxInvulnerable = !this.globalState.Debug_TuxInvulnerable;
 			}
 
-			if (!this.hasStartedLevelTransition)
-				this.sessionState.SetGameLogic(this.gameLogic);
-
 			if (shouldEndLevel && !this.hasStartedLevelTransition)
 			{
 				this.hasStartedLevelTransition = true;
+				
+				Level level = this.gameLogic.Level;
+				Difficulty difficulty = this.gameLogic.Difficulty;
 
-				bool isLastLevel = this.sessionState.CurrentLevel.Value.IsLastLevel();
+				bool isLastLevel = level.IsLastLevel();
+
+				bool canUseSaveStatesAtStartOfLevel = this.sessionState.CanUseSaveStates;
+				bool canUseTimeSlowdownAtStartOfLevel = this.sessionState.CanUseTimeSlowdown;
+				bool canUseTeleportAtStartOfLevel = this.sessionState.CanUseTeleport;
+
+				List<Move> moves = new List<Move>();
+
+				for (int i = 0; i < this.gameLogic.FrameCounter; i++)
+				{
+					Move moveAtThisFrame;
+					if (this.moveHistory.ContainsKey(i))
+						moveAtThisFrame = this.moveHistory[i];
+					else
+						moveAtThisFrame = Move.EmptyMove();
+					moves.Add(moveAtThisFrame);
+				}
+
+				Replay replay = new Replay(
+					level: level,
+					difficulty: difficulty,
+					windowWidth: this.globalState.WindowWidth,
+					windowHeight: this.globalState.WindowHeight,
+					rngForGeneratingLevel: this.sessionState.GetRngUsedForGeneratingLevel(level: level, difficulty: difficulty),
+					canUseSaveStatesAtStartOfLevel: canUseSaveStatesAtStartOfLevel,
+					canUseTimeSlowdownAtStartOfLevel: canUseTimeSlowdownAtStartOfLevel,
+					canUseTeleportAtStartOfLevel: canUseTeleportAtStartOfLevel,
+					moves: moves);
 
 				this.sessionState.CompleteLevel(
-					level: this.sessionState.CurrentLevel.Value,
+					level: level,
+					difficulty: difficulty,
+					replay: replay,
 					canUseSaveStates: this.gameLogic.CanUseSaveStates,
 					canUseTimeSlowdown: this.gameLogic.CanUseTimeSlowdown,
 					canUseTeleport: this.gameLogic.CanUseTeleport);
@@ -199,12 +233,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 				if (!isLastLevel)
 				{
-					IFrame<GameImage, GameFont, GameSound, GameMusic> newFrame = new OverworldFrame(globalState: this.globalState, sessionState: this.sessionState);
-
-					return new LevelTransitionFrame(
+					return new LevelCompleteFrame(
 						globalState: this.globalState,
-						previousFrame: this,
-						newFrame: newFrame);
+						sessionState: this.sessionState,
+						level: level,
+						difficulty: difficulty,
+						replay: replay,
+						gameFrame: this);
 				}
 
 				return new LevelTransitionFrame(
@@ -245,7 +280,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			GameLogicStateProcessing.Render(
 				gameLogicState: this.gameLogic, 
 				displayOutput: displayOutput, 
-				elapsedMillis: this.sessionState.ElapsedMillis, 
+				elapsedMillis: this.sessionState.ElapsedMillis,
+				showElapsedTime: true,
 				debug_showHitboxes: this.globalState.Debug_ShowHitBoxes);
 		}
 

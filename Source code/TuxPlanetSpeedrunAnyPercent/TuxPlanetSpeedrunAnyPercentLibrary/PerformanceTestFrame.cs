@@ -40,6 +40,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			GameLogicState gameLogic = new GameLogicState(
 				level: Level.Level10,
+				difficulty: Difficulty.Hard,
 				windowWidth: globalState.WindowWidth,
 				windowHeight: globalState.WindowHeight,
 				canUseSaveStates: true,
@@ -171,6 +172,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				gameLogicState: this.gameLogic, 
 				displayOutput: displayOutput, 
 				elapsedMillis: 1, 
+				showElapsedTime: true,
 				debug_showHitboxes: false);
 
 			DateTime endTime = DateTime.Now;

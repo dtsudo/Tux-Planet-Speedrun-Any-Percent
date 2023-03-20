@@ -120,6 +120,7 @@
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Cutscene_YetiBossIntro.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Dialogue.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\DialogueList.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Difficulty.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\ElapsedTimeUtil.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyAddLevelFlag.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\EnemyBlazeborn.cs" />
@@ -190,6 +191,7 @@
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Level.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Level10CoordinatorTilemap.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Level5Tilemap.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelCompleteFrame.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelConfigurationHelper.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelConfiguration_Level1.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelConfiguration_Level10.cs" />
@@ -203,6 +205,7 @@
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelConfiguration_Level9.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelConfiguration_LevelPlaceholder.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelNameDisplay.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelStartFrame.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\LevelTransitionFrame.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\MapData.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\MapDataHelper.cs" />
@@ -224,6 +227,9 @@
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\PauseMenuFrame.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\PerformanceTestFrame.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\PerformanceTestFrameKeyboard.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\Replay.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\ReplayFrame.cs" />
+    <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\ReplayPauseMenuFrame.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SaveAndLoadData.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SessionState.cs" />
     <Compile Include="TuxPlanetSpeedrunAnyPercentLibrary\SoundAndMusicVolumePicker.cs" />

@@ -14,8 +14,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		private Overworld overworld;
 
-		private bool hasStartedLevelTransition;
-
 		public OverworldFrame(GlobalState globalState, SessionState sessionState)
 		{
 			this.globalState = globalState;
@@ -24,8 +22,6 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.extraElapsedMicros = 0;
 
 			this.overworld = sessionState.Overworld;
-
-			this.hasStartedLevelTransition = false;
 		}
 
 		public void ProcessExtraTime(int milliseconds)
@@ -71,10 +67,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				return new PauseMenuFrame(
 					globalState: this.globalState, 
 					sessionState: this.sessionState, 
-					underlyingFrame: this, 
+					underlyingFrame: this,
+					currentLevelForRestartLevelOption: null,
+					currentDifficultyForRestartLevelOption: null,
 					showRestartLevelOption: false, 
 					showBackToMapOption: false,
-					showToggleInputReplayFunctionalityOption: this.sessionState.CanUseSaveStates);
+					showToggleInputReplayFunctionalityOption: this.sessionState.CanUseSaveStates,
+					showBackToTitleScreenOption: true);
 
 			Overworld.Result result = this.overworld.ProcessFrame(
 				keyboardInput: keyboardInput,
@@ -88,29 +87,15 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			Level? level = result.SelectedLevel;
 
-			if (level != null && !this.hasStartedLevelTransition)
+			if (level != null)
 			{
-				this.hasStartedLevelTransition = true;
-
-				this.sessionState.StartLevel(
-					level: level.Value,
-					windowWidth: this.globalState.WindowWidth,
-					windowHeight: this.globalState.WindowHeight,
-					mapInfo: this.globalState.MapInfo);
-
 				this.globalState.SaveData(sessionState: this.sessionState, soundVolume: soundOutput.GetSoundVolume());
 
-				IFrame<GameImage, GameFont, GameSound, GameMusic> newFrame = GameFrame.GetGameFrame(
+				return new LevelStartFrame(
 					globalState: this.globalState,
 					sessionState: this.sessionState,
-					displayProcessing: displayProcessing,
-					soundOutput: soundOutput,
-					musicProcessing: musicProcessing);
-
-				return new LevelTransitionFrame(
-					globalState: this.globalState,
-					previousFrame: this,
-					newFrame: newFrame);
+					level: level.Value,
+					underlyingFrame: this);
 			}
 
 			return this;

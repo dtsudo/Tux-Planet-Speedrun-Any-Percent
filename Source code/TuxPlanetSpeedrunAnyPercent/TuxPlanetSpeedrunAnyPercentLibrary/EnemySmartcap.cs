@@ -7,6 +7,40 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 	public class EnemySmartcap : IEnemy
 	{
+		public class EnemySmartcapSpawn : Tilemap.IExtraEnemyToSpawn
+		{
+			private int xMibi;
+			private int yMibi;
+			private bool isFacingRight;
+			private string enemyId;
+
+			public EnemySmartcapSpawn(
+				int xMibi,
+				int yMibi,
+				bool isFacingRight,
+				string enemyId)
+			{
+				this.xMibi = xMibi;
+				this.yMibi = yMibi;
+				this.isFacingRight = isFacingRight;
+				this.enemyId = enemyId;
+			}
+
+			public IEnemy GetEnemy(int xOffset, int yOffset)
+			{
+				return new EnemySpawnHelper(
+					enemyToSpawn: GetEnemySmartcap(
+						xMibi: this.xMibi + (xOffset << 10),
+						yMibi: this.yMibi + (yOffset << 10),
+						isFacingRight: this.isFacingRight,
+						enemyId: this.enemyId),
+					xMibi: this.xMibi + (xOffset << 10),
+					yMibi: this.yMibi + (yOffset << 10),
+					enemyWidth: 16 * 3,
+					enemyHeight: 18 * 3);
+			}
+		}
+
 		private int xMibi;
 		private int yMibi;
 		private bool isFacingRight;

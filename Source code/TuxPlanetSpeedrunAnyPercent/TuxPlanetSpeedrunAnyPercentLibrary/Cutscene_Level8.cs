@@ -74,6 +74,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int windowWidth,
 			int windowHeight,
 			ITilemap tilemap,
+			Difficulty difficulty,
 			IReadOnlyList<IEnemy> enemies,
 			IReadOnlyList<string> levelFlags)
 		{

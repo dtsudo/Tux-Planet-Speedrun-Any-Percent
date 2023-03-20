@@ -80,7 +80,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 		OceanBackground,
 		Arctis2,
-		CaveBackground
+		CaveBackground,
+
+		Level1Screenshot,
+		Level2Screenshot,
+		Level3Screenshot,
+		Level4Screenshot,
+		Level5Screenshot,
+		Level6Screenshot,
+		Level7Screenshot,
+		Level8Screenshot,
+		Level9Screenshot,
+		Level10Screenshot
 	}
 
 	public static class GameImageUtil
@@ -165,6 +176,17 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				case GameImage.OceanBackground: return "KnoblePersona/ocean.png";
 				case GameImage.Arctis2: return "grumbel/arctis2.png";
 				case GameImage.CaveBackground: return "KelvinShadewing/caveBackground.png";
+
+				case GameImage.Level1Screenshot: return "Screenshots/Level1Screenshot.png";
+				case GameImage.Level2Screenshot: return "Screenshots/Level2Screenshot.png";
+				case GameImage.Level3Screenshot: return "Screenshots/Level3Screenshot.png";
+				case GameImage.Level4Screenshot: return "Screenshots/Level4Screenshot.png";
+				case GameImage.Level5Screenshot: return "Screenshots/Level5Screenshot.png";
+				case GameImage.Level6Screenshot: return "Screenshots/Level6Screenshot.png";
+				case GameImage.Level7Screenshot: return "Screenshots/Level7Screenshot.png";
+				case GameImage.Level8Screenshot: return "Screenshots/Level8Screenshot.png";
+				case GameImage.Level9Screenshot: return "Screenshots/Level9Screenshot.png";
+				case GameImage.Level10Screenshot: return "Screenshots/Level10Screenshot.png";
 
 				default: throw new Exception();
 			}

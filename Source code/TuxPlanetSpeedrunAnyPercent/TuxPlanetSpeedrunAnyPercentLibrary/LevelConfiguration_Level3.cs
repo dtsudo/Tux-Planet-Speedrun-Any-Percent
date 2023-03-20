@@ -10,30 +10,54 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private List<CompositeTilemap.TilemapWithOffset> normalizedTilemaps;
 		private IBackground background;
 
-		private const string LEVEL_SUBFOLDER = "Level3";
+		private const string LEVEL_SUBFOLDER = "Level3/";
 
 		public LevelConfiguration_Level3(
+			Difficulty difficulty,
 			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
 			IDTDeterministicRandom random)
 		{
-			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(mapInfo: mapInfo, random: random);
+			List<CompositeTilemap.TilemapWithOffset> unnormalizedTilemaps = ConstructUnnormalizedTilemaps(
+				difficulty: difficulty,
+				mapInfo: mapInfo, 
+				random: random);
 
 			this.normalizedTilemaps = new List<CompositeTilemap.TilemapWithOffset>(CompositeTilemap.NormalizeTilemaps(tilemaps: unnormalizedTilemaps));
 
 			this.background = new Background_Ocean();
 		}
 
-		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo, IDTDeterministicRandom random)
+		private static List<CompositeTilemap.TilemapWithOffset> ConstructUnnormalizedTilemaps(
+			Difficulty difficulty,
+			IReadOnlyDictionary<string, MapDataHelper.Map> mapInfo,
+			IDTDeterministicRandom random)
 		{
 			GameMusic gameMusic = GameMusic.Chipdisko;
 
 			EnemyIdGenerator enemyIdGenerator = new EnemyIdGenerator();
 
+			string difficultySuffix;
+
+			switch (difficulty)
+			{
+				case Difficulty.Easy:
+					difficultySuffix = "_Easy";
+					break;
+				case Difficulty.Normal:
+					difficultySuffix = "_Normal";
+					break;
+				case Difficulty.Hard:
+					difficultySuffix = "_Hard";
+					break;
+				default:
+					throw new Exception();
+			}
+
 			List<CompositeTilemap.TilemapWithOffset> list = new List<CompositeTilemap.TilemapWithOffset>();
 
 			CompositeTilemap.TilemapWithOffset startTilemap = new CompositeTilemap.TilemapWithOffset(
 				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "/" + "A_Start"],
+					data: mapInfo[LEVEL_SUBFOLDER + "A_Start" + difficultySuffix],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 3 * 128,
@@ -46,9 +70,9 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<MapDataHelper.Map> B_obstaclesMaps = new List<MapDataHelper.Map>()
 			{
-				mapInfo[LEVEL_SUBFOLDER + "/" + "B_Obstacles1"],
-				mapInfo[LEVEL_SUBFOLDER + "/" + "B_Obstacles2"],
-				mapInfo[LEVEL_SUBFOLDER + "/" + "B_Obstacles3"]
+				mapInfo[LEVEL_SUBFOLDER + "B_Obstacles1" + difficultySuffix],
+				mapInfo[LEVEL_SUBFOLDER + "B_Obstacles2" + difficultySuffix],
+				mapInfo[LEVEL_SUBFOLDER + "B_Obstacles3" + difficultySuffix]
 			};
 
 			B_obstaclesMaps.Shuffle(random: random);
@@ -94,8 +118,8 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			List<MapDataHelper.Map> C_obstaclesMaps = new List<MapDataHelper.Map>()
 			{
-				mapInfo[LEVEL_SUBFOLDER + "/" + "C_Obstacles1"],
-				mapInfo[LEVEL_SUBFOLDER + "/" + "C_Obstacles2"]
+				mapInfo[LEVEL_SUBFOLDER + "C_Obstacles1" + difficultySuffix],
+				mapInfo[LEVEL_SUBFOLDER + "C_Obstacles2" + difficultySuffix]
 			};
 
 			C_obstaclesMaps.Shuffle(random: random);
@@ -128,7 +152,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			CompositeTilemap.TilemapWithOffset finishTilemap = new CompositeTilemap.TilemapWithOffset(
 				tilemap: MapDataTilemapGenerator.GetTilemap(
-					data: mapInfo[LEVEL_SUBFOLDER + "/" + "D_Finish"],
+					data: mapInfo[LEVEL_SUBFOLDER + "D_Finish"],
 					enemyIdGenerator: enemyIdGenerator,
 					cutsceneName: null,
 					scalingFactorScaled: 3 * 128,

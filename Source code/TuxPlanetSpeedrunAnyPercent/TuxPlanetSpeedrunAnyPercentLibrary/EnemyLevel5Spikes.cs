@@ -14,12 +14,11 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 		private int endingXMibi;
 		private bool hasSpawnedNextEnemy;
 		private bool? isVisible;
+		private int numPixelsBetweenSpikes;
 		private string enemyIdPrefix;
 		private int enemyGeneratorCounter;
 
 		public string EnemyId { get; private set; }
-
-		private const int NUM_PIXELS_BETWEEN_SPIKES = 4000;
 
 		private EnemyLevel5Spikes(
 			int xMibi,
@@ -29,6 +28,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int endingXMibi,
 			bool hasSpawnedNextEnemy,
 			bool? isVisible,
+			int numPixelsBetweenSpikes,
 			string enemyIdPrefix,
 			int enemyGeneratorCounter,
 			string enemyId)
@@ -40,6 +40,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			this.endingXMibi = endingXMibi;
 			this.hasSpawnedNextEnemy = hasSpawnedNextEnemy;
 			this.isVisible = isVisible;
+			this.numPixelsBetweenSpikes = numPixelsBetweenSpikes;
 			this.enemyIdPrefix = enemyIdPrefix;
 			this.enemyGeneratorCounter = enemyGeneratorCounter;
 			this.EnemyId = enemyId;
@@ -51,6 +52,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 			int endingXMibi,
 			int yMibiBottom,
 			int heightInTiles,
+			int numPixelsBetweenSpikes,
 			string enemyIdPrefix,
 			string enemyId)
 		{
@@ -62,6 +64,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				endingXMibi: endingXMibi,
 				hasSpawnedNextEnemy: false,
 				isVisible: null,
+				numPixelsBetweenSpikes: numPixelsBetweenSpikes,
 				enemyIdPrefix: enemyIdPrefix,
 				enemyGeneratorCounter: 1,
 				enemyId: enemyId);
@@ -121,17 +124,18 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 
 			if (!newHasSpawnedNextEnemy)
 			{
-				if (this.startingXMibi - this.xMibi > (NUM_PIXELS_BETWEEN_SPIKES << 10))
+				if (this.startingXMibi - this.xMibi > (this.numPixelsBetweenSpikes << 10))
 				{
 					newHasSpawnedNextEnemy = true;
 					list.Add(new EnemyLevel5Spikes(
-						xMibi: this.xMibi + (NUM_PIXELS_BETWEEN_SPIKES << 10),
+						xMibi: this.xMibi + (this.numPixelsBetweenSpikes << 10),
 						yMibiBottom: this.yMibiBottom,
 						heightInTiles: this.heightInTiles,
 						startingXMibi: this.startingXMibi,
 						endingXMibi: this.endingXMibi,
 						hasSpawnedNextEnemy: false,
 						isVisible: null,
+						numPixelsBetweenSpikes: this.numPixelsBetweenSpikes,
 						enemyIdPrefix: this.enemyIdPrefix,
 						enemyGeneratorCounter: this.enemyGeneratorCounter + 1,
 						enemyId: this.enemyIdPrefix + this.enemyGeneratorCounter.ToStringCultureInvariant()));
@@ -147,6 +151,7 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 					endingXMibi: this.endingXMibi,
 					hasSpawnedNextEnemy: newHasSpawnedNextEnemy,
 					isVisible: newIsVisible,
+					numPixelsBetweenSpikes: this.numPixelsBetweenSpikes,
 					enemyIdPrefix: this.enemyIdPrefix,
 					enemyGeneratorCounter: this.enemyGeneratorCounter,
 					enemyId: this.EnemyId));

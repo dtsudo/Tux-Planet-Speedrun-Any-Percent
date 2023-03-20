@@ -69,10 +69,13 @@ namespace TuxPlanetSpeedrunAnyPercentLibrary
 				return new PauseMenuFrame(
 					globalState: this.globalState, 
 					sessionState: this.sessionState, 
-					underlyingFrame: this, 
+					underlyingFrame: this,
+					currentLevelForRestartLevelOption: null,
+					currentDifficultyForRestartLevelOption: null,
 					showRestartLevelOption: false, 
 					showBackToMapOption: false,
-					showToggleInputReplayFunctionalityOption: false);
+					showToggleInputReplayFunctionalityOption: false,
+					showBackToTitleScreenOption: true);
 			}
 
 			return this;
