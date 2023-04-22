@@ -65,7 +65,7 @@ namespace TuxPlanetSpeedrunAnyPercent
 				((function () {
 					'use strict';
 					
-					var isWebPortalVersion = false;
+					var isWebPortalVersion = true;
 					
 					var urlParams = (new URL(document.location)).searchParams;
 					
